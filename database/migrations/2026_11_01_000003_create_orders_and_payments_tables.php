@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -54,7 +55,7 @@ return new class extends Migration
         Schema::create('order_items', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('order_id')->constrained()->cascadeOnDelete();
-            $foreignProduct = $table->foreignId('product_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('product_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('product_variant_id')->nullable()->constrained('product_variants')->nullOnDelete();
             $table->string('product_name');
             $table->string('variant_name')->nullable();
@@ -84,9 +85,8 @@ return new class extends Migration
             $table->timestamps();
             $table->index(['driver', 'status']);
         });
-    }
 
-        \\Illuminate\\Support\\Facades\\DB::table('payment_methods')->insert([
+        DB::table('payment_methods')->insert([
             ['name' => 'Zelle', 'code' => 'zelle', 'driver' => 'zelle_manual', 'description' => 'Transferencia Zelle con revisión manual.', 'instructions' => 'Realiza la transferencia y adjunta el comprobante para que podamos verificarla.', 'settings' => json_encode([]), 'is_enabled' => false, 'sort_order' => 1, 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'Efectivo contra entrega', 'code' => 'cash-on-delivery', 'driver' => 'cash_on_delivery', 'description' => 'Paga en efectivo al recibir tu pedido.', 'instructions' => 'El pago se realizará al momento de la entrega.', 'settings' => json_encode([]), 'is_enabled' => true, 'sort_order' => 2, 'created_at' => now(), 'updated_at' => now()],
         ]);

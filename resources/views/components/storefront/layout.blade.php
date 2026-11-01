@@ -4,6 +4,7 @@
     'canonical' => null,
     'ogImage' => null,
     'ogType' => 'website',
+    'robots' => 'index,follow',
 ])
 
 @php($storeSettings = app(\App\Services\Storefront\StorefrontSettings::class)->all())
@@ -16,6 +17,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0B0B0B">
     <meta name="description" content="{{ $description }}">
+    <meta name="robots" content="{{ $robots }}">
     <link rel="canonical" href="{{ $canonicalUrl }}">
     <meta property="og:type" content="{{ $ogType }}">
     <meta property="og:title" content="{{ $title }}">

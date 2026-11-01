@@ -83,7 +83,7 @@ class CheckoutService
                 'tax_amount' => 0,
                 'total_amount' => $subtotal,
                 'status' => Order::STATUS_PENDING,
-                'payment_status' => $method->driver === 'cash_on_delivery' ? 'pending_collection' : 'awaiting_review',
+                'payment_status' => 'awaiting_payment',
                 'placed_at' => now(),
             ]);
 
@@ -106,7 +106,13 @@ class CheckoutService
                 }
             }
 
-            $this->drivers->driver($method->driver)->createPayment($order, $method, $paymentData);
+            $payment = $this->drivers->driver($method->driver)->createPayment($order, $method, $paymentData);
+            $order->update(['payment_status' => match ($payment->status) {
+                'awaiting_review' => 'awaiting_review',
+                'pending_collection' => 'pending_collection',
+                'paid' => 'paid',
+                default => 'awaiting_payment',
+            }]);
             $cart->items()->delete();
 
             return $order->load(['items', 'payments.method']);

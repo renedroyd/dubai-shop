@@ -6,6 +6,7 @@ use App\Filament\Resources\PaymentMethods\Pages\CreatePaymentMethod;
 use App\Filament\Resources\PaymentMethods\Pages\EditPaymentMethod;
 use App\Filament\Resources\PaymentMethods\Pages\ListPaymentMethods;
 use App\Models\PaymentMethod;
+use App\Payments\PaymentDriverManager;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -36,10 +37,10 @@ class PaymentMethodResource extends Resource
         return $schema->components([
             TextInput::make('name')->label('Nombre visible')->required()->maxLength(255),
             TextInput::make('code')->label('Código interno')->required()->alphaDash()->unique(ignoreRecord: true),
-            Select::make('driver')->label('Integración')->options([
-                'zelle_manual' => 'Zelle — validación manual',
-                'cash_on_delivery' => 'Efectivo contra entrega',
-            ])->required()->helperText('Los proveedores adicionales se incorporarán mediante nuevos drivers.'),
+            Select::make('driver')->label('Integración')
+                ->options(fn (): array => app(PaymentDriverManager::class)->options())
+                ->required()
+                ->helperText('Los drivers disponibles se registran en config/payments.php.'),
             Textarea::make('description')->label('Descripción para el cliente')->rows(2),
             Textarea::make('instructions')->label('Instrucciones para el cliente')->rows(3),
             KeyValue::make('settings')->label('Datos de la cuenta / configuración')->keyLabel('Campo')->valueLabel('Valor')

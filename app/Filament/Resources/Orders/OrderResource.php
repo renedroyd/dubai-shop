@@ -50,7 +50,7 @@ class OrderResource extends Resource
             ]),
         ])->defaultSort('placed_at', 'desc')->recordActions([
             Action::make('confirm')->label('Confirmar pedido')->color('success')->requiresConfirmation()
-                ->visible(fn (Order $record): bool => $record->status === Order::STATUS_PENDING && $record->payment_status !== 'awaiting_review')
+                ->visible(fn (Order $record): bool => $record->status === Order::STATUS_PENDING && in_array($record->payment_status, ['pending_collection', 'paid'], true))
                 ->action(fn (Order $record) => $record->update(['status' => Order::STATUS_CONFIRMED, 'confirmed_at' => now()])),
             Action::make('processing')->label('Preparar')->visible(fn (Order $record): bool => $record->status === Order::STATUS_CONFIRMED)
                 ->action(fn (Order $record) => $record->update(['status' => Order::STATUS_PROCESSING])),
@@ -59,8 +59,10 @@ class OrderResource extends Resource
             Action::make('deliver')->label('Marcar entregado')->color('success')->requiresConfirmation()
                 ->visible(fn (Order $record): bool => $record->status === Order::STATUS_SHIPPED)
                 ->action(function (Order $record): void {
-                    app(OrderInventoryService::class)->fulfill($record);
-                    $record->update(['status' => Order::STATUS_DELIVERED]);
+                    DB::transaction(function () use ($record): void {
+                        app(OrderInventoryService::class)->fulfill($record);
+                        $record->update(['status' => Order::STATUS_DELIVERED]);
+                    });
                 }),
             Action::make('cancel')->label('Cancelar pedido')->color('danger')->requiresConfirmation()
                 ->visible(fn (Order $record): bool => in_array($record->status, [Order::STATUS_PENDING, Order::STATUS_CONFIRMED, Order::STATUS_PROCESSING], true))

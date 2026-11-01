@@ -42,10 +42,16 @@ class CartService
             );
             $cart = Cart::query()->whereKey($cart->id)->lockForUpdate()->firstOrFail();
 
-            if ($cart->items()->exists() && $cart->currency !== $currency) {
+            $hasItems = $cart->items()->exists();
+
+            if ($hasItems && $cart->currency !== $currency) {
                 throw ValidationException::withMessages([
                     'product_id' => 'No se pueden mezclar monedas diferentes en el mismo carrito.',
                 ]);
+            }
+
+            if (! $hasItems && $cart->currency !== $currency) {
+                $cart->update(['currency' => $currency]);
             }
 
             $lineKey = $variant ? 'variant:'.$variant->id : 'product:'.$product->id;

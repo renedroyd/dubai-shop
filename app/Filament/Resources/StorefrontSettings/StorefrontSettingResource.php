@@ -35,7 +35,7 @@ class StorefrontSettingResource extends Resource
     {
         return $schema->components([
             TextInput::make('label')->label('Nombre del campo')->required()->maxLength(255),
-            TextInput::make('key')->label('Clave interna')->required()->alphaDash()->unique(ignoreRecord: true)
+            TextInput::make('key')->label('Clave interna')->required()->rules(['regex:/^[a-zA-Z0-9_.-]+$/'])->unique(ignoreRecord: true)
                 ->helperText('Usa puntos para agrupar claves, por ejemplo home.hero_title.'),
             Select::make('group')->label('Sección')->options([
                 'general' => 'General',

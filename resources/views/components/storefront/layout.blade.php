@@ -1,6 +1,9 @@
 @props([
     'title' => 'Dubai Shop | Compra con estilo',
     'description' => 'Descubre una selección especial de productos en Dubai Shop.',
+    'canonical' => null,
+    'ogImage' => null,
+    'ogType' => 'website',
 ])
 
 @php($storeSettings = app(\App\Services\Storefront\StorefrontSettings::class)->all())
@@ -12,6 +15,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0B0B0B">
     <meta name="description" content="{{ $description }}">
+    <link rel="canonical" href="{{ $canonicalUrl }}">
+    <meta property="og:type" content="{{ $ogType }}">
+    <meta property="og:title" content="{{ $title }}">
+    <meta property="og:description" content="{{ $description }}">
+    <meta property="og:url" content="{{ $canonicalUrl }}">
+    <meta name="twitter:card" content="{{ $ogImage ? 'summary_large_image' : 'summary' }}">
+    @if ($ogImage)
+        <meta property="og:image" content="{{ str_starts_with($ogImage, 'http') ? $ogImage : url($ogImage) }}">
+        <meta name="twitter:image" content="{{ str_starts_with($ogImage, 'http') ? $ogImage : url($ogImage) }}">
+    @endif
     <title>{{ $title }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

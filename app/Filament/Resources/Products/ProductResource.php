@@ -12,6 +12,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\KeyValue;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
@@ -73,7 +74,7 @@ class ProductResource extends Resource
                     TextInput::make('name')->label('Nombre')->required()->maxLength(255),
                     TextInput::make('sku')->label('SKU')->required()->maxLength(100),
                     TextInput::make('price_amount')->label('Precio propio (centavos)')->numeric()->integer()->minValue(0),
-                    TextInput::make('options')->label('Opciones (JSON)')->helperText('Ejemplo: {"color":"Negro","talla":"M"}')->dehydrateStateUsing(fn ($state) => filled($state) ? json_decode($state, true, flags: JSON_THROW_ON_ERROR) : null)->formatStateUsing(fn ($state) => is_array($state) ? json_encode($state, JSON_UNESCAPED_UNICODE) : $state),
+                    KeyValue::make('options')->label('Opciones')->keyLabel('Atributo')->valueLabel('Valor')->addable()->reorderable(false),
                     Toggle::make('is_active')->label('Activa')->default(true),
                     TextInput::make('sort_order')->label('Orden')->numeric()->integer()->default(0),
                 ])->columns(2)->reorderable('sort_order')->collapsible()->defaultItems(0),

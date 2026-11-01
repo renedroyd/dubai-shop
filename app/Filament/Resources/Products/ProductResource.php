@@ -67,7 +67,7 @@ class ProductResource extends Resource
                     TextInput::make('alt_text')->label('Texto alternativo')->maxLength(255),
                     TextInput::make('sort_order')->label('Orden')->numeric()->integer()->default(0),
                     Toggle::make('is_primary')->label('Imagen principal')->default(false),
-                ])->columns(2)->reorderable('sort_order')->collapsible()->defaultItems(0),
+                ])->columns(2)->orderColumn('sort_order')->collapsible()->defaultItems(0),
             ]),
             Section::make('Variantes')->description('Opciones como talla, color o presentación. El control de existencias se incorporará en la fase de inventario.')->schema([
                 Repeater::make('variants')->relationship()->label('Variantes')->schema([

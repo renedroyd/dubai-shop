@@ -15,7 +15,11 @@ class CommerceOverview extends StatsOverviewWidget
         $salesThisMonth = Order::query()
             ->where('payment_status', 'paid')
             ->whereBetween('placed_at', [now()->startOfMonth(), now()->endOfMonth()])
-            ->sum('total_amount');
+            ->selectRaw('currency, SUM(total_amount) as total')
+            ->groupBy('currency')
+            ->get()
+            ->map(fn ($row): string => number_format($row->total / 100, 2).' '.$row->currency)
+            ->implode(' · ');
 
         return [
             Stat::make('Pedidos de hoy', Order::query()->whereDate('placed_at', today())->count())
@@ -25,7 +29,7 @@ class CommerceOverview extends StatsOverviewWidget
                 ->description('Comprobantes pendientes de validación')
                 ->descriptionIcon('heroicon-m-clock')
                 ->color('warning'),
-            Stat::make('Ventas cobradas este mes', number_format($salesThisMonth / 100, 2).' USD')
+            Stat::make('Ventas cobradas este mes', ($salesThisMonth ?: '0.00'))
                 ->description('Suma de pedidos marcados como pagados')
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color('success'),

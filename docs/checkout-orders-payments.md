@@ -42,3 +42,10 @@ No se almacenan datos de tarjetas. Las credenciales privadas de futuras pasarela
 - Zelle se crea deshabilitado hasta que se configuren y verifiquen los datos del destinatario.
 - No se integra todavía una pasarela externa ni se reciben webhooks.
 - No se implementa aún el correo transaccional; la pantalla de confirmación muestra el estado del pedido.
+
+
+## Registro dinámico de integraciones
+
+El panel no mantiene una lista fija de proveedores. El selector de integración se genera desde payments.drivers; cada nuevo driver que implemente PaymentDriver aparecerá automáticamente en Filament. El mapa opcional payments.labels permite definir el nombre legible que verá el administrador.
+
+Las credenciales de pasarelas externas deben mantenerse en configuración privada/variables de entorno o un gestor de secretos. El arreglo settings del método de pago se reserva para información pública que puede mostrarse al cliente durante el checkout; nunca debe contener claves secretas, tokens privados ni credenciales de API.

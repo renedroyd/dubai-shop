@@ -109,7 +109,7 @@ class CartService
                 ]);
             }
 
-            $hasOtherItems = $cart->items()->whereKeyNot($lockedItem->id)->exists();
+            $hasOtherItems = $cart->items()->where('id', '<>', $lockedItem->id)->exists();
 
             if ($hasOtherItems && $cart->currency !== $product->currency) {
                 throw ValidationException::withMessages([

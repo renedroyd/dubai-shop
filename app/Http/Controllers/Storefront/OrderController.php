@@ -4,12 +4,11 @@ namespace App\Http\Controllers\Storefront;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class OrderController extends Controller
 {
-    public function show(Request $request, string $order, string $token): Response
+    public function show(string $order, string $token): Response
     {
         $record = Order::query()->where('number', $order)->firstOrFail();
         abort_unless(hash_equals($record->public_token_hash, hash('sha256', $token)), 404);

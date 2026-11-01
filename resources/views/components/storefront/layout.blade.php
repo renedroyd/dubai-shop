@@ -41,6 +41,7 @@
             </nav>
 
             <div class="site-header__actions">
+                <a class="header-link" href="{{ route('cart.index') }}">Carrito</a>
                 <a class="header-link" href="#colecciones">
                     <x-storefront.icon name="search" :size="18" />
                     <span>Explorar</span>
@@ -56,6 +57,7 @@
                 </summary>
                 <nav aria-label="Navegación móvil">
                     <a href="{{ route('products.index') }}">Productos</a>
+                    <a href="{{ route('cart.index') }}">Carrito</a>
                     <a href="#colecciones">Colecciones</a>
                     <a href="#experiencia">Nuestra esencia</a>
                     <a href="#beneficios">Por qué elegirnos</a>

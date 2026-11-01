@@ -56,7 +56,7 @@ class ProductController extends Controller
         $relatedProducts = Product::query()
             ->published()
             ->where('category_id', $product->category_id)
-            ->whereKeyNot($product->id)
+            ->where('id', '<>', $product->id)
             ->with(['images', 'brand'])
             ->latest()
             ->limit(4)

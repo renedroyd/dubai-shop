@@ -40,6 +40,11 @@ class InventoryService
             );
 
             $inventory = Inventory::query()->whereKey($inventory->id)->lockForUpdate()->firstOrFail();
+
+            if ($quantity < $inventory->quantity_reserved) {
+                throw new InvalidArgumentException('La existencia no puede ser inferior a las unidades reservadas.');
+            }
+
             $delta = $quantity - $inventory->quantity_on_hand;
 
             if ($delta !== 0) {

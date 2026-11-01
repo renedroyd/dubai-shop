@@ -3,7 +3,7 @@
     'description' => 'Descubre una selección especial de productos en Dubai Shop.',
 ])
 
-@php($storeSettings = app(\\App\\Services\\Storefront\\StorefrontSettings::class)->all())
+@php($storeSettings = app(\App\Services\Storefront\StorefrontSettings::class)->all())
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -78,7 +78,7 @@
             <div class="site-footer__brand">
                 <a href="{{ url('/') }}" class="brand brand--footer" aria-label="Dubai Shop, inicio">
                     <span class="brand__mark">D<span>.</span></span>
-                    <span class="brand__wordmark">DUBAI <span>SHOP</span></span>
+                    <span class="brand__wordmark">{{ strtoupper($storeSettings['site_name'] ?? 'DUBAI SHOP') }}</span>
                 </a>
                 <p>{{ $storeSettings['footer_description'] ?? 'Una experiencia de compra creada alrededor de los detalles que hacen la diferencia.' }}</p>
             </div>

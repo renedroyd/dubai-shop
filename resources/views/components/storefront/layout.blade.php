@@ -7,6 +7,7 @@
 ])
 
 @php($storeSettings = app(\App\Services\Storefront\StorefrontSettings::class)->all())
+@php($canonicalUrl = $canonical ?: request()->url())
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">

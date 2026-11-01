@@ -98,6 +98,11 @@ class CheckoutPaymentsTest extends TestCase
         $this->assertNotNull($payment->proof_path);
         Storage::disk('local')->assertExists($payment->proof_path);
         $this->assertSame('awaiting_review', $payment->order->payment_status);
+        $this->assertDatabaseHas('payment_events', [
+            'payment_id' => $payment->id,
+            'from_status' => null,
+            'to_status' => Payment::STATUS_AWAITING_REVIEW,
+        ]);
     }
 
     public function test_order_confirmation_requires_the_secret_access_token(): void
@@ -174,6 +179,85 @@ class CheckoutPaymentsTest extends TestCase
             ->assertHeader('Pragma', 'no-cache')
             ->assertHeader('Referrer-Policy', 'no-referrer')
             ->assertSee('name="robots" content="noindex,nofollow"', false);
+    }
+
+
+    public function test_zelle_approval_updates_order_and_records_the_reviewer_decision(): void
+    {
+        Storage::fake('local');
+        $this->withoutVite();
+        $this->addProductToCart($this->product());
+        $method = PaymentMethod::query()->where('driver', 'zelle_manual')->firstOrFail();
+        $method->update(['is_enabled' => true]);
+
+        $this->post(route('checkout.store'), [
+            ...$this->customerData($method),
+            'payment_proof' => UploadedFile::fake()->create('receipt.pdf', 40, 'application/pdf'),
+        ]);
+
+        $payment = Payment::query()->firstOrFail();
+        app(\App\Services\Payments\PaymentStatusService::class)->approve($payment, null, 'Transferencia verificada.');
+
+        $this->assertSame(Payment::STATUS_PAID, $payment->fresh()->status);
+        $this->assertSame('paid', $payment->order->fresh()->payment_status);
+        $this->assertSame(Order::STATUS_CONFIRMED, $payment->order->fresh()->status);
+        $this->assertDatabaseHas('payment_events', [
+            'payment_id' => $payment->id,
+            'from_status' => Payment::STATUS_AWAITING_REVIEW,
+            'to_status' => Payment::STATUS_PAID,
+            'note' => 'Transferencia verificada.',
+        ]);
+    }
+
+    public function test_zelle_rejection_updates_payment_and_records_reason(): void
+    {
+        Storage::fake('local');
+        $this->withoutVite();
+        $this->addProductToCart($this->product());
+        $method = PaymentMethod::query()->where('driver', 'zelle_manual')->firstOrFail();
+        $method->update(['is_enabled' => true]);
+
+        $this->post(route('checkout.store'), [
+            ...$this->customerData($method),
+            'payment_proof' => UploadedFile::fake()->create('receipt.pdf', 40, 'application/pdf'),
+        ]);
+
+        $payment = Payment::query()->firstOrFail();
+        app(\App\Services\Payments\PaymentStatusService::class)->reject($payment, null, 'No coincide el importe.');
+
+        $this->assertSame(Payment::STATUS_REJECTED, $payment->fresh()->status);
+        $this->assertSame('payment_rejected', $payment->order->fresh()->payment_status);
+        $this->assertDatabaseHas('payment_events', [
+            'payment_id' => $payment->id,
+            'to_status' => Payment::STATUS_REJECTED,
+            'note' => 'No coincide el importe.',
+        ]);
+    }
+
+    public function test_cash_collection_confirmation_is_audited_and_cannot_be_repeated(): void
+    {
+        $this->withoutVite();
+        $this->addProductToCart($this->product());
+        $method = PaymentMethod::query()->where('driver', 'cash_on_delivery')->firstOrFail();
+        $this->post(route('checkout.store'), $this->customerData($method));
+
+        $payment = Payment::query()->firstOrFail();
+        $service = app(\App\Services\Payments\PaymentStatusService::class);
+        $service->confirmCollection($payment, null, 'Efectivo recibido.');
+        $this->assertSame(Payment::STATUS_PAID, $payment->fresh()->status);
+        $this->assertDatabaseHas('payment_events', [
+            'payment_id' => $payment->id,
+            'from_status' => Payment::STATUS_PENDING_COLLECTION,
+            'to_status' => Payment::STATUS_PAID,
+            'note' => 'Efectivo recibido.',
+        ]);
+
+        try {
+            $service->confirmCollection($payment->fresh());
+            $this->fail('No se debe permitir confirmar el mismo cobro dos veces.');
+        } catch (\Illuminate\Validation\ValidationException) {
+            $this->assertDatabaseCount('payment_events', 2);
+        }
     }
 
 }

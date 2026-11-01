@@ -1,6 +1,7 @@
 <x-storefront.layout
     title="Carrito | Dubai Shop"
     description="Revisa los productos seleccionados antes de continuar."
+    robots="noindex,nofollow"
 >
     <section class="catalog-hero">
         <div class="page-container">

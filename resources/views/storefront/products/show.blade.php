@@ -5,8 +5,8 @@
     :ogType="'product'"
     :ogImage="$product->images->first() ? \Illuminate\Support\Facades\Storage::url($product->images->first()->path) : null"
 >
-    @push('head')
-        <script type="application/ld+json">@json([
+    @php
+        $productStructuredData = [
             '@context' => 'https://schema.org',
             '@type' => 'Product',
             'name' => $product->name,
@@ -20,7 +20,10 @@
                 'priceCurrency' => $product->currency,
                 'price' => number_format($product->price_amount / 100, 2, '.', ''),
             ],
-        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)</script>
+        ];
+    @endphp
+    @push('head')
+        <script type="application/ld+json">{!! json_encode($productStructuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}</script>
     @endpush
 
     <section class="product-detail page-container">

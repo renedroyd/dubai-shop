@@ -24,6 +24,7 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table): void {
             $table->id();
             $table->string('number', 32)->unique();
+            $table->char('public_token_hash', 64)->unique();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->string('customer_name');
             $table->string('customer_email');
@@ -83,6 +84,12 @@ return new class extends Migration
             $table->timestamps();
             $table->index(['driver', 'status']);
         });
+    }
+
+        \\Illuminate\\Support\\Facades\\DB::table('payment_methods')->insert([
+            ['name' => 'Zelle', 'code' => 'zelle', 'driver' => 'zelle_manual', 'description' => 'Transferencia Zelle con revisión manual.', 'instructions' => 'Realiza la transferencia y adjunta el comprobante para que podamos verificarla.', 'settings' => json_encode([]), 'is_enabled' => false, 'sort_order' => 1, 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'Efectivo contra entrega', 'code' => 'cash-on-delivery', 'driver' => 'cash_on_delivery', 'description' => 'Paga en efectivo al recibir tu pedido.', 'instructions' => 'El pago se realizará al momento de la entrega.', 'settings' => json_encode([]), 'is_enabled' => true, 'sort_order' => 2, 'created_at' => now(), 'updated_at' => now()],
+        ]);
     }
 
     public function down(): void

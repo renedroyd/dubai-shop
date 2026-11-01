@@ -6,6 +6,9 @@ use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\PaymentMethod;
+use App\Models\Inventory;
+use App\Services\Inventory\InventoryService;
+use App\Services\Orders\OrderInventoryService;
 use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -114,4 +117,46 @@ class CheckoutPaymentsTest extends TestCase
         $this->withoutVite();
         $this->get(route('checkout.create'))->assertRedirect(route('cart.index'));
     }
+
+    public function test_checkout_reserves_tracked_stock_until_delivery_or_cancellation(): void
+    {
+        $this->withoutVite();
+        $product = $this->product();
+        $inventory = app(InventoryService::class)->setOnHand($product, 5, reason: 'Stock inicial');
+        $this->addProductToCart($product);
+        $method = PaymentMethod::query()->where('driver', 'cash_on_delivery')->firstOrFail();
+
+        $this->post(route('checkout.store'), $this->customerData($method));
+        $order = Order::query()->firstOrFail();
+        $this->assertSame(2, $inventory->fresh()->quantity_reserved);
+        $this->assertSame(3, $inventory->fresh()->available_quantity);
+
+        app(OrderInventoryService::class)->release($order);
+        $this->assertSame(0, $inventory->fresh()->quantity_reserved);
+        $this->assertSame(5, $inventory->fresh()->quantity_on_hand);
+        $this->assertNotNull($order->fresh()->inventory_processed_at);
+    }
+
+    public function test_fulfilling_order_deducts_reserved_stock_once(): void
+    {
+        $this->withoutVite();
+        $product = $this->product();
+        $inventory = app(InventoryService::class)->setOnHand($product, 5, reason: 'Stock inicial');
+        $this->addProductToCart($product);
+        $method = PaymentMethod::query()->where('driver', 'cash_on_delivery')->firstOrFail();
+        $this->post(route('checkout.store'), $this->customerData($method));
+        $order = Order::query()->firstOrFail();
+
+        app(OrderInventoryService::class)->fulfill($order);
+        app(OrderInventoryService::class)->fulfill($order->fresh());
+
+        $this->assertSame(3, $inventory->fresh()->quantity_on_hand);
+        $this->assertSame(0, $inventory->fresh()->quantity_reserved);
+        $this->assertDatabaseHas('inventory_movements', [
+            'inventory_id' => $inventory->id,
+            'type' => 'sale',
+            'quantity_delta' => -2,
+        ]);
+    }
+
 }

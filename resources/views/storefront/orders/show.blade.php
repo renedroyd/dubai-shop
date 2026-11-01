@@ -1,4 +1,4 @@
-<x-storefront.layout title="Pedido {{ $order->number }} | Dubai Shop" description="Consulta el estado y los detalles de tu pedido.">
+<x-storefront.layout title="Pedido {{ $order->number }} | Dubai Shop" description="Consulta el estado y los detalles de tu pedido." robots="noindex,nofollow">
     <section class="catalog-hero"><div class="page-container"><span class="eyebrow eyebrow--light"><span></span> PEDIDO REGISTRADO</span><h1>Gracias por tu <em>compra.</em></h1><p>Tu número de pedido es {{ $order->number }}.</p></div></section>
     <section class="catalog-section page-container">
         <div class="order-confirmation">

@@ -11,7 +11,7 @@ class PaymentMethod extends Model
 
     protected function casts(): array
     {
-        return ['settings' => 'encrypted:array', 'is_enabled' => 'boolean', 'sort_order' => 'integer'];
+        return ['settings' => 'array', 'is_enabled' => 'boolean', 'sort_order' => 'integer'];
     }
 
     public function payments(): HasMany

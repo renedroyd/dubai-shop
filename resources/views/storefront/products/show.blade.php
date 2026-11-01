@@ -3,7 +3,7 @@
     :description="$product->meta_description ?: ($product->short_description ?: 'Descubre '.$product->name.' en Dubai Shop.')"
     :canonical="route('products.show', $product)"
     :ogType="'product'"
-    :ogImage="$product->images->first() ? \\Illuminate\\Support\\Facades\\Storage::url($product->images->first()->path) : null"
+    :ogImage="$product->images->first() ? \Illuminate\Support\Facades\Storage::url($product->images->first()->path) : null"
 >
     @push('head')
         <script type="application/ld+json">@json([
@@ -12,7 +12,7 @@
             'name' => $product->name,
             'description' => $product->meta_description ?: ($product->short_description ?: $product->name),
             'sku' => $product->sku,
-            'image' => $product->images->map(fn ($image) => url(\\Illuminate\\Support\\Facades\\Storage::url($image->path)))->values()->all(),
+            'image' => $product->images->map(fn ($image) => url(\Illuminate\Support\Facades\Storage::url($image->path)))->values()->all(),
             'brand' => ['@type' => 'Brand', 'name' => $product->brand?->name ?? 'Dubai Shop'],
             'offers' => [
                 '@type' => 'Offer',

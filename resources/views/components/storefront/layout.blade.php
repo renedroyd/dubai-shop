@@ -3,6 +3,8 @@
     'description' => 'Descubre una selección especial de productos en Dubai Shop.',
 ])
 
+@php($storeSettings = app(\\App\\Services\\Storefront\\StorefrontSettings::class)->all())
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -22,7 +24,7 @@
 
     <div class="announcement-bar">
         <span class="announcement-bar__sparkle" aria-hidden="true">✦</span>
-        <p>Una selección especial. Una experiencia diferente.</p>
+        <p>{{ $storeSettings['announcement_text'] ?? 'Una selección especial. Una experiencia diferente.' }}</p>
         <span class="announcement-bar__sparkle" aria-hidden="true">✦</span>
     </div>
 
@@ -30,7 +32,7 @@
         <div class="site-header__inner">
             <a href="{{ url('/') }}" class="brand" aria-label="Dubai Shop, inicio">
                 <span class="brand__mark">D<span>.</span></span>
-                <span class="brand__wordmark">DUBAI <span>SHOP</span></span>
+                <span class="brand__wordmark">{{ strtoupper($storeSettings['site_name'] ?? 'DUBAI SHOP') }}</span>
             </a>
 
             <nav class="desktop-nav" aria-label="Navegación principal">
@@ -78,7 +80,7 @@
                     <span class="brand__mark">D<span>.</span></span>
                     <span class="brand__wordmark">DUBAI <span>SHOP</span></span>
                 </a>
-                <p>Una experiencia de compra creada alrededor de los detalles que hacen la diferencia.</p>
+                <p>{{ $storeSettings['footer_description'] ?? 'Una experiencia de compra creada alrededor de los detalles que hacen la diferencia.' }}</p>
             </div>
 
             <div class="site-footer__column">

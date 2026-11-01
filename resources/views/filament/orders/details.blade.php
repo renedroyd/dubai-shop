@@ -23,7 +23,11 @@
         @foreach ($order->payments as $payment)
             <p>{{ $payment->method?->name ?? $payment->driver }} — {{ $payment->status }} — {{ number_format($payment->amount / 100, 2) }} {{ $payment->currency }}</p>
             @if ($payment->reference)<p>Referencia: {{ $payment->reference }}</p>@endif
-            @if ($payment->customer_note)<p>Nota: {{ $payment->customer_note }}</p>@endif
+            @if ($payment->customer_note)<p>Nota del cliente: {{ $payment->customer_note }}</p>@endif
+            @if ($payment->review_note)<p>Nota de revisión: {{ $payment->review_note }}</p>@endif
+            @foreach ($payment->events as $event)
+                <p class="text-xs text-gray-500">{{ $event->created_at->format('Y-m-d H:i') }} · {{ $event->from_status ?? 'creado' }} → {{ $event->to_status }} · {{ $event->note }}</p>
+            @endforeach
         @endforeach
     </section>
 </div>

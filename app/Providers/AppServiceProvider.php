@@ -7,17 +7,17 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
-        $this->app->singleton(PaymentDriverManager::class, fn () => new PaymentDriverManager(config('payments.drivers', [])));
+        $this->app->singleton(
+            PaymentDriverManager::class,
+            fn () => new PaymentDriverManager(
+                config('payments.drivers', []),
+                config('payments.labels', []),
+            ),
+        );
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         //

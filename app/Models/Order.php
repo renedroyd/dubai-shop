@@ -16,7 +16,7 @@ class Order extends Model
     public const STATUS_CANCELLED = 'cancelled';
 
     protected $fillable = [
-        'number', 'user_id', 'customer_name', 'customer_email', 'customer_phone',
+        'number', 'public_token_hash', 'user_id', 'customer_name', 'customer_email', 'customer_phone',
         'shipping_address', 'shipping_address_line_2', 'shipping_city', 'shipping_region',
         'shipping_postal_code', 'shipping_country', 'customer_note', 'currency',
         'subtotal_amount', 'shipping_amount', 'tax_amount', 'total_amount',

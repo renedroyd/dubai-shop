@@ -36,7 +36,7 @@ jobs:
           coverage: none
           tools: composer:v2
       - name: Refresh lock metadata for declared platform
-        run: composer update --lock --no-install --no-interaction
+        run: composer update --lock --no-install --no-interaction --no-scripts
       - name: Validate Composer configuration
         run: composer validate --no-check-publish
       - name: Install PHP dependencies

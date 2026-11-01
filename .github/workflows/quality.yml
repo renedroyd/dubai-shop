@@ -47,6 +47,12 @@ jobs:
           php artisan key:generate
       - name: Run test suite
         run: php artisan test
+      - name: Verify production caches
+        run: |
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+          php artisan optimize:clear
 
   frontend:
     name: Frontend assets

@@ -107,6 +107,11 @@ class CheckoutService
             }
 
             $payment = $this->drivers->driver($method->driver)->createPayment($order, $method, $paymentData);
+            $payment->events()->create([
+                'from_status' => null,
+                'to_status' => $payment->status,
+                'note' => 'Pago creado durante el checkout.',
+            ]);
             $order->update(['payment_status' => match ($payment->status) {
                 'awaiting_review' => 'awaiting_review',
                 'pending_collection' => 'pending_collection',

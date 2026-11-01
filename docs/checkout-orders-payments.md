@@ -49,3 +49,8 @@ No se almacenan datos de tarjetas. Las credenciales privadas de futuras pasarela
 El panel no mantiene una lista fija de proveedores. El selector de integración se genera desde payments.drivers; cada nuevo driver que implemente PaymentDriver aparecerá automáticamente en Filament. El mapa opcional payments.labels permite definir el nombre legible que verá el administrador.
 
 Las credenciales de pasarelas externas deben mantenerse en configuración privada/variables de entorno o un gestor de secretos. El arreglo settings del método de pago se reserva para información pública que puede mostrarse al cliente durante el checkout; nunca debe contener claves secretas, tokens privados ni credenciales de API.
+
+
+## Auditoría del ciclo de vida del pago
+
+Cada pago registra eventos inmutables de creación, aprobación, rechazo o confirmación de cobro. Cada evento conserva estado anterior, estado nuevo, actor administrativo (si aplica), fecha y nota de revisión. Las transiciones se centralizan en PaymentStatusService y se ejecutan con bloqueos transaccionales para impedir dobles confirmaciones o cambios sobre pedidos no elegibles.

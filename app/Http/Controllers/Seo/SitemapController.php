@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Seo;
 
 use App\Http\Controllers\Controller;
-use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Response;
 
@@ -23,12 +22,6 @@ class SitemapController extends Controller
             'priority' => '0.8',
         ]));
 
-        $urls = $urls->concat(Category::query()->where('is_active', true)->get(['slug', 'updated_at'])->map(fn (Category $category): array => [
-            'loc' => route('products.index', ['category' => $category->slug]),
-            'lastmod' => $category->updated_at?->toAtomString(),
-            'changefreq' => 'weekly',
-            'priority' => '0.6',
-        ]));
 
         return response()
             ->view('seo.sitemap', ['urls' => $urls])

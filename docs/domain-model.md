@@ -1,6 +1,6 @@
 # Dubai Shop — Modelo de dominio propuesto
 
-Este documento define el mapa lógico inicial. No implica que las tablas ya existan. Las migraciones se incorporarán junto con los casos de uso de cada fase para evitar esquemas especulativos difíciles de evolucionar.
+Este documento define el mapa lógico de la aplicación. El catálogo base (categorías, marcas, productos, imágenes y variantes) ya cuenta con migraciones y modelos en la Fase 3. Los demás contextos se implementarán junto con sus casos de uso para evitar esquemas especulativos difíciles de evolucionar.
 
 ## Catálogo
 - **categories:** nombre, slug único, descripción, imagen, categoría padre nullable, estado y orden.

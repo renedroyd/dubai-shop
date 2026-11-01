@@ -34,6 +34,7 @@
             </a>
 
             <nav class="desktop-nav" aria-label="Navegación principal">
+                <a href="{{ route('products.index') }}">Productos</a>
                 <a href="#colecciones">Colecciones</a>
                 <a href="#experiencia">Nuestra esencia</a>
                 <a href="#beneficios">Por qué elegirnos</a>
@@ -45,7 +46,7 @@
                     <span>Explorar</span>
                 </a>
                 <a class="header-cta" href="#colecciones">
-                    Descubrir <x-storefront.icon name="arrow-up-right" :size="16" />
+                    Ver productos <x-storefront.icon name="arrow-up-right" :size="16" />
                 </a>
             </div>
 
@@ -54,6 +55,7 @@
                     <x-storefront.icon name="menu" :size="22" />
                 </summary>
                 <nav aria-label="Navegación móvil">
+                    <a href="{{ route('products.index') }}">Productos</a>
                     <a href="#colecciones">Colecciones</a>
                     <a href="#experiencia">Nuestra esencia</a>
                     <a href="#beneficios">Por qué elegirnos</a>

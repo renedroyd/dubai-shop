@@ -18,13 +18,13 @@ class CheckoutService
 {
     public function __construct(private readonly PaymentDriverManager $drivers) {}
 
-    public function placeOrder(Cart $cart, array $customer, PaymentMethod $method, array $paymentData): Order
+    public function placeOrder(Cart $cart, array $customer, PaymentMethod $method, array $paymentData, string $publicToken): Order
     {
         if ($cart->items->isEmpty()) {
             throw ValidationException::withMessages(['cart' => 'Tu carrito está vacío.']);
         }
 
-        return DB::transaction(function () use ($cart, $customer, $method, $paymentData): Order {
+        return DB::transaction(function () use ($cart, $customer, $method, $paymentData, $publicToken): Order {
             $lines = [];
             $subtotal = 0;
 
@@ -72,6 +72,7 @@ class CheckoutService
 
             $order = Order::query()->create([
                 'number' => 'DS-'.now()->format('ymd').'-'.Str::upper(Str::random(8)),
+                'public_token_hash' => hash('sha256', $publicToken),
                 'user_id' => auth()->id(),
                 ...$customer,
                 'currency' => $cart->currency,

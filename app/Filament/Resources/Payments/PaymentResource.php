@@ -5,13 +5,13 @@ namespace App\Filament\Resources\Payments;
 use App\Filament\Resources\Payments\Pages\ListPayments;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Services\Payments\PaymentStatusService;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use UnitEnum;
 
@@ -58,35 +58,25 @@ class PaymentResource extends Resource
                 ->action(fn (Payment $record) => response()->download(Storage::disk('local')->path($record->proof_path))),
             Action::make('approve')->label('Aprobar pago')->color('success')->requiresConfirmation()
                 ->visible(fn (Payment $record): bool => $record->status === Payment::STATUS_AWAITING_REVIEW && $record->order?->status === Order::STATUS_PENDING)
-                ->action(function (Payment $record): void {
-                    DB::transaction(function () use ($record): void {
-                        $payment = Payment::query()->lockForUpdate()->findOrFail($record->id);
-                        $payment->update(['status' => Payment::STATUS_PAID, 'reviewed_by' => auth()->id(), 'reviewed_at' => now()]);
-                        $payment->order()->update([
-                            'payment_status' => 'paid',
-                            'status' => Order::STATUS_CONFIRMED,
-                            'confirmed_at' => now(),
-                        ]);
-                    });
-                }),
+                ->action(fn (Payment $record) => app(PaymentStatusService::class)->approve(
+                    $record,
+                    auth()->id(),
+                    'Aprobado manualmente desde Filament.',
+                )),
             Action::make('reject')->label('Rechazar')->color('danger')->requiresConfirmation()
-                ->visible(fn (Payment $record): bool => $record->status === Payment::STATUS_AWAITING_REVIEW)
-                ->action(function (Payment $record): void {
-                    DB::transaction(function () use ($record): void {
-                        $payment = Payment::query()->lockForUpdate()->findOrFail($record->id);
-                        $payment->update(['status' => Payment::STATUS_REJECTED, 'reviewed_by' => auth()->id(), 'reviewed_at' => now()]);
-                        $payment->order()->update(['payment_status' => 'payment_rejected']);
-                    });
-                }),
+                ->visible(fn (Payment $record): bool => $record->status === Payment::STATUS_AWAITING_REVIEW && $record->order?->status === Order::STATUS_PENDING)
+                ->action(fn (Payment $record) => app(PaymentStatusService::class)->reject(
+                    $record,
+                    auth()->id(),
+                    'Rechazado manualmente desde Filament.',
+                )),
             Action::make('confirmCollection')->label('Confirmar cobro')->color('success')->requiresConfirmation()
-                ->visible(fn (Payment $record): bool => $record->status === Payment::STATUS_PENDING_COLLECTION)
-                ->action(function (Payment $record): void {
-                    DB::transaction(function () use ($record): void {
-                        $payment = Payment::query()->lockForUpdate()->findOrFail($record->id);
-                        $payment->update(['status' => Payment::STATUS_PAID, 'reviewed_by' => auth()->id(), 'reviewed_at' => now()]);
-                        $payment->order()->update(['payment_status' => 'paid']);
-                    });
-                }),
+                ->visible(fn (Payment $record): bool => $record->driver === 'cash_on_delivery' && $record->status === Payment::STATUS_PENDING_COLLECTION)
+                ->action(fn (Payment $record) => app(PaymentStatusService::class)->confirmCollection(
+                    $record,
+                    auth()->id(),
+                    'Cobro contra entrega confirmado desde Filament.',
+                )),
         ]);
     }
 

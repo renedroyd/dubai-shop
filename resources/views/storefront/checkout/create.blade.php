@@ -1,4 +1,4 @@
-<x-storefront.layout title="Finalizar compra | Dubai Shop" description="Completa tus datos y selecciona cómo deseas pagar tu pedido.">
+<x-storefront.layout title="Finalizar compra | Dubai Shop" description="Completa tus datos y selecciona cómo deseas pagar tu pedido." robots="noindex,nofollow">
     <section class="catalog-hero"><div class="page-container"><span class="eyebrow eyebrow--light"><span></span> CHECKOUT SEGURO</span><h1>Finaliza tu <em>pedido.</em></h1><p>Completa tus datos de entrega y elige tu método de pago.</p></div></section>
     <section class="catalog-section page-container">
         @if ($errors->any())<div class="cart-notice" role="alert">@foreach ($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif

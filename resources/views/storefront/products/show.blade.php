@@ -23,15 +23,29 @@
                 <div class="product-detail__price">{{ $product->formatted_price }}</div>
                 @if ($product->short_description)<p class="product-detail__lead">{{ $product->short_description }}</p>@endif
                 @if ($product->description)<div class="product-detail__description">{!! nl2br(e($product->description)) !!}</div>@endif
-                @if ($product->variants->isNotEmpty())
-                    <div class="product-detail__variants">
-                        <h2>Opciones disponibles</h2>
-                        @foreach ($product->variants as $variant)
-                            <span>{{ $variant->name }} @if ($variant->price_amount) · {{ number_format($variant->price_amount / 100, 2) }} {{ $product->currency }} @endif</span>
-                        @endforeach
-                    </div>
-                @endif
-                <a href="{{ route('products.index') }}" class="button button--gold">Seguir explorando <span aria-hidden="true">↗</span></a>
+                <form method="POST" action="{{ route('cart.items.store') }}" class="product-add-form">
+                    @csrf
+                    <input type="hidden" name="product_id" value="{{ $product->id }}">
+                    @if ($product->variants->isNotEmpty())
+                        <label class="product-detail__variants">
+                            <span>Selecciona una opción</span>
+                            <select name="product_variant_id" required>
+                                <option value="">Seleccionar</option>
+                                @foreach ($product->variants as $variant)
+                                    <option value="{{ $variant->id }}">{{ $variant->name }} @if ($variant->price_amount !== null) — {{ number_format($variant->price_amount / 100, 2) }} {{ $product->currency }} @endif</option>
+                                @endforeach
+                            </select>
+                        </label>
+                    @endif
+                    <label class="product-quantity">
+                        <span>Cantidad</span>
+                        <input type="number" name="quantity" min="1" max="99" value="1" required>
+                    </label>
+                    <button type="submit" class="button button--gold">Agregar al carrito <span aria-hidden="true">↗</span></button>
+                    @error('product_id')<p class="form-error">{{ $message }}</p>@enderror
+                    @error('product_variant_id')<p class="form-error">{{ $message }}</p>@enderror
+                    @error('quantity')<p class="form-error">{{ $message }}</p>@enderror
+                </form>
             </div>
         </div>
     </section>

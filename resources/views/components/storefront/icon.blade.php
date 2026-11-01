@@ -11,6 +11,9 @@
         @case('arrow-up-right')
             <path d="M7 17 17 7M7 7h10v10" />
             @break
+        @case('arrow-down')
+            <path d="M12 5v14M5 12l7 7 7-7" />
+            @break
         @case('search')
             <circle cx="10.8" cy="10.8" r="6.8" /><path d="m16 16 4.5 4.5" />
             @break

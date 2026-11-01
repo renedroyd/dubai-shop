@@ -65,7 +65,7 @@
                     <h2>Tu pedido</h2>
                     <div><span>Subtotal</span><strong>{{ number_format($cart->subtotal_amount / 100, 2) }} {{ $cart->currency }}</strong></div>
                     <p>Los gastos de envío, impuestos y disponibilidad final se calcularán durante el checkout.</p>
-                    <button class="button button--gold" type="button" disabled>Continuar al checkout próximamente</button>
+                    <a class="button button--gold" href="{{ route("checkout.create") }}">Continuar al checkout</a>
                     <a href="{{ route('products.index') }}">Seguir comprando</a>
                 </aside>
             </div>

@@ -57,7 +57,7 @@ class PaymentResource extends Resource
                 ->visible(fn (Payment $record): bool => filled($record->proof_path) && Storage::disk('local')->exists($record->proof_path))
                 ->action(fn (Payment $record) => response()->download(Storage::disk('local')->path($record->proof_path))),
             Action::make('approve')->label('Aprobar pago')->color('success')->requiresConfirmation()
-                ->visible(fn (Payment $record): bool => $record->status === Payment::STATUS_AWAITING_REVIEW)
+                ->visible(fn (Payment $record): bool => $record->status === Payment::STATUS_AWAITING_REVIEW && $record->order?->status === Order::STATUS_PENDING)
                 ->action(function (Payment $record): void {
                     DB::transaction(function () use ($record): void {
                         $payment = Payment::query()->lockForUpdate()->findOrFail($record->id);

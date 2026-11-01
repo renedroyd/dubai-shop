@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Storefront\CartController;
+use App\Http\Controllers\Storefront\CheckoutController;
+use App\Http\Controllers\Storefront\OrderController;
 use App\Http\Controllers\Storefront\ProductController;
 use Illuminate\Support\Facades\Route;
 
@@ -12,3 +14,7 @@ Route::get('/carrito', [CartController::class, 'index'])->name('cart.index');
 Route::post('/carrito/items', [CartController::class, 'store'])->name('cart.items.store');
 Route::patch('/carrito/items/{cartItem}', [CartController::class, 'update'])->name('cart.items.update');
 Route::delete('/carrito/items/{cartItem}', [CartController::class, 'destroy'])->name('cart.items.destroy');
+
+Route::get('/checkout', [CheckoutController::class, 'create'])->name('checkout.create');
+Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('throttle:checkout')->name('checkout.store');
+Route::get('/pedido/{order}/{token}', [OrderController::class, 'show'])->name('orders.show');

@@ -6,10 +6,11 @@ use App\Http\Controllers\Storefront\CheckoutController;
 use App\Http\Controllers\Storefront\OrderController;
 use App\Http\Controllers\Storefront\ProductController;
 use App\Http\Controllers\Seo\SitemapController;
+use App\Http\Controllers\Seo\RobotsController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
-Route::get('/robots.txt', fn () => response("User-agent: *\nAllow: /\nSitemap: ".route('sitemap')."\n", 200, ['Content-Type' => 'text/plain; charset=UTF-8']))->name('robots');
+Route::get('/robots.txt', RobotsController::class)->name('robots');
 
 Route::get('/', HomeController::class)->name('home');
 Route::get('/productos', [ProductController::class, 'index'])->name('products.index');

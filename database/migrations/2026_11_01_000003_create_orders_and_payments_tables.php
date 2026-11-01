@@ -47,6 +47,7 @@ return new class extends Migration
             $table->timestamp('placed_at');
             $table->timestamp('confirmed_at')->nullable();
             $table->timestamp('cancelled_at')->nullable();
+            $table->timestamp('inventory_processed_at')->nullable();
             $table->timestamps();
             $table->index(['status', 'payment_status']);
             $table->index(['customer_email', 'placed_at']);
@@ -56,6 +57,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('order_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('inventory_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('product_variant_id')->nullable()->constrained('product_variants')->nullOnDelete();
             $table->string('product_name');
             $table->string('variant_name')->nullable();

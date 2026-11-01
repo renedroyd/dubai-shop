@@ -1,7 +1,31 @@
 <x-storefront.layout
     :title="$product->meta_title ?: $product->name.' | Dubai Shop'"
     :description="$product->meta_description ?: ($product->short_description ?: 'Descubre '.$product->name.' en Dubai Shop.')"
+    :canonical="route('products.show', $product)"
+    :ogType="'product'"
+    :ogImage="$product->images->first() ? \Illuminate\Support\Facades\Storage::url($product->images->first()->path) : null"
 >
+    @php
+        $productStructuredData = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Product',
+            'name' => $product->name,
+            'description' => $product->meta_description ?: ($product->short_description ?: $product->name),
+            'sku' => $product->sku,
+            'image' => $product->images->map(fn ($image) => url(\Illuminate\Support\Facades\Storage::url($image->path)))->values()->all(),
+            'brand' => ['@type' => 'Brand', 'name' => $product->brand?->name ?? 'Dubai Shop'],
+            'offers' => [
+                '@type' => 'Offer',
+                'url' => route('products.show', $product),
+                'priceCurrency' => $product->currency,
+                'price' => number_format($product->price_amount / 100, 2, '.', ''),
+            ],
+        ];
+    @endphp
+    @push('head')
+        <script type="application/ld+json">{!! json_encode($productStructuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!}</script>
+    @endpush
+
     <section class="product-detail page-container">
         <nav class="product-breadcrumb" aria-label="Ruta de navegación">
             <a href="{{ route('home') }}">Inicio</a><span>/</span><a href="{{ route('products.index') }}">Productos</a>

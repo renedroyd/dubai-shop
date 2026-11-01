@@ -170,7 +170,7 @@ class CheckoutPaymentsTest extends TestCase
         $confirmation = $this->get($checkout->headers->get('Location'));
 
         $confirmation->assertOk()
-            ->assertHeader('Cache-Control', 'private, no-store, max-age=0')
+            ->assertHeader('Cache-Control', 'max-age=0, no-store, private')
             ->assertHeader('Pragma', 'no-cache')
             ->assertHeader('Referrer-Policy', 'no-referrer')
             ->assertSee('name="robots" content="noindex,nofollow"', false);

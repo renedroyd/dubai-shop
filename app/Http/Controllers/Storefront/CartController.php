@@ -42,7 +42,7 @@ class CartController extends Controller
     public function update(Request $request, CartItem $cartItem): RedirectResponse
     {
         $data = $request->validate(['quantity' => ['required', 'integer', 'min:1', 'max:99']]);
-        $cart = $this->carts->current($request->session()->getId());
+        $cart = $this->carts->current($this->cartSessionKey($request));
         abort_unless($cartItem->cart_id === $cart->id, 404);
 
         $this->carts->updateQuantity($cart, $cartItem, (int) $data['quantity']);
@@ -52,7 +52,7 @@ class CartController extends Controller
 
     public function destroy(Request $request, CartItem $cartItem): RedirectResponse
     {
-        $cart = $this->carts->current($request->session()->getId());
+        $cart = $this->carts->current($this->cartSessionKey($request));
         $this->carts->remove($cart, $cartItem);
 
         return to_route('cart.index')->with('status', 'Producto eliminado del carrito.');

@@ -1,0 +1,94 @@
+<?php
+
+namespace App\Filament\Resources\Inventories;
+
+use App\Filament\Resources\Inventories\Pages\ListInventories;
+use App\Models\Inventory;
+use App\Models\Product;
+use App\Models\ProductVariant;
+use App\Services\Inventory\InventoryService;
+use Filament\Actions\Action;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use UnitEnum;
+
+class InventoryResource extends Resource
+{
+    protected static ?string $model = Inventory::class;
+    protected static string | UnitEnum | null $navigationGroup = 'Inventario';
+    protected static ?string $navigationLabel = 'Existencias';
+    protected static ?string $modelLabel = 'existencia';
+    protected static ?string $pluralModelLabel = 'existencias';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-archive-box';
+    protected static ?int $navigationSort = 1;
+
+    public static function form(Schema $schema): Schema
+    {
+        return $schema->components([]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table->columns([
+            TextColumn::make('product.name')->label('Producto')->searchable()->sortable(),
+            TextColumn::make('variant.name')->label('Variante')->placeholder('Producto general'),
+            TextColumn::make('quantity_on_hand')->label('Existencia')->sortable(),
+            TextColumn::make('quantity_reserved')->label('Reservado')->sortable(),
+            TextColumn::make('available_quantity')->label('Disponible')->state(fn (Inventory $record): int => $record->available_quantity)->badge()
+                ->color(fn (int $state): string => $state === 0 ? 'danger' : ($state <= 5 ? 'warning' : 'success')),
+            TextColumn::make('updated_at')->label('Actualizado')->dateTime()->sortable(),
+        ])->filters([
+            Filter::make('low_stock')->label('Stock bajo')->query(fn (Builder $query): Builder => $query->whereRaw('(quantity_on_hand - quantity_reserved) <= 5')),
+        ])->defaultSort('updated_at', 'desc')->recordActions([
+            Action::make('adjust')->label('Ajustar existencia')->icon('heroicon-o-adjustments-horizontal')
+                ->schema([
+                    TextInput::make('quantity')->label('Nueva existencia total')->numeric()->integer()->minValue(0)->required(),
+                    Textarea::make('reason')->label('Motivo del ajuste')->required()->maxLength(500),
+                ])
+                ->fillForm(fn (Inventory $record): array => ['quantity' => $record->quantity_on_hand])
+                ->action(function (Inventory $record, array $data): void {
+                    app(InventoryService::class)->setOnHand(
+                        $record->product,
+                        (int) $data['quantity'],
+                        $record->variant,
+                        auth()->id(),
+                        $data['reason'],
+                    );
+                }),
+        ])->headerActions([
+            Action::make('registerStock')->label('Registrar producto / variante')->icon('heroicon-o-plus')
+                ->schema([
+                    Select::make('product_id')->label('Producto')->options(fn () => Product::query()->orderBy('name')->pluck('name', 'id'))->searchable()->required(),
+                    Select::make('product_variant_id')->label('Variante (opcional)')->options(fn (callable $get) => ProductVariant::query()->where('product_id', $get('product_id'))->where('is_active', true)->orderBy('name')->pluck('name', 'id'))->searchable(),
+                    TextInput::make('quantity')->label('Existencia inicial')->numeric()->integer()->minValue(0)->required()->default(0),
+                    Textarea::make('reason')->label('Motivo')->required()->maxLength(500)->default('Carga inicial'),
+                ])
+                ->action(function (array $data): void {
+                    $product = Product::query()->findOrFail($data['product_id']);
+                    $variant = filled($data['product_variant_id'])
+                        ? ProductVariant::query()->where('product_id', $product->id)->findOrFail($data['product_variant_id'])
+                        : null;
+
+                    app(InventoryService::class)->setOnHand(
+                        $product,
+                        (int) $data['quantity'],
+                        $variant,
+                        auth()->id(),
+                        $data['reason'],
+                    );
+                }),
+        ]);
+    }
+
+    public static function getPages(): array
+    {
+        return ['index' => ListInventories::route('/')];
+    }
+}

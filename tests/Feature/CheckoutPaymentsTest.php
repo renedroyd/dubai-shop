@@ -159,4 +159,21 @@ class CheckoutPaymentsTest extends TestCase
         ]);
     }
 
+
+    public function test_order_confirmation_is_private_and_never_cached_or_indexed(): void
+    {
+        $this->withoutVite();
+        $this->addProductToCart($this->product());
+        $method = PaymentMethod::query()->where('driver', 'cash_on_delivery')->firstOrFail();
+
+        $checkout = $this->post(route('checkout.store'), $this->customerData($method));
+        $confirmation = $this->get($checkout->headers->get('Location'));
+
+        $confirmation->assertOk()
+            ->assertHeader('Cache-Control', 'private, no-store, max-age=0')
+            ->assertHeader('Pragma', 'no-cache')
+            ->assertHeader('Referrer-Policy', 'no-referrer')
+            ->assertSee('name="robots" content="noindex,nofollow"', false);
+    }
+
 }

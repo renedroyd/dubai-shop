@@ -8,6 +8,7 @@ use App\Services\Cart\CartService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Support\Str;
 
 class CartController extends Controller
 {
@@ -15,7 +16,7 @@ class CartController extends Controller
 
     public function index(Request $request): View
     {
-        $cart = $this->carts->current($request->session()->getId());
+        $cart = $this->carts->current($this->cartSessionKey($request));
 
         return view('storefront.cart.index', compact('cart'));
     }
@@ -29,7 +30,7 @@ class CartController extends Controller
         ]);
 
         $this->carts->add(
-            $request->session()->getId(),
+            $this->cartSessionKey($request),
             (int) $data['product_id'],
             isset($data['product_variant_id']) ? (int) $data['product_variant_id'] : null,
             (int) $data['quantity'],

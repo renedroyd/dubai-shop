@@ -4,6 +4,7 @@ namespace App\Services\Orders;
 
 use App\Models\Cart;
 use App\Models\Inventory;
+use App\Models\InventoryMovement;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\PaymentMethod;
@@ -59,6 +60,7 @@ class CheckoutService
 
                 $lines[] = [
                     'product_id' => $product->id,
+                    'inventory_id' => $inventory?->id,
                     'product_variant_id' => $variant?->id,
                     'product_name' => $product->name,
                     'variant_name' => $variant?->name,
@@ -87,6 +89,21 @@ class CheckoutService
 
             foreach ($lines as $line) {
                 $order->items()->create($line);
+
+                if ($line['inventory_id']) {
+                    $inventory = Inventory::query()->lockForUpdate()->findOrFail($line['inventory_id']);
+                    $inventory->increment('quantity_reserved', $line['quantity']);
+                    InventoryMovement::query()->create([
+                        'inventory_id' => $inventory->id,
+                        'user_id' => auth()->id(),
+                        'type' => 'reservation',
+                        'quantity_delta' => -$line['quantity'],
+                        'reason' => 'Reserva por pedido '.$order->number,
+                        'reference_type' => Order::class,
+                        'reference_id' => $order->id,
+                        'metadata' => ['order_number' => $order->number],
+                    ]);
+                }
             }
 
             $this->drivers->driver($method->driver)->createPayment($order, $method, $paymentData);

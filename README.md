@@ -3,7 +3,7 @@
 Tienda online premium construida con Laravel, Livewire y FilamentPHP.
 
 ## Stack
-- PHP 8.3+
+- PHP 8.4.1+
 - Laravel 13
 - Filament 5
 - Livewire (integración directa planificada para la interfaz pública)
@@ -18,7 +18,7 @@ Consulta:
 - [Modelo de dominio](docs/domain-model.md)
 
 ## Requisitos
-PHP 8.3+, Composer 2, Node.js 22+ y npm.
+PHP 8.4.1+, Composer 2, Node.js 22+ y npm.
 
 ## Instalación local
 ```bash

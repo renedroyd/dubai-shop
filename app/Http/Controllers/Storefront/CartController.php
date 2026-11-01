@@ -57,4 +57,13 @@ class CartController extends Controller
 
         return to_route('cart.index')->with('status', 'Producto eliminado del carrito.');
     }
+
+    private function cartSessionKey(Request $request): string
+    {
+        if (! $request->session()->has('cart_session_key')) {
+            $request->session()->put('cart_session_key', (string) Str::uuid());
+        }
+
+        return (string) $request->session()->get('cart_session_key');
+    }
 }

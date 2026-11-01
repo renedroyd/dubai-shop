@@ -62,11 +62,7 @@ class CartService
                 throw ValidationException::withMessages(['quantity' => 'La cantidad debe estar entre 1 y 99.']);
             }
 
-            $inventoryQuery = Inventory::query()->where('product_id', $product->id);
-            $inventoryQuery = $variant
-                ? $inventoryQuery->where('product_variant_id', $variant->id)
-                : $inventoryQuery->whereNull('product_variant_id');
-            $inventory = $inventoryQuery->lockForUpdate()->first();
+            $inventory = $this->inventoryFor($product, $variant);
 
             if ($inventory && $newQuantity > $inventory->available_quantity) {
                 throw ValidationException::withMessages([
@@ -101,11 +97,11 @@ class CartService
 
         return DB::transaction(function () use ($cart, $item, $quantity): Cart {
             $lockedItem = CartItem::query()->whereKey($item->id)->lockForUpdate()->firstOrFail();
-            $inventoryQuery = Inventory::query()->where('product_id', $lockedItem->product_id);
-            $inventoryQuery = $lockedItem->product_variant_id
-                ? $inventoryQuery->where('product_variant_id', $lockedItem->product_variant_id)
-                : $inventoryQuery->whereNull('product_variant_id');
-            $inventory = $inventoryQuery->lockForUpdate()->first();
+            $product = Product::query()->published()->lockForUpdate()->findOrFail($lockedItem->product_id);
+            $variant = $lockedItem->product_variant_id
+                ? ProductVariant::query()->where('product_id', $product->id)->where('is_active', true)->lockForUpdate()->findOrFail($lockedItem->product_variant_id)
+                : null;
+            $inventory = $this->inventoryFor($product, $variant);
 
             if ($inventory && $quantity > $inventory->available_quantity) {
                 throw ValidationException::withMessages([
@@ -113,10 +109,34 @@ class CartService
                 ]);
             }
 
-            $lockedItem->update(['quantity' => $quantity]);
+            $lockedItem->update([
+                'quantity' => $quantity,
+                'unit_price_amount' => $variant?->price_amount ?? $product->price_amount,
+                'currency' => $product->currency,
+            ]);
 
             return $cart->fresh()->load(['items.product.images', 'items.variant']);
         });
+    }
+
+    private function inventoryFor(Product $product, ?ProductVariant $variant): ?Inventory
+    {
+        if ($variant) {
+            $variantInventory = Inventory::query()
+                ->where('product_variant_id', $variant->id)
+                ->lockForUpdate()
+                ->first();
+
+            if ($variantInventory) {
+                return $variantInventory;
+            }
+        }
+
+        return Inventory::query()
+            ->where('product_id', $product->id)
+            ->whereNull('product_variant_id')
+            ->lockForUpdate()
+            ->first();
     }
 
     public function remove(Cart $cart, CartItem $item): Cart

@@ -20,7 +20,7 @@ class Order extends Model
         'shipping_address', 'shipping_address_line_2', 'shipping_city', 'shipping_region',
         'shipping_postal_code', 'shipping_country', 'customer_note', 'currency',
         'subtotal_amount', 'shipping_amount', 'tax_amount', 'total_amount',
-        'status', 'payment_status', 'placed_at', 'confirmed_at', 'cancelled_at',
+        'status', 'payment_status', 'placed_at', 'confirmed_at', 'cancelled_at', 'inventory_processed_at',
     ];
 
     protected function casts(): array
@@ -28,7 +28,7 @@ class Order extends Model
         return [
             'subtotal_amount' => 'integer', 'shipping_amount' => 'integer',
             'tax_amount' => 'integer', 'total_amount' => 'integer',
-            'placed_at' => 'datetime', 'confirmed_at' => 'datetime', 'cancelled_at' => 'datetime',
+            'placed_at' => 'datetime', 'confirmed_at' => 'datetime', 'cancelled_at' => 'datetime', 'inventory_processed_at' => 'datetime',
         ];
     }
 

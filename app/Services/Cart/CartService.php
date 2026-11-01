@@ -109,6 +109,18 @@ class CartService
                 ]);
             }
 
+            $hasOtherItems = $cart->items()->whereKeyNot($lockedItem->id)->exists();
+
+            if ($hasOtherItems && $cart->currency !== $product->currency) {
+                throw ValidationException::withMessages([
+                    'quantity' => 'La moneda del producto cambió y no coincide con el resto del carrito.',
+                ]);
+            }
+
+            if (! $hasOtherItems && $cart->currency !== $product->currency) {
+                $cart->update(['currency' => $product->currency]);
+            }
+
             $lockedItem->update([
                 'quantity' => $quantity,
                 'unit_price_amount' => $variant?->price_amount ?? $product->price_amount,

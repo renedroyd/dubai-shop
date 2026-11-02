@@ -98,7 +98,7 @@ class OrderNotificationsTest extends TestCase
 
     private function createOrder(): Order
     {
-        return Order::query()->create([
+        return Order::withoutEvents(fn (): Order => Order::query()->create([
             'number' => 'DS-'.now()->format('ymd').'-'.Str::upper(Str::random(8)),
             'public_token_hash' => hash('sha256', Str::random(64)),
             'customer_name' => 'Cliente Dubai',
@@ -116,6 +116,6 @@ class OrderNotificationsTest extends TestCase
             'status' => Order::STATUS_PENDING,
             'payment_status' => 'awaiting_payment',
             'placed_at' => now(),
-        ]);
+        ]));
     }
 }

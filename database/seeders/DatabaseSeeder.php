@@ -12,6 +12,8 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
+        $this->call(ClassicDubaiOperationalSeeder::class);
+
         if (app()->environment(['local', 'testing'])) {
             User::factory()->create([
                 'name' => 'Test Administrator',

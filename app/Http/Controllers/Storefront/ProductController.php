@@ -22,7 +22,7 @@ class ProductController extends Controller
 
         $products = Product::query()
             ->published()
-            ->with(['category', 'brand', 'images'])
+            ->with(['category', 'brand', 'images', 'variants'])
             ->when($filters['q'] ?? null, function ($query, string $term): void {
                 $query->where(function ($query) use ($term): void {
                     $query->where('name', 'like', "%{$term}%")
@@ -57,7 +57,7 @@ class ProductController extends Controller
             ->published()
             ->where('category_id', $product->category_id)
             ->where('id', '<>', $product->id)
-            ->with(['images', 'brand'])
+            ->with(['images', 'brand', 'variants'])
             ->latest()
             ->limit(4)
             ->get();

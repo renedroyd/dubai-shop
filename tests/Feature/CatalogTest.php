@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -38,6 +39,9 @@ class CatalogTest extends TestCase
         $this->get(route('products.index'))
             ->assertOk()
             ->assertSee('Premium Headphones')
+            ->assertSee('Agregar al carrito')
+            ->assertSee('☆☆☆☆☆')
+            ->assertSee('Sin valoraciones')
             ->assertDontSee('Draft Product');
     }
 
@@ -76,6 +80,34 @@ class CatalogTest extends TestCase
             ->assertOk()
             ->assertSee('Wireless Speaker')
             ->assertDontSee('Desk Lamp');
+    }
+
+    public function test_products_with_variants_require_option_selection_from_the_product_detail(): void
+    {
+        $this->withoutVite();
+
+        $product = Product::create([
+            'name' => 'Gift Set with Options',
+            'slug' => 'gift-set-with-options',
+            'sku' => 'GIFT-OPTIONS-001',
+            'price_amount' => 2599,
+            'currency' => 'USD',
+            'status' => Product::STATUS_ACTIVE,
+            'is_visible' => true,
+        ]);
+
+        ProductVariant::create([
+            'product_id' => $product->id,
+            'name' => 'Large',
+            'sku' => 'GIFT-OPTIONS-L',
+            'is_active' => true,
+            'sort_order' => 1,
+        ]);
+
+        $this->get(route('products.index'))
+            ->assertOk()
+            ->assertSee('Elegir opciones')
+            ->assertDontSee('Agregar al carrito');
     }
 
     public function test_product_detail_is_public_only_when_product_is_published_and_visible(): void

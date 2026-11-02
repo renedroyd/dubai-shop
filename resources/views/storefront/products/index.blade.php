@@ -50,23 +50,7 @@
         @if ($products->isNotEmpty())
             <div class="store-product-grid">
                 @foreach ($products as $product)
-                    <a href="{{ route('products.show', $product) }}" class="store-product-card">
-                        <div class="store-product-card__image">
-                            @if ($product->images->isNotEmpty())
-                                <img src="{{ \Illuminate\Support\Facades\Storage::url($product->images->first()->path) }}" alt="{{ $product->images->first()->alt_text ?: $product->name }}" loading="lazy">
-                            @else
-                                <span class="store-product-card__placeholder">D.</span>
-                            @endif
-                            @if ($product->is_featured)<span class="store-product-card__badge">Destacado</span>@endif
-                        </div>
-                        <div class="store-product-card__meta">
-                            <span>{{ $product->brand?->name ?? $product->category?->name ?? 'Dubai Shop' }}</span>
-                            <span>{{ $product->sku }}</span>
-                        </div>
-                        <h2>{{ $product->name }}</h2>
-                        <p>{{ $product->short_description }}</p>
-                        <strong>{{ $product->formatted_price }}</strong>
-                    </a>
+                    <x-storefront.product-card :product="$product" />
                 @endforeach
             </div>
             <div class="catalog-pagination">{{ $products->links() }}</div>

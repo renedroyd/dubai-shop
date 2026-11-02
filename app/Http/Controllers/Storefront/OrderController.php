@@ -13,7 +13,7 @@ class OrderController extends Controller
         $record = Order::query()->where('number', $order)->firstOrFail();
         abort_unless(hash_equals($record->public_token_hash, hash('sha256', $token)), 404);
 
-        $record->load(['items', 'payments.method']);
+        $record->load(['items', 'payments.method', 'shipment.events', 'shipment.attempts']);
 
         return response()->view('storefront.orders.show', ['order' => $record])
             ->header('Cache-Control', 'private, no-store, max-age=0')

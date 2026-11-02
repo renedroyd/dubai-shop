@@ -30,7 +30,7 @@ class SendOrderNotification implements ShouldQueue
 
     public function handle(): void
     {
-        $order = Order::query()->with('items')->find($this->orderId);
+        $order = Order::query()->with(['items', 'shipment'])->find($this->orderId);
 
         if (! $order || ! filled($order->customer_email)) {
             return;
@@ -74,6 +74,9 @@ class SendOrderNotification implements ShouldQueue
             '{order_total}' => number_format($order->total_amount / 100, 2, '.', ''),
             '{currency}' => $order->currency,
             '{store_name}' => config('app.name', 'Dubai Shop'),
+            '{tracking_code}' => $order->shipment?->tracking_code ?? '',
+            '{courier_name}' => $order->shipment?->courier_name ?? '',
+            '{courier_phone}' => $order->shipment?->courier_phone ?? '',
         ];
         $subject = strtr($template->subject, $variables);
         $body = strtr($template->body, $variables);

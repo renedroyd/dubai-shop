@@ -11,11 +11,12 @@ Tienda online premium construida con Laravel, Livewire y FilamentPHP.
 - Vite 8
 
 ## Estado del proyecto
-El proyecto cuenta con catálogo, carrito, checkout, pedidos, inventario, pagos manuales, tarifas de envío, CMS y marca Clásico Dubai. Las Fases 1–12 están integradas; la Fase 13 (cuentas de clientes y comunicación transaccional) continúa en la [PR #20](https://github.com/renedroyd/dubai-shop/pull/20). Consulta el [estado del proyecto](docs/project-status.md) y la [guía de notificaciones](docs/transactional-notifications.md).
+El proyecto cuenta con catálogo, carrito, checkout, pedidos, inventario, pagos manuales, tarifas de envío, CMS y marca Clásico Dubai. Las Fases 1–13 están integradas. La Fase 14 (operación logística y seguimiento de entregas) está en desarrollo en una rama independiente. Consulta el [estado del proyecto](docs/project-status.md) y la [guía de notificaciones](docs/transactional-notifications.md).
 
 Consulta:
 - [Arquitectura técnica](docs/architecture.md)
 - [Modelo de dominio](docs/domain-model.md)
+- [Operación logística y seguimiento](docs/logistics-and-tracking.md)
 
 ## Requisitos
 PHP 8.4.1+, Composer 2, Node.js 22+ y npm.

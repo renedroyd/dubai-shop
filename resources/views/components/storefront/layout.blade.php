@@ -71,6 +71,11 @@
             </nav>
 
             <div class="site-header__actions">
+                @auth
+                    <a class="header-link" href="{{ route('customer.dashboard') }}">Mi cuenta</a>
+                @else
+                    <a class="header-link" href="{{ route('customer.login') }}">Ingresar</a>
+                @endauth
                 <a class="header-link" href="{{ route('cart.index') }}">Carrito</a>
                 <a class="header-link" href="{{ route('products.index') }}"><x-storefront.icon name="search" :size="18" /><span>Explorar</span></a>
                 <a class="header-cta" href="{{ route('products.index') }}">Ver productos <x-storefront.icon name="arrow-up-right" :size="16" /></a>

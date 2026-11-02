@@ -69,6 +69,7 @@
                 const city = document.getElementById('shipping-city').value.trim();
                 if (!province || !city) { message.textContent = 'Selecciona la provincia e indica el municipio.'; return; }
                 button.disabled = true;
+                const requestKey = currentKey();
                 message.textContent = 'Calculando tarifa...';
                 invalidate();
                 try {
@@ -83,7 +84,8 @@
                     });
                     const data = await response.json();
                     if (!response.ok) throw new Error(Object.values(data.errors || {}).flat()[0] || 'No fue posible calcular el envío para esa dirección.');
-                    quotedKey = currentKey();
+                    if (currentKey() !== requestKey) throw new Error('La dirección cambió durante el cálculo. Vuelve a calcular el envío.');
+                    quotedKey = requestKey;
                     amount.textContent = Number(data.amount).toFixed(2) + ' ' + data.currency;
                     total.textContent = (subtotal + Number(data.amount)).toFixed(2) + ' ' + data.currency;
                     message.textContent = 'Tarifa aplicada: ' + data.zone + '.';

@@ -4,7 +4,7 @@
 **Rama de referencia:** `main`  
 **Última integración:** Fase 13 — cuentas de clientes y comunicación transaccional (PR #20); Fase 14 en desarrollo en `feature/fase-14-operacion-logistica`  
 **Commit de integración:** `1d730d0df874aacfa00087d2fc9171c8fa494e41`  
-**PR integrada:** [#19 — Fase 12](https://github.com/renedroyd/dubai-shop/pull/19)
+**PR integrada:** [#20 — Fase 13](https://github.com/renedroyd/dubai-shop/pull/20)
 
 Este documento separa lo que está implementado y probado en el repositorio de la configuración comercial que aún debe cargarse, y de las capacidades que siguen en la hoja de ruta. La integración de una fase no significa que la tienda esté lista para producción.
 
@@ -105,7 +105,7 @@ Los datos del destinatario Zelle y la imagen de marca fueron facilitados por el 
 - [PR #18 — Normalización de municipios](https://github.com/renedroyd/dubai-shop/pull/18): integrada.
 - [PR #19 — Fase 12, CMS](https://github.com/renedroyd/dubai-shop/pull/19): integrada mediante squash.
 - Commit base de Fase 13: `7bb812d685848234f60d808af7ced9e16ea089ca`.
-- [PR #20 — Fase 13](https://github.com/renedroyd/dubai-shop/pull/20): abierta como borrador, sin merge.
+- [PR #20 — Fase 13](https://github.com/renedroyd/dubai-shop/pull/20): integrada mediante squash el 2 de noviembre de 2026 (commit `1d730d0df874aacfa00087d2fc9171c8fa494e41`).
 - CI de la revisión `cc71e487c25feec902014a3ba00d942a44353382`, ejecución [41449500599](https://github.com/renedroyd/dubai-shop/actions/runs/41449500599): **success**.
 - Validaciones: 62 pruebas y 271 assertions correctas; PHP 8.4, PHP 8.5, compilación frontend y cachés de producción.
 
@@ -143,7 +143,7 @@ La CI valida pruebas automatizadas y compilación, pero no sustituye las pruebas
 - Cupones y descuentos automáticos quedan pendientes hasta definir reglas comerciales.
 
 ### Fase 13 — Clientes y comunicación
-**Estado: implementada en la rama de trabajo · PR #20 abierta como borrador**
+**Estado: integrada mediante PR #20 · CI verde · aceptación SMTP pendiente**
 
 - Registro, inicio y cierre de sesión de clientes; recuperación y restablecimiento de contraseña mediante el broker de Laravel.
 - Las cuentas de clientes no acceden al panel Filament y las cuentas administrativas no reciben enlaces de recuperación desde el storefront.
@@ -157,12 +157,13 @@ La CI valida pruebas automatizadas y compilación, pero no sustituye las pruebas
 - Pendiente operativo: configurar SMTP y worker activo en el entorno de despliegue, y ejecutar una prueba de aceptación de correo real.
 
 ### Fase 14 — Operación logística
-**Prioridad: alta**
-- Gestión operativa de preparación, despacho, entrega e incidencias.
-- Asignación de responsable/repartidor si el negocio lo necesita.
-- Registro de intentos de entrega y confirmación de recepción.
-- Seguimiento visible al cliente y notificaciones.
-- Ampliar cobertura fuera de Guantánamo solo cuando se autorice y existan tarifas reales.
+**Estado: en desarrollo en `feature/fase-14-operacion-logistica` · PR #21 abierta como borrador**
+- Envío único por pedido con código de seguimiento.
+- Asignación de repartidor y contacto desde Filament; despacho controlado.
+- Registro auditable de intentos, incidencias y recepción confirmada.
+- Reintento de despacho tras un intento fallido.
+- Seguimiento privado para el cliente y notificación cuando no se completa una entrega.
+- La cobertura sigue limitada a Guantánamo y se conserva el compromiso de 24 horas; no se amplían zonas sin autorización y tarifas reales.
 
 ### Fase 15 — Experiencia de compra y frontend
 **Prioridad: media**

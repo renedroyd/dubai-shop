@@ -55,7 +55,7 @@ class CustomerAccountTest extends TestCase
             'phone' => '53000000',
             'address' => 'Calle 1',
             'city' => 'Guantánamo',
-            'region' => 'guantanamo',
+            'region' => 'Guantánamo',
             'country' => 'CU',
             'is_default' => '1',
         ])->assertRedirect(route('customer.addresses'));

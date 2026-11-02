@@ -6,8 +6,8 @@
             @csrf
             <div class="checkout-main">
                 <section class="checkout-panel"><span class="eyebrow eyebrow--light">01 / TUS DATOS</span><h2>Información de contacto</h2><div class="checkout-fields">
-                    <label>Nombre completo<input name="customer_name" value="{{ old('customer_name') }}" autocomplete="name" required></label>
-                    <label>Correo electrónico<input type="email" name="customer_email" value="{{ old('customer_email') }}" autocomplete="email" required></label>
+                    <label>Nombre completo<input name="customer_name" value="{{ old('customer_name', auth()->user()?->name) }}" autocomplete="name" required></label>
+                    <label>Correo electrónico<input type="email" name="customer_email" value="{{ old('customer_email', auth()->user()?->email) }}" autocomplete="email" required></label>
                     <label>Teléfono<input name="customer_phone" value="{{ old('customer_phone') }}" autocomplete="tel" required></label>
                 </div></section>
                 <section class="checkout-panel"><span class="eyebrow eyebrow--light">02 / ENTREGA EN GUANTÁNAMO</span><h2>Dirección de entrega</h2><div class="checkout-fields">
@@ -19,6 +19,7 @@
                     <input type="hidden" name="shipping_country" value="CU">
                     <label>Código postal (opcional)<input name="shipping_postal_code" value="{{ old('shipping_postal_code') }}" autocomplete="postal-code"></label>
                     <label class="checkout-fields__wide">Nota para la entrega<textarea name="customer_note" rows="3">{{ old('customer_note') }}</textarea></label>
+                    @auth<label class="checkout-fields__wide"><input type="checkbox" name="save_address" value="1" @checked(old('save_address'))> Guardar esta dirección en mi cuenta para próximas compras</label>@endauth
                 </div>
                 <div class="mt-4 flex flex-wrap items-center gap-3">
                     <button class="button button--outline" type="button" id="quote-shipping">Calcular costo de envío</button>

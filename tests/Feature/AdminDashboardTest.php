@@ -25,6 +25,8 @@ class AdminDashboardTest extends TestCase
             ->assertSee('Actividad de pedidos')
             ->assertSee('Pedidos por estado')
             ->assertSee('Métodos de pago')
-            ->assertSee('Pedidos recientes');
+            ->assertSee('Pedidos recientes')
+            ->assertSee('Inventario que requiere atención')
+            ->assertSee('Entregas fuera de plazo');
     }
 }

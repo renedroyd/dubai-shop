@@ -38,7 +38,6 @@ class ShippingRateService
             ]);
         }
 
-        $province = $this->normalize($address['shipping_region'] ?? '');
         $municipality = $this->normalize($address['shipping_city'] ?? '');
         $locality = $this->normalize($address['shipping_locality'] ?? '');
 

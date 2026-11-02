@@ -4,7 +4,7 @@
     <a href="{{ route('products.show', $product) }}" class="store-product-card__content">
         <div class="store-product-card__image">
             @if ($product->images->isNotEmpty())
-                <img src="{{ \\Illuminate\\Support\\Facades\\Storage::url($product->images->first()->path) }}" alt="{{ $product->images->first()->alt_text ?: $product->name }}" loading="lazy">
+                <img src="{{ \Illuminate\\Support\\Facades\\Storage::url($product->images->first()->path) }}" alt="{{ $product->images->first()->alt_text ?: $product->name }}" loading="lazy">
             @else
                 <span class="store-product-card__placeholder">D.</span>
             @endif

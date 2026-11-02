@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Services\Shipping;
+namespace App\\Services\\Shipping;
 
-use App\Models\ShippingZone;
-use Illuminate\Validation\ValidationException;
+use App\\Models\\ShippingZone;
+use Illuminate\\Support\\Str;
+use Illuminate\\Validation\\ValidationException;
 
 class ShippingRateService
 {
@@ -66,8 +67,14 @@ class ShippingRateService
         return $zone;
     }
 
+    /**
+     * Normalize user-entered Cuban municipality/locality names so accents,
+     * casing and repeated whitespace do not prevent a valid rate from matching.
+     */
     private function normalize(string $value): string
     {
-        return mb_strtolower(trim($value));
+        $ascii = Str::ascii(trim($value));
+
+        return Str::lower((string) preg_replace('/\\s+/', ' ', $ascii));
     }
 }

@@ -2,7 +2,7 @@
 
 **Corte:** 2 de noviembre de 2026  
 **Rama de referencia:** `main`  
-**Última integración:** Fase 10 — operación inicial en Guantánamo  
+**Última integración:** Documentación Fase 10 (PR #16); Fase 11 en desarrollo en rama independiente  
 **Commit de integración:** `e802dc67239eb0f0cc77a59a6ca50ca2a560084b`  
 **PR integrada:** [#15 — Fase 10](https://github.com/renedroyd/dubai-shop/pull/15)
 
@@ -112,15 +112,25 @@ La CI prueba la suite automatizada y la compilación. No reemplaza pruebas de ac
 ## 6. Trabajo pendiente organizado por fases
 
 ### Fase 11 — Identidad de marca y configuración operativa
-**Prioridad: crítica · siguiente fase**
+**Prioridad: crítica · en desarrollo**
+
+**Implementado en la rama de trabajo (pendiente de CI y revisión):**
+- Seeder idempotente para fijar el nombre público Clásico Dubai.
+- Habilitación de efectivo contra entrega.
+- Tarifas temporales activas de 500 CUP para los diez municipios de Guantánamo.
+- Zelle solo se habilita desde el seeder cuando `ZELLE_RECIPIENT_NAME` y `ZELLE_RECIPIENT_EMAIL` están definidos y el correo es válido; los valores reales deben configurarse como variables privadas del entorno o desde Filament.
+- Logotipo vectorial horizontal y favicon SVG; integración en el storefront y en el encabezado de Filament.
+- Prueba automatizada de la configuración inicial y las diez tarifas.
+
+**Pendiente de confirmar antes de cerrar la fase:** ejecutar CI, comprobar render del logo en Filament (incluida pantalla de login), probar checkout real por moneda/método y verificar los datos Zelle en el entorno desplegado. El logo SVG actual es una reconstrucción vectorial a partir de la descripción visual disponible; no es una optimización píxel a píxel del archivo original.
 
 - Configurar nombre comercial Clásico Dubai en los ajustes reales de tienda.
-- Preparar el logotipo suministrado en formatos y tamaños adecuados para storefront, favicon y Filament.
+- Revisar el logotipo vectorial incorporado y sustituirlo por la versión maestra original optimizada si se vuelve a facilitar el archivo fuente.
 - En la barra de navegación de Filament: isotipo a la izquierda y nombre a la derecha, respetando el ancho disponible.
 - En la pantalla de login de Filament: composición completa del logotipo como en el original.
 - Completar y verificar los datos de destinatario Zelle en la configuración de pago, sin exponerlos en el repositorio.
 - Habilitar Zelle solo después de validar esos datos y confirmar que aplica exclusivamente a USD.
-- Crear las tarifas temporales de 500 CUP para los municipios/destinos de Guantánamo que se vayan a atender, con cobertura y moneda correctas.
+- Verificar que el seeder haya creado las diez tarifas temporales de 500 CUP y que los destinos/localidades concretos coincidan con la cobertura real.
 - Confirmar que efectivo contra entrega está habilitado.
 - Revisar teléfono, correo de contacto, moneda, textos legales, políticas y contenido comercial.
 - Ejecutar compra de prueba con Zelle USD y efectivo contra entrega CUP/EUR.

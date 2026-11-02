@@ -11,7 +11,7 @@ Tienda online premium construida con Laravel, Livewire y FilamentPHP.
 - Vite 8
 
 ## Estado del proyecto
-El proyecto ya cuenta con catálogo, carrito, checkout, pedidos, inventario, pagos manuales y tarifas de envío. La Fase 10 está integrada; consulta el estado verificado y la hoja de ruta en [Estado del proyecto](docs/project-status.md).
+El proyecto ya cuenta con catálogo, carrito, checkout, pedidos, inventario, pagos manuales y tarifas de envío. La Fase 10 está integrada y la Fase 11 está en revisión en la PR #17; consulta el estado verificado y la hoja de ruta en [Estado del proyecto](docs/project-status.md).
 
 Consulta:
 - [Arquitectura técnica](docs/architecture.md)

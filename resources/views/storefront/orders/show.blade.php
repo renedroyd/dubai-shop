@@ -9,8 +9,11 @@
             </div>
             <div class="checkout-panel"><span class="eyebrow eyebrow--light">RESUMEN DEL PEDIDO</span>
                 @foreach ($order->items as $item)<div class="order-line"><span>{{ $item->quantity }} × {{ $item->product_name }} @if ($item->variant_name) — {{ $item->variant_name }} @endif</span><strong>{{ number_format($item->line_total_amount / 100, 2) }} {{ $item->currency }}</strong></div>@endforeach
-                <div class="order-line order-line--total"><span>Total de productos</span><strong>{{ number_format($order->total_amount / 100, 2) }} {{ $order->currency }}</strong></div>
-                <p>El envío y los impuestos se confirmarán por separado antes de procesar la entrega.</p>
+                <div class="order-line"><span>Subtotal de productos</span><strong>{{ number_format($order->subtotal_amount / 100, 2) }} {{ $order->currency }}</strong></div>
+                <div class="order-line"><span>Envío · {{ $order->shipping_zone_label }}</span><strong>{{ number_format($order->shipping_amount / 100, 2) }} {{ $order->currency }}</strong></div>
+                <div class="order-line"><span>Impuestos</span><strong>0.00 {{ $order->currency }}</strong></div>
+                <div class="order-line order-line--total"><span>Total del pedido</span><strong>{{ number_format($order->total_amount / 100, 2) }} {{ $order->currency }}</strong></div>
+                <p>Dirección de entrega: {{ $order->shipping_address }}, {{ $order->shipping_city }}, {{ $order->shipping_region }}, Cuba.</p>
             </div>
         </div>
     </section>

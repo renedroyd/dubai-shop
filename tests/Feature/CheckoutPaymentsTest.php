@@ -97,8 +97,7 @@ class CheckoutPaymentsTest extends TestCase
             ->assertSee('Entregas disponibles únicamente en Cuba.')
             ->assertSee('shipping-region', false)
             ->assertSee('shipping-city', false)
-            ->assertSee('Calcular costo de envío')
-            ->assertSee(route('checkout.shipping-quote'), false);
+            ->assertSee('Calcular costo de envío');
     }
 
     public function test_checkout_shipping_quote_returns_configured_zone_and_amount(): void

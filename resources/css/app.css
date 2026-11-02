@@ -441,3 +441,9 @@ button, input { font: inherit; }
 .payment-option:has(input:checked) { border-color: var(--gold); }
 @media (max-width: 800px) { .checkout-layout, .order-confirmation { grid-template-columns: 1fr; } .checkout-summary { position: static; } }
 @media (max-width: 560px) { .checkout-panel { padding: 19px; } .checkout-fields { grid-template-columns: 1fr; } .checkout-fields__wide { grid-column: auto; } .payment-details { margin-left: 0; } .order-line { font-size: 10px; } }
+
+
+/* Clásico Dubai brand lockup */
+.brand__logo { display: block; width: clamp(155px, 18vw, 220px); height: auto; max-height: 48px; object-fit: contain; object-position: left center; }
+.brand--footer .brand__logo { width: 205px; max-height: 52px; }
+@media (max-width: 760px) { .brand__logo { width: 164px; max-height: 42px; } }

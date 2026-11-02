@@ -19,7 +19,7 @@ class Order extends Model
         'number', 'public_token_hash', 'user_id', 'customer_name', 'customer_email', 'customer_phone',
         'shipping_address', 'shipping_address_line_2', 'shipping_city', 'shipping_locality', 'shipping_region',
         'shipping_postal_code', 'shipping_country', 'shipping_zone_id', 'shipping_zone_label', 'customer_note', 'currency',
-        'subtotal_amount', 'shipping_amount', 'tax_amount', 'total_amount',
+        'subtotal_amount', 'shipping_amount', 'tax_amount', 'total_amount', 'delivery_commitment_hours', 'delivery_due_at',
         'status', 'payment_status', 'placed_at', 'confirmed_at', 'cancelled_at', 'inventory_processed_at',
     ];
 
@@ -28,6 +28,7 @@ class Order extends Model
         return [
             'subtotal_amount' => 'integer', 'shipping_amount' => 'integer',
             'tax_amount' => 'integer', 'total_amount' => 'integer',
+            'delivery_commitment_hours' => 'integer', 'delivery_due_at' => 'datetime',
             'placed_at' => 'datetime', 'confirmed_at' => 'datetime', 'cancelled_at' => 'datetime', 'inventory_processed_at' => 'datetime',
         ];
     }

@@ -1,5 +1,5 @@
  <x-storefront.layout title="Finalizar compra | Dubai Shop" description="Completa tus datos y selecciona cómo deseas pagar tu pedido." robots="noindex,nofollow">
-    <section class="catalog-hero"><div class="page-container"><span class="eyebrow eyebrow--light"><span></span> CHECKOUT SEGURO</span><h1>Finaliza tu <em>pedido.</em></h1><p>Entregas disponibles únicamente en Cuba.</p></div></section>
+    <section class="catalog-hero"><div class="page-container"><span class="eyebrow eyebrow--light"><span></span> CHECKOUT SEGURO</span><h1>Finaliza tu <em>pedido.</em></h1><p>Entregas disponibles en la provincia de Guantánamo. Tiempo de entrega: dentro de las 24 horas.</p></div></section>
     <section class="catalog-section page-container">
         @if ($errors->any())<div class="cart-notice" role="alert">@foreach ($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif
         <form class="checkout-layout" method="POST" action="{{ route('checkout.store') }}" enctype="multipart/form-data" id="checkout-form">
@@ -10,7 +10,7 @@
                     <label>Correo electrónico<input type="email" name="customer_email" value="{{ old('customer_email') }}" autocomplete="email" required></label>
                     <label>Teléfono<input name="customer_phone" value="{{ old('customer_phone') }}" autocomplete="tel" required></label>
                 </div></section>
-                <section class="checkout-panel"><span class="eyebrow eyebrow--light">02 / ENTREGA EN CUBA</span><h2>Dirección de entrega</h2><div class="checkout-fields">
+                <section class="checkout-panel"><span class="eyebrow eyebrow--light">02 / ENTREGA EN GUANTÁNAMO</span><h2>Dirección de entrega</h2><div class="checkout-fields">
                     <label class="checkout-fields__wide">Dirección exacta<input name="shipping_address" value="{{ old('shipping_address') }}" autocomplete="address-line1" required></label>
                     <label class="checkout-fields__wide">Apartamento, piso o referencia (opcional)<input name="shipping_address_line_2" value="{{ old('shipping_address_line_2') }}" autocomplete="address-line2"></label>
                     <label>Provincia<select name="shipping_region" id="shipping-region" required><option value="">Selecciona una provincia</option>@foreach ($provinces as $value => $label)<option value="{{ $value }}" @selected(old('shipping_region') === $value)>{{ $label }}</option>@endforeach</select></label>
@@ -44,7 +44,7 @@
                 <div><span>Envío</span><strong id="shipping-quote-amount">Pendiente de cálculo</strong></div>
                 <div><span>Impuestos</span><strong>0.00 {{ $cart->currency }}</strong></div>
                 <div><span>Total</span><strong id="checkout-total">{{ number_format($cart->subtotal_amount / 100, 2) }} {{ $cart->currency }} + envío</strong></div>
-                <p>El envío se calcula según la provincia, municipio y localidad. Dubai Shop no aplica impuestos.</p>
+                <p>Entregamos dentro de la provincia de Guantánamo en un plazo de hasta 24 horas. El costo se calcula según municipio y localidad. Dubai Shop no aplica impuestos.</p>
                 <button class="button button--gold" type="submit" id="checkout-submit" @disabled($paymentMethods->isEmpty())>Confirmar pedido</button><a href="{{ route('cart.index') }}">Volver al carrito</a>
             </aside>
         </form>

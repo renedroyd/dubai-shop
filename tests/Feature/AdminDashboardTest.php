@@ -11,6 +11,7 @@ use App\Filament\Widgets\OrderActivityChart;
 use App\Filament\Widgets\OrderStatusChart;
 use App\Filament\Widgets\PaymentMethodsChart;
 use App\Filament\Widgets\RecentOrders;
+use App\Filament\Widgets\SalesTrendChart;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -32,11 +33,12 @@ class AdminDashboardTest extends TestCase
         foreach ([
             CommerceOverview::class,
             OperationalAlerts::class,
-            LowStockInventory::class,
-            DeliveryAttention::class,
+            SalesTrendChart::class,
             OrderActivityChart::class,
             OrderStatusChart::class,
             PaymentMethodsChart::class,
+            LowStockInventory::class,
+            DeliveryAttention::class,
             RecentOrders::class,
         ] as $widget) {
             $this->assertContains($widget, $widgets);

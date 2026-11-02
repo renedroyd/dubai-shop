@@ -1,13 +1,13 @@
 <?php
 
-namespace App\\Filament\\Widgets;
+namespace App\Filament\Widgets;
 
-use App\\Models\\Inventory;
-use App\\Models\\NotificationLog;
-use App\\Models\\Order;
-use App\\Models\\Payment;
-use Filament\\Widgets\\StatsOverviewWidget;
-use Filament\\Widgets\\StatsOverviewWidget\\Stat;
+use App\Models\Inventory;
+use App\Models\NotificationLog;
+use App\Models\Order;
+use App\Models\Payment;
+use Filament\Widgets\StatsOverviewWidget;
+use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class OperationalAlerts extends StatsOverviewWidget
 {

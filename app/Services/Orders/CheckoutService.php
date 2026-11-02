@@ -76,8 +76,10 @@ class CheckoutService
             }
 
             $zone = $this->shippingRates->resolve($customer, $cart->currency);
-            $shippingAmount = (int) round(((float) $zone->shipping_amount) * 100);
+            $shippingAmount = $this->decimalToMinorUnits((string) $zone->shipping_amount);
             $taxAmount = 0;
+            $placedAt = now();
+            $deliveryCommitmentHours = 24;
 
             $order = Order::query()->create([
                 'number' => 'DS-'.now()->format('ymd').'-'.Str::upper(Str::random(8)),
@@ -91,9 +93,11 @@ class CheckoutService
                 'shipping_amount' => $shippingAmount,
                 'tax_amount' => $taxAmount,
                 'total_amount' => $subtotal + $shippingAmount + $taxAmount,
+                'delivery_commitment_hours' => $deliveryCommitmentHours,
+                'delivery_due_at' => $placedAt->copy()->addHours($deliveryCommitmentHours),
                 'status' => Order::STATUS_PENDING,
                 'payment_status' => 'awaiting_payment',
-                'placed_at' => now(),
+                'placed_at' => $placedAt,
             ]);
 
             foreach ($lines as $line) {
@@ -131,5 +135,11 @@ class CheckoutService
 
             return $order->load(['items', 'payments.method']);
         });
+    }
+    private function decimalToMinorUnits(string $amount): int
+    {
+        [$whole, $fraction] = array_pad(explode('.', $amount, 2), 2, '0');
+
+        return ((int) $whole * 100) + (int) str_pad(substr($fraction, 0, 2), 2, '0');
     }
 }

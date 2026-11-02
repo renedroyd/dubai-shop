@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\PaymentMethod;
 use App\Models\ShippingZone;
 use App\Models\StorefrontSetting;
+use App\Services\Shipping\ShippingRateService;
 use Database\Seeders\ClassicDubaiOperationalSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -33,5 +34,43 @@ class ClassicDubaiOperationalSeederTest extends TestCase
             ->where('shipping_amount', 500)
             ->where('is_active', true)
             ->count());
+    }
+
+    public function test_it_resolves_temporary_rates_when_municipality_is_typed_without_accents(): void
+    {
+        $this->seed(ClassicDubaiOperationalSeeder::class);
+
+        $service = app(ShippingRateService::class);
+
+        foreach ([
+            'Guantanamo',
+            'Maisi',
+            'Niceto Perez',
+            'Imias',
+        ] as $municipality) {
+            $zone = $service->resolve([
+                'shipping_country' => 'CU',
+                'shipping_region' => 'Guantánamo',
+                'shipping_city' => $municipality,
+                'shipping_locality' => '',
+            ], 'CUP');
+
+            $this->assertSame(500.0, (float) $zone->shipping_amount);
+            $this->assertSame('CUP', $zone->currency);
+        }
+    }
+
+    public function test_it_keeps_municipality_matching_strict_after_normalization(): void
+    {
+        $this->seed(ClassicDubaiOperationalSeeder::class);
+
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+
+        app(ShippingRateService::class)->resolve([
+            'shipping_country' => 'CU',
+            'shipping_region' => 'Guantánamo',
+            'shipping_city' => 'Municipio inexistente',
+            'shipping_locality' => '',
+        ], 'CUP');
     }
 }

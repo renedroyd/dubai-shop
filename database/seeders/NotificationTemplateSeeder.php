@@ -53,7 +53,7 @@ class NotificationTemplateSeeder extends Seeder
         ];
 
         foreach ($templates as $eventKey => $template) {
-            NotificationTemplate::query()->updateOrCreate(
+            NotificationTemplate::query()->firstOrCreate(
                 ['event_key' => $eventKey],
                 [...$template, 'is_active' => true],
             );

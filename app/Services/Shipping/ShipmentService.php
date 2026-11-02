@@ -6,6 +6,7 @@ use App\Models\DeliveryAttempt;
 use App\Models\Order;
 use App\Models\Shipment;
 use App\Models\ShipmentEvent;
+use App\Jobs\SendOrderNotification;
 use App\Services\Orders\OrderInventoryService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -36,7 +37,7 @@ class ShipmentService
     {
         return DB::transaction(function () use ($order, $actorId): Shipment {
             $lockedOrder = Order::query()->lockForUpdate()->findOrFail($order->id);
-            if ($lockedOrder->status !== Order::STATUS_PROCESSING) {
+            if (! in_array($lockedOrder->status, [Order::STATUS_PROCESSING, Order::STATUS_SHIPPED], true)) {
                 throw ValidationException::withMessages(['order' => 'Solo se pueden despachar pedidos en preparación.']);
             }
 
@@ -44,7 +45,7 @@ class ShipmentService
             if (! $shipment || blank($shipment->courier_name)) {
                 throw ValidationException::withMessages(['shipment' => 'Asigna un repartidor antes de despachar el pedido.']);
             }
-            if ($shipment->status === Shipment::STATUS_DELIVERED) {
+            if (! in_array($shipment->status, [Shipment::STATUS_ASSIGNED, Shipment::STATUS_DELIVERY_FAILED], true)) {
                 throw ValidationException::withMessages(['shipment' => 'Este envío ya fue entregado.']);
             }
 
@@ -101,6 +102,7 @@ class ShipmentService
             } else {
                 $lockedShipment->update(['status' => Shipment::STATUS_DELIVERY_FAILED]);
                 $this->event($lockedShipment, 'delivery_failed', 'Intento de entrega no completado.', ['note' => $note], $actorId);
+                SendOrderNotification::dispatch($lockedShipment->order->id, 'delivery_attempt_failed')->afterCommit();
             }
 
             return $attempt;

@@ -20,11 +20,11 @@ class ShipmentServiceTest extends TestCase
         $order = $this->createOrder(['status' => Order::STATUS_PROCESSING]);
         $service = app(ShipmentService::class);
 
-        $shipment = $service->assignCourier($order, 'Repartidor de prueba', '53000000', 1);
+        $shipment = $service->assignCourier($order, 'Repartidor de prueba', '53000000');
         $this->assertSame(Shipment::STATUS_ASSIGNED, $shipment->status);
         $this->assertNotEmpty($shipment->tracking_code);
 
-        $shipment = $service->dispatch($order->refresh(), 1);
+        $shipment = $service->dispatch($order->refresh());
 
         $this->assertSame(Shipment::STATUS_DISPATCHED, $shipment->status);
         $this->assertSame(Order::STATUS_SHIPPED, $order->fresh()->status);

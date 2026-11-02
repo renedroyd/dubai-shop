@@ -4,7 +4,6 @@ namespace Tests\Feature\Notifications;
 
 use App\Jobs\SendOrderNotification;
 use App\Mail\OrderNotificationMail;
-use App\Models\NotificationLog;
 use App\Models\NotificationTemplate;
 use App\Models\Order;
 use App\Observers\OrderObserver;
@@ -12,6 +11,7 @@ use Database\Seeders\NotificationTemplateSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class OrderNotificationsTest extends TestCase

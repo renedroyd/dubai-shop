@@ -11,6 +11,7 @@
             <div class="checkout-fields__wide"><button class="button button--gold" type="submit">{{ $mode === 'register' ? 'Crear cuenta' : 'Iniciar sesión' }}</button></div>
         </form>
         <p style="margin-top:1.5rem">@if ($mode === 'register')¿Ya tienes cuenta? <a href="{{ route('customer.login') }}">Inicia sesión</a>. @else¿Aún no tienes cuenta? <a href="{{ route('customer.register') }}">Regístrate</a>. @endif</p>
+        @if ($mode === 'login')<p><a href="{{ route('customer.password.request') }}">¿Olvidaste tu contraseña?</a></p>@endif
         <p>También puedes <a href="{{ route('cart.index') }}">comprar como invitado</a>, sin registrarte.</p>
     </div></section>
 </x-storefront.layout>

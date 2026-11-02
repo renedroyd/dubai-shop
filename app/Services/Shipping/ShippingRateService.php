@@ -11,22 +11,7 @@ class ShippingRateService
     public static function provinces(): array
     {
         return [
-            'Pinar del Río' => 'Pinar del Río',
-            'Artemisa' => 'Artemisa',
-            'La Habana' => 'La Habana',
-            'Mayabeque' => 'Mayabeque',
-            'Matanzas' => 'Matanzas',
-            'Cienfuegos' => 'Cienfuegos',
-            'Villa Clara' => 'Villa Clara',
-            'Sancti Spíritus' => 'Sancti Spíritus',
-            'Ciego de Ávila' => 'Ciego de Ávila',
-            'Camagüey' => 'Camagüey',
-            'Las Tunas' => 'Las Tunas',
-            'Holguín' => 'Holguín',
-            'Granma' => 'Granma',
-            'Santiago de Cuba' => 'Santiago de Cuba',
             'Guantánamo' => 'Guantánamo',
-            'Isla de la Juventud' => 'Isla de la Juventud',
         ];
     }
 
@@ -35,6 +20,12 @@ class ShippingRateService
         if (($address['shipping_country'] ?? null) !== 'CU') {
             throw ValidationException::withMessages([
                 'shipping_country' => 'Dubai Shop realiza entregas únicamente dentro de Cuba.',
+            ]);
+        }
+
+        if (($address['shipping_region'] ?? null) !== 'Guantánamo') {
+            throw ValidationException::withMessages([
+                'shipping_region' => 'Por el momento Dubai Shop realiza entregas únicamente en la provincia de Guantánamo.',
             ]);
         }
 

@@ -54,3 +54,16 @@ Las credenciales de pasarelas externas deben mantenerse en configuración privad
 ## Auditoría del ciclo de vida del pago
 
 Cada pago registra eventos inmutables de creación, aprobación, rechazo o confirmación de cobro. Cada evento conserva estado anterior, estado nuevo, actor administrativo (si aplica), fecha y nota de revisión. Las transiciones se centralizan en PaymentStatusService y se ejecutan con bloqueos transaccionales para impedir dobles confirmaciones o cambios sobre pedidos no elegibles.
+
+
+## Entregas en Cuba — Fase 9
+
+- País permitido: Cuba (ISO 3166-1 alpha-2: `CU`). El checkout no permite seleccionar otro destino.
+- Provincias cubanas disponibles en el formulario: Pinar del Río, Artemisa, La Habana, Mayabeque, Matanzas, Cienfuegos, Villa Clara, Sancti Spíritus, Ciego de Ávila, Camagüey, Las Tunas, Holguín, Granma, Santiago de Cuba, Guantánamo e Isla de la Juventud.
+- En Filament > Configuración > Zonas y tarifas de envío se crean tarifas por provincia (municipio y localidad vacíos), municipio o localidad/reparto.
+- Prioridad de cálculo: localidad específica > municipio > provincia. Una zona inactiva no participa en el cálculo.
+- El cliente debe calcular y revisar la tarifa antes de habilitar la confirmación del checkout. El servidor vuelve a resolver la tarifa al crear el pedido; nunca acepta el importe enviado por el navegador.
+- Si no existe una tarifa activa para la dirección o su moneda no coincide con la moneda del carrito, el pedido no se crea.
+- El pedido conserva la zona aplicada y el importe de envío como una instantánea, aunque la tarifa se modifique o elimine posteriormente.
+- Impuestos: siempre 0. El total es subtotal de productos + envío.
+- Las tarifas se configuran en la moneda correspondiente al carrito (USD, CUP o EUR).

@@ -106,8 +106,8 @@ Los datos del destinatario Zelle y la imagen de marca fueron facilitados por el 
 - [PR #19 — Fase 12, CMS](https://github.com/renedroyd/dubai-shop/pull/19): integrada mediante squash.
 - Commit base de Fase 13: `7bb812d685848234f60d808af7ced9e16ea089ca`.
 - [PR #20 — Fase 13](https://github.com/renedroyd/dubai-shop/pull/20): abierta como borrador, sin merge.
-- CI de la revisión `ddabfbcd1e8a1343f80a62aede09ee56b9ba42ee`, ejecución [41448707160](https://github.com/renedroyd/dubai-shop/actions/runs/41448707160): **success**.
-- Validaciones: 59 pruebas y 262 assertions correctas; PHP 8.4, PHP 8.5, compilación frontend y cachés de producción.
+- CI de la revisión `cc71e487c25feec902014a3ba00d942a44353382`, ejecución [41449500599](https://github.com/renedroyd/dubai-shop/actions/runs/41449500599): **success**.
+- Validaciones: 62 pruebas y 271 assertions correctas; PHP 8.4, PHP 8.5, compilación frontend y cachés de producción.
 
 La CI valida pruebas automatizadas y compilación, pero no sustituye las pruebas de aceptación con SMTP real ni la verificación de la configuración comercial en el entorno de despliegue.
 
@@ -145,15 +145,16 @@ La CI valida pruebas automatizadas y compilación, pero no sustituye las pruebas
 ### Fase 13 — Clientes y comunicación
 **Estado: implementada en la rama de trabajo · PR #20 abierta como borrador**
 
-- Registro, inicio y cierre de sesión de clientes; las cuentas de clientes no acceden al panel Filament.
+- Registro, inicio y cierre de sesión de clientes; recuperación y restablecimiento de contraseña mediante el broker de Laravel.
+- Las cuentas de clientes no acceden al panel Filament y las cuentas administrativas no reciben enlaces de recuperación desde el storefront.
 - Historial de pedidos y gestión de direcciones guardadas, incluida edición y selección predeterminada.
 - El checkout mantiene la compra como invitado y permite a clientes autenticados precargar/guardar direcciones.
 - Notificaciones de pedido recibido, pago aprobado/rechazado y cambios de estado hasta la entrega/cancelación.
 - Plantillas de correo editables y activables desde Filament.
 - Envíos mediante colas Laravel con tres intentos y backoff.
 - Registro de destinatarios, eventos, estados, intentos y errores; reintento manual desde Filament.
-- CI verde: 59 pruebas y 262 assertions, PHP 8.4/8.5 y frontend.
-- Pendiente antes de cerrar: revisión funcional, configuración SMTP y worker activo en el entorno de despliegue, y aprobación explícita para integrar la PR.
+- CI verde: 62 pruebas y 271 assertions, PHP 8.4/8.5, frontend y cachés de producción.
+- Pendiente antes de cerrar: revisión funcional, configuración SMTP y worker activo en el entorno de despliegue, prueba de aceptación de correo real y aprobación explícita para integrar la PR.
 
 ### Fase 14 — Operación logística
 **Prioridad: alta**

@@ -9,7 +9,7 @@ use App\Models\PaymentMethod;
 use App\Models\Inventory;
 use App\Services\Inventory\InventoryService;
 use App\Services\Orders\OrderInventoryService;
-use App\Models\Product;
+use App\Models\Product;\nuse App\Models\ShippingZone;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -42,14 +42,23 @@ class CheckoutPaymentsTest extends TestCase
 
     private function customerData(PaymentMethod $method): array
     {
+        ShippingZone::query()->create([
+            'province' => 'La Habana',
+            'municipality' => 'Habana Vieja',
+            'shipping_amount' => 4.50,
+            'currency' => 'USD',
+            'is_active' => true,
+        ]);
+
         return [
             'customer_name' => 'Cliente de prueba',
             'customer_email' => 'cliente@example.com',
             'customer_phone' => '+13055550100',
-            'shipping_address' => '100 Main Street',
-            'shipping_city' => 'Miami',
-            'shipping_region' => 'Florida',
-            'shipping_country' => 'US',
+            'shipping_address' => 'Calle 23 # 456',
+            'shipping_city' => 'Habana Vieja',
+            'shipping_locality' => 'Centro Habana',
+            'shipping_region' => 'La Habana',
+            'shipping_country' => 'CU',
             'payment_method_id' => $method->id,
         ];
     }
@@ -74,6 +83,56 @@ class CheckoutPaymentsTest extends TestCase
         $this->assertSame(Payment::STATUS_PENDING_COLLECTION, $order->payments->first()->status);
         $this->assertDatabaseCount('order_items', 1);
         $this->assertDatabaseCount('cart_items', 0);
+    }
+
+
+    public function test_checkout_rejects_delivery_outside_cuba(): void
+    {
+        $this->withoutVite();
+        $this->addProductToCart($this->product());
+        $method = PaymentMethod::query()->where('driver', 'cash_on_delivery')->firstOrFail();
+
+        $this->post(route('checkout.store'), [
+            ...$this->customerData($method),
+            'shipping_country' => 'US',
+        ])->assertSessionHasErrors('shipping_country');
+
+        $this->assertDatabaseCount('orders', 0);
+    }
+
+    public function test_shipping_rate_uses_the_most_specific_matching_zone(): void
+    {
+        $this->withoutVite();
+        $this->addProductToCart($this->product());
+        $method = PaymentMethod::query()->where('driver', 'cash_on_delivery')->firstOrFail();
+        $data = $this->customerData($method);
+        ShippingZone::query()->create([
+            'province' => 'La Habana',
+            'municipality' => 'Habana Vieja',
+            'locality' => 'Centro Habana',
+            'shipping_amount' => 2.25,
+            'currency' => 'USD',
+            'is_active' => true,
+        ]);
+
+        $this->post(route('checkout.store'), $data)->assertRedirect();
+        $order = Order::query()->firstOrFail();
+        $this->assertSame(225, $order->shipping_amount);
+        $this->assertSame('Centro Habana · Habana Vieja · La Habana', $order->shipping_zone_label);
+        $this->assertSame(5423, $order->total_amount);
+    }
+
+    public function test_checkout_rejects_an_address_without_a_configured_shipping_rate(): void
+    {
+        $this->withoutVite();
+        $this->addProductToCart($this->product());
+        $method = PaymentMethod::query()->where('driver', 'cash_on_delivery')->firstOrFail();
+        $data = $this->customerData($method);
+        $data['shipping_region'] = 'Matanzas';
+        $data['shipping_city'] = 'Matanzas';
+
+        $this->post(route('checkout.store'), $data)->assertSessionHasErrors('shipping_city');
+        $this->assertDatabaseCount('orders', 0);
     }
 
     public function test_zelle_checkout_requires_and_privately_stores_payment_proof(): void

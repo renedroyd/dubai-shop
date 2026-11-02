@@ -45,6 +45,11 @@ class NotificationTemplateSeeder extends Seeder
                 'subject' => 'Tu pedido {order_number} ha sido entregado',
                 'body' => "Hola {customer_name},\n\nTu pedido {order_number} figura como entregado. Esperamos que disfrutes tu compra.\n\n{store_name}.",
             ],
+            'delivery_attempt_failed' => [
+                'name' => 'Intento de entrega no completado',
+                'subject' => 'No pudimos completar la entrega del pedido {order_number}',
+                'body' => "Hola {customer_name},\\n\\nHemos intentado entregar tu pedido {order_number}, pero no fue posible completar la entrega. Nuestro equipo coordinará un nuevo intento.\\n\\nSeguimiento: {tracking_code}\\nRepartidor: {courier_name}\\nTeléfono: {courier_phone}\\n\\n{store_name}.",
+            ],
             'order_cancelled' => [
                 'name' => 'Pedido cancelado',
                 'subject' => 'Actualización de tu pedido {order_number}',

@@ -46,7 +46,7 @@ class ShipmentService
                 throw ValidationException::withMessages(['shipment' => 'Asigna un repartidor antes de despachar el pedido.']);
             }
             if (! in_array($shipment->status, [Shipment::STATUS_ASSIGNED, Shipment::STATUS_DELIVERY_FAILED], true)) {
-                throw ValidationException::withMessages(['shipment' => 'Este envío ya fue entregado.']);
+                throw ValidationException::withMessages(['shipment' => 'El envío no está listo para un nuevo despacho.']);
             }
 
             $shipment->update(['status' => Shipment::STATUS_DISPATCHED, 'dispatched_at' => now()]);
@@ -69,7 +69,7 @@ class ShipmentService
             if ($lockedShipment->status === Shipment::STATUS_DELIVERED) {
                 throw ValidationException::withMessages(['shipment' => 'No se pueden registrar intentos después de la entrega.']);
             }
-            if ($lockedShipment->status !== Shipment::STATUS_DISPATCHED && $lockedShipment->status !== Shipment::STATUS_DELIVERY_FAILED) {
+            if ($lockedShipment->status !== Shipment::STATUS_DISPATCHED) {
                 throw ValidationException::withMessages(['shipment' => 'El envío debe estar despachado para registrar un intento.']);
             }
             if (! in_array($result, ['delivered', 'failed'], true)) {

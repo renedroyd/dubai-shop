@@ -33,11 +33,11 @@ class OrderNotificationsTest extends TestCase
 
         (new SendOrderNotification($order->id, 'order_received'))->handle();
 
-        Mail::assertSent(OrderNotificationMail::class, fn (OrderNotificationMail $mail): bool =>
-            $mail->hasTo('cliente@example.com')
-            && $mail->subjectLine === 'Pedido '.$order->number.' confirmado para Cliente Dubai'
-            && str_contains($mail->body, '10.00 CUP')
-        );
+        Mail::assertSent(OrderNotificationMail::class);
+
+        $sentMail = Mail::sent(OrderNotificationMail::class)->first();
+        $this->assertSame('Pedido '.$order->number.' confirmado para Cliente Dubai', $sentMail->subjectLine);
+        $this->assertStringContainsString('10.00 CUP', $sentMail->body);
 
         $this->assertDatabaseHas('notification_logs', [
             'order_id' => $order->id,

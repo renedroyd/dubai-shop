@@ -38,6 +38,9 @@ class CatalogTest extends TestCase
         $this->get(route('products.index'))
             ->assertOk()
             ->assertSee('Premium Headphones')
+            ->assertSee('Agregar al carrito')
+            ->assertSee('☆☆☆☆☆')
+            ->assertSee('Sin valoraciones')
             ->assertDontSee('Draft Product');
     }
 

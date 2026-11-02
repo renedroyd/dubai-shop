@@ -43,13 +43,14 @@ class NotificationTemplateResource extends Resource
                     'order_confirmed' => 'Pedido confirmado',
                     'order_processing' => 'Pedido en preparación',
                     'order_shipped' => 'Pedido enviado',
+                    'delivery_attempt_failed' => 'Intento de entrega no completado',
                     'order_delivered' => 'Pedido entregado',
                     'order_cancelled' => 'Pedido cancelado',
                 ])->required()->unique(ignoreRecord: true),
                 TextInput::make('name')->label('Nombre interno')->required()->maxLength(160),
                 TextInput::make('subject')->label('Asunto del correo')->required()->maxLength(255),
                 Textarea::make('body')->label('Mensaje')->required()->rows(12)->columnSpanFull()
-                    ->helperText('Variables disponibles: {order_number}, {customer_name}, {order_status}, {payment_status}, {order_total}, {currency}, {store_name}. El mensaje se envía como texto plano.'),
+                    ->helperText('Variables disponibles: {order_number}, {customer_name}, {order_status}, {payment_status}, {order_total}, {currency}, {store_name}, {tracking_code}, {courier_name}, {courier_phone}. El mensaje se envía como texto plano.'),
                 Toggle::make('is_active')->label('Plantilla activa')->default(true),
             ]),
         ]);

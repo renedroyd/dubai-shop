@@ -70,6 +70,8 @@ class StorefrontContentTest extends TestCase
 
     public function test_only_published_pages_are_publicly_accessible_and_content_is_escaped(): void
     {
+        $this->withoutVite();
+
         StorefrontPage::query()->create([
             'title' => 'Política de privacidad',
             'slug' => 'privacidad',

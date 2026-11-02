@@ -24,6 +24,10 @@ Route::middleware('guest')->group(function () {
     Route::post('/cuenta/registro', [CustomerAuthController::class, 'register'])->middleware('throttle:5,1')->name('customer.register.store');
     Route::get('/cuenta/ingresar', [CustomerAuthController::class, 'loginForm'])->name('customer.login');
     Route::post('/cuenta/ingresar', [CustomerAuthController::class, 'login'])->middleware('throttle:5,1')->name('customer.login.store');
+    Route::get('/cuenta/recuperar', [CustomerAuthController::class, 'requestPasswordResetForm'])->name('customer.password.request');
+    Route::post('/cuenta/recuperar', [CustomerAuthController::class, 'sendPasswordResetLink'])->middleware('throttle:5,1')->name('customer.password.email');
+    Route::get('/cuenta/restablecer/{token}', [CustomerAuthController::class, 'resetPasswordForm'])->name('customer.password.reset');
+    Route::post('/cuenta/restablecer', [CustomerAuthController::class, 'resetPassword'])->middleware('throttle:5,1')->name('customer.password.update');
 });
 
 Route::middleware('auth')->prefix('cuenta')->name('customer.')->group(function () {

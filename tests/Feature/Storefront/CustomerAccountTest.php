@@ -11,6 +11,13 @@ class CustomerAccountTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutVite();
+    }
+
     public function test_customer_can_register_and_reach_account_dashboard(): void
     {
         $response = $this->post(route('customer.register.store'), [

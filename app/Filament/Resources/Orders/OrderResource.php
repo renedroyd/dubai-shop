@@ -5,6 +5,10 @@ namespace App\Filament\Resources\Orders;
 use App\Filament\Resources\Orders\Pages\ListOrders;
 use App\Models\Order;
 use App\Services\Orders\OrderInventoryService;
+use App\Services\Shipping\ShipmentService;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -69,6 +73,32 @@ class OrderResource extends Resource
                         $record->update(['status' => Order::STATUS_DELIVERED]);
                     });
                 }),
+            Action::make('assignCourier')->label('Asignar repartidor')->icon('heroicon-o-user')
+                ->visible(fn (Order $record): bool => in_array($record->status, [Order::STATUS_PROCESSING, Order::STATUS_SHIPPED], true))
+                ->form([
+                    TextInput::make('courier_name')->label('Nombre del repartidor')->required()->maxLength(160),
+                    TextInput::make('courier_phone')->label('Teléfono de contacto')->tel()->maxLength(40),
+                ])
+                ->fillForm(fn (Order $record): array => [
+                    'courier_name' => $record->shipment?->courier_name,
+                    'courier_phone' => $record->shipment?->courier_phone,
+                ])
+                ->action(fn (Order $record, array $data) => app(ShipmentService::class)->assignCourier(
+                    $record, $data['courier_name'], $data['courier_phone'] ?? null, auth()->id(),
+                )),
+            Action::make('dispatch')->label('Despachar pedido')->icon('heroicon-o-truck')->color('info')->requiresConfirmation()
+                ->visible(fn (Order $record): bool => $record->status === Order::STATUS_PROCESSING && filled($record->shipment?->courier_name))
+                ->action(fn (Order $record) => app(ShipmentService::class)->dispatch($record, auth()->id())),
+            Action::make('deliveryAttempt')->label('Registrar intento de entrega')->icon('heroicon-o-clipboard-document-check')
+                ->visible(fn (Order $record): bool => $record->status === Order::STATUS_SHIPPED && $record->shipment && $record->shipment->status !== 'delivered')
+                ->form([
+                    Select::make('result')->label('Resultado')->options(['delivered' => 'Entregado', 'failed' => 'No se pudo entregar'])->required(),
+                    TextInput::make('recipient_name')->label('Persona que recibe')->maxLength(160),
+                    Textarea::make('note')->label('Observaciones / incidencia')->rows(3)->maxLength(2000),
+                ])
+                ->action(fn (Order $record, array $data) => app(ShipmentService::class)->recordAttempt(
+                    $record->shipment, $data['result'], $data['recipient_name'] ?? null, $data['note'] ?? null, auth()->id(),
+                )),
             Action::make('cancel')->label('Cancelar pedido')->color('danger')->requiresConfirmation()
                 ->visible(fn (Order $record): bool => in_array($record->status, [Order::STATUS_PENDING, Order::STATUS_CONFIRMED, Order::STATUS_PROCESSING], true) && $record->payment_status !== 'paid')
                 ->action(function (Order $record): void {

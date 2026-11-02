@@ -14,6 +14,8 @@ class CustomerAccountController extends Controller
 {
     public function dashboard(Request $request): View
     {
+        abort_if($request->user()->is_admin, 403);
+
         $orders = $request->user()->orders()->with('items')->latest('placed_at')->paginate(10);
 
         return view('storefront.customer.dashboard', compact('orders'));
@@ -21,6 +23,8 @@ class CustomerAccountController extends Controller
 
     public function addresses(Request $request): View
     {
+        abort_if($request->user()->is_admin, 403);
+
         $addresses = $request->user()->customerAddresses()->latest()->get();
 
         return view('storefront.customer.addresses', compact('addresses'));
@@ -31,12 +35,10 @@ class CustomerAccountController extends Controller
         $data = $this->validatedAddress($request);
         $makeDefault = $request->boolean('is_default') || ! $request->user()->customerAddresses()->exists();
 
-        $request->user()->customerAddresses()->create([
+        $address = $request->user()->customerAddresses()->create([
             ...$data,
             'is_default' => false,
         ]);
-
-        $address = $request->user()->customerAddresses()->latest('id')->first();
 
         if ($makeDefault) {
             $this->setDefault($request, $address);

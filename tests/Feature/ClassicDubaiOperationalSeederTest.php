@@ -1,14 +1,14 @@
 <?php
 
-namespace Tests\\Feature;
+namespace Tests\Feature;
 
-use App\\Models\\PaymentMethod;
-use App\\Models\\ShippingZone;
-use App\\Models\\StorefrontSetting;
-use App\\Services\\Shipping\\ShippingRateService;
-use Database\\Seeders\\ClassicDubaiOperationalSeeder;
-use Illuminate\\Foundation\\Testing\\RefreshDatabase;
-use Tests\\TestCase;
+use App\Models\PaymentMethod;
+use App\Models\ShippingZone;
+use App\Models\StorefrontSetting;
+use App\Services\Shipping\ShippingRateService;
+use Database\Seeders\ClassicDubaiOperationalSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class ClassicDubaiOperationalSeederTest extends TestCase
 {
@@ -64,7 +64,7 @@ class ClassicDubaiOperationalSeederTest extends TestCase
     {
         $this->seed(ClassicDubaiOperationalSeeder::class);
 
-        $this->expectException(\\Illuminate\\Validation\\ValidationException::class);
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
 
         app(ShippingRateService::class)->resolve([
             'shipping_country' => 'CU',

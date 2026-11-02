@@ -58,6 +58,9 @@
                 @if ($headerMenu->isNotEmpty())
                     @foreach ($headerMenu as $item)
                         <a href="{{ $item->url }}" @if ($item->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif>{{ $item->label }}</a>
+                        @foreach ($item->children as $child)
+                            <a href="{{ $child->url }}" style="font-size:.85em;padding-left:1rem" @if ($child->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif>{{ $child->label }}</a>
+                        @endforeach
                     @endforeach
                 @else
                     <a href="{{ route('products.index') }}">Productos</a>
@@ -79,6 +82,9 @@
                     @if ($headerMenu->isNotEmpty())
                         @foreach ($headerMenu as $item)
                             <a href="{{ $item->url }}" @if ($item->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif>{{ $item->label }}</a>
+                            @foreach ($item->children as $child)
+                                <a href="{{ $child->url }}" style="padding-left:1rem" @if ($child->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif>{{ $child->label }}</a>
+                            @endforeach
                         @endforeach
                     @else
                         <a href="{{ route('products.index') }}">Productos</a>

@@ -1,10 +1,10 @@
 <?php
 
-namespace App\\Services\\Shipping;
+namespace App\Services\Shipping;
 
-use App\\Models\\ShippingZone;
-use Illuminate\\Support\\Str;
-use Illuminate\\Validation\\ValidationException;
+use App\Models\ShippingZone;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class ShippingRateService
 {
@@ -75,6 +75,6 @@ class ShippingRateService
     {
         $ascii = Str::ascii(trim($value));
 
-        return Str::lower((string) preg_replace('/\\s+/', ' ', $ascii));
+        return Str::lower((string) preg_replace('/\s+/', ' ', $ascii));
     }
 }

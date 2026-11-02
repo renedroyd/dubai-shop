@@ -6,6 +6,8 @@ use App\Http\Controllers\Storefront\CheckoutController;
 use App\Http\Controllers\Storefront\OrderController;
 use App\Http\Controllers\Storefront\ProductController;
 use App\Http\Controllers\Storefront\PageController;
+use App\Http\Controllers\Storefront\CustomerAuthController;
+use App\Http\Controllers\Storefront\CustomerAccountController;
 use App\Http\Controllers\Seo\SitemapController;
 use App\Http\Controllers\Seo\RobotsController;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +18,23 @@ Route::get('/robots.txt', RobotsController::class)->name('robots');
 Route::get('/', HomeController::class)->name('home');
 Route::get('/productos', [ProductController::class, 'index'])->name('products.index');
 Route::get('/productos/{product:slug}', [ProductController::class, 'show'])->name('products.show');
+
+Route::middleware('guest')->group(function () {
+    Route::get('/cuenta/registro', [CustomerAuthController::class, 'registerForm'])->name('customer.register');
+    Route::post('/cuenta/registro', [CustomerAuthController::class, 'register'])->middleware('throttle:5,1')->name('customer.register.store');
+    Route::get('/cuenta/ingresar', [CustomerAuthController::class, 'loginForm'])->name('customer.login');
+    Route::post('/cuenta/ingresar', [CustomerAuthController::class, 'login'])->middleware('throttle:5,1')->name('customer.login.store');
+});
+
+Route::middleware('auth')->prefix('cuenta')->name('customer.')->group(function () {
+    Route::post('/salir', [CustomerAuthController::class, 'logout'])->name('logout');
+    Route::get('/', [CustomerAccountController::class, 'dashboard'])->name('dashboard');
+    Route::get('/direcciones', [CustomerAccountController::class, 'addresses'])->name('addresses');
+    Route::post('/direcciones', [CustomerAccountController::class, 'storeAddress'])->name('addresses.store');
+    Route::put('/direcciones/{address}', [CustomerAccountController::class, 'updateAddress'])->name('addresses.update');
+    Route::delete('/direcciones/{address}', [CustomerAccountController::class, 'destroyAddress'])->name('addresses.destroy');
+    Route::patch('/direcciones/{address}/predeterminada', [CustomerAccountController::class, 'makeDefault'])->name('addresses.default');
+});
 
 Route::get('/carrito', [CartController::class, 'index'])->name('cart.index');
 Route::post('/carrito/items', [CartController::class, 'store'])->name('cart.items.store');

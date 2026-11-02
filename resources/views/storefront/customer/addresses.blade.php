@@ -13,7 +13,7 @@
                         <label>Teléfono<input name="phone" value="{{ $address->phone }}" required></label>
                         <label class="checkout-fields__wide">Dirección exacta<input name="address" value="{{ $address->address }}" required></label>
                         <label class="checkout-fields__wide">Complemento<input name="address_line_2" value="{{ $address->address_line_2 }}"></label>
-                        <label>Provincia<select name="region" required>@foreach(\\App\\Services\\Shipping\\ShippingRateService::provinces() as $key => $label)<option value="{{ $key }}" @selected($address->region === $key)>{{ $label }}</option>@endforeach</select></label>
+                        <label>Provincia<select name="region" required>@foreach(\App\Services\Shipping\ShippingRateService::provinces() as $key => $label)<option value="{{ $key }}" @selected($address->region === $key)>{{ $label }}</option>@endforeach</select></label>
                         <label>Municipio<input name="city" value="{{ $address->city }}" required></label>
                         <label>Localidad<input name="locality" value="{{ $address->locality }}"></label>
                         <label>Código postal<input name="postal_code" value="{{ $address->postal_code }}"></label>

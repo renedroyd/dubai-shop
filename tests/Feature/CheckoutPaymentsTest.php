@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\Payment;
@@ -388,7 +389,7 @@ class CheckoutPaymentsTest extends TestCase
             'is_visible' => true,
         ]);
         $this->addProductToCart($product);
-        $cart = \\App\\Models\\Cart::query()->firstOrFail();
+        $cart = Cart::query()->firstOrFail();
         $this->assertSame('EUR', $cart->currency);
 
         $method = PaymentMethod::query()->where('driver', 'cash_on_delivery')->firstOrFail();

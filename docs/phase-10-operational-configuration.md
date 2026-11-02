@@ -5,7 +5,7 @@
 - Cobertura inicial: provincia de Guantánamo.
 - Plazo de entrega comunicado al cliente: dentro de las 24 horas.
 - Tarifas: estructura mixta por provincia, municipio y localidad; se conserva la precedencia de la coincidencia más específica.
-- Monedas: USD, CUP y EUR. Cada producto se mantiene en una moneda y el carrito/pedido conserva una sola moneda; no se mezclan monedas ni se aplica conversión automática.
+- Monedas: USD, CUP y EUR. Cada producto se mantiene en una moneda y el carrito/pedido conserva una sola moneda; no se mezclan monedas ni se aplica conversión automática. Zelle se ofrece exclusivamente para pedidos en USD; CUP y EUR usan efectivo contra entrega mientras no exista otro método compatible.
 - Pagos habilitados para la operación: Zelle con comprobante y revisión manual, y efectivo contra entrega con confirmación administrativa.
 - Impuestos: cero, según la decisión vigente del proyecto.
 

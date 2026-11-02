@@ -10,6 +10,7 @@ use App\Filament\Widgets\OrderActivityChart;
 use App\Filament\Widgets\OrderStatusChart;
 use App\Filament\Widgets\PaymentMethodsChart;
 use App\Filament\Widgets\RecentOrders;
+use App\Filament\Widgets\SalesTrendChart;
 use Filament\Pages\Dashboard as BaseDashboard;
 
 class Dashboard extends BaseDashboard
@@ -19,11 +20,12 @@ class Dashboard extends BaseDashboard
         return [
             CommerceOverview::class,
             OperationalAlerts::class,
-            LowStockInventory::class,
-            DeliveryAttention::class,
+            SalesTrendChart::class,
             OrderActivityChart::class,
             OrderStatusChart::class,
             PaymentMethodsChart::class,
+            LowStockInventory::class,
+            DeliveryAttention::class,
             RecentOrders::class,
         ];
     }

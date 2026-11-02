@@ -6,12 +6,12 @@ Tienda online premium construida con Laravel, Livewire y FilamentPHP.
 - PHP 8.4.1+
 - Laravel 13
 - Filament 5
-- Livewire (integración directa planificada para la interfaz pública)
+- Livewire utilizado por Filament 5; la tienda pública actual utiliza Blade y controladores Laravel
 - Tailwind CSS 4
 - Vite 8
 
 ## Estado del proyecto
-El proyecto ya cuenta con catálogo, carrito, checkout, pedidos, inventario, pagos manuales y tarifas de envío. La Fase 10 está integrada y la Fase 11 está en revisión en la PR #17; consulta el estado verificado y la hoja de ruta en [Estado del proyecto](docs/project-status.md).
+El proyecto cuenta con catálogo, carrito, checkout, pedidos, inventario, pagos manuales, tarifas de envío, CMS y marca Clásico Dubai. Las Fases 1–12 están integradas; la Fase 13 (cuentas de clientes y comunicación transaccional) continúa en la [PR #20](https://github.com/renedroyd/dubai-shop/pull/20). Consulta el [estado del proyecto](docs/project-status.md) y la [guía de notificaciones](docs/transactional-notifications.md).
 
 Consulta:
 - [Arquitectura técnica](docs/architecture.md)

@@ -41,8 +41,11 @@ class CheckoutController extends Controller
                 'instructions' => $this->drivers->driver($method->driver)->checkoutInstructions($method),
             ]);
         $provinces = ShippingRateService::provinces();
+        $savedAddresses = $request->user()
+            ? $request->user()->customerAddresses()->orderByDesc('is_default')->get()
+            : collect();
 
-        return view('storefront.checkout.create', compact('cart', 'paymentMethods', 'provinces'));
+        return view('storefront.checkout.create', compact('cart', 'paymentMethods', 'provinces', 'savedAddresses'));
     }
 
     public function quoteShipping(Request $request): JsonResponse
@@ -108,6 +111,31 @@ class CheckoutController extends Controller
         ];
         $token = Str::random(64);
         $order = $this->checkout->placeOrder($cart, $customer, $method, $paymentData, $token);
+
+        if ($request->user() && $request->boolean('save_address')) {
+            $addressData = collect($customer)->only([
+                'customer_name', 'customer_phone', 'shipping_address', 'shipping_address_line_2',
+                'shipping_city', 'shipping_locality', 'shipping_region', 'shipping_postal_code', 'shipping_country',
+            ])->all();
+
+            $request->user()->customerAddresses()->firstOrCreate(
+                [
+                    'address' => $addressData['shipping_address'],
+                    'city' => $addressData['shipping_city'],
+                    'region' => $addressData['shipping_region'],
+                    'country' => $addressData['shipping_country'],
+                ],
+                [
+                    'label' => 'Dirección de entrega',
+                    'recipient_name' => $addressData['customer_name'],
+                    'phone' => $addressData['customer_phone'],
+                    'address_line_2' => $addressData['shipping_address_line_2'] ?? null,
+                    'locality' => $addressData['shipping_locality'] ?? null,
+                    'postal_code' => $addressData['shipping_postal_code'] ?? null,
+                    'is_default' => ! $request->user()->customerAddresses()->exists(),
+                ],
+            );
+        }
 
         return to_route('orders.show', ['order' => $order->number, 'token' => $token])
             ->with('status', 'Tu pedido se registró correctamente.');

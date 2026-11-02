@@ -2,9 +2,9 @@
 
 **Corte:** 2 de noviembre de 2026  
 **Rama de referencia:** `main`  
-**Última integración:** Documentación Fase 10 (PR #16); Fase 11 en desarrollo en rama independiente  
-**Commit de integración:** `e802dc67239eb0f0cc77a59a6ca50ca2a560084b`  
-**PR integrada:** [#15 — Fase 10](https://github.com/renedroyd/dubai-shop/pull/15)
+**Última integración:** Fase 12 — CMS (PR #19); Fase 13 en desarrollo en `feature/fase-13-clientes-comunicacion`  
+**Commit de integración:** `7bb812d685848234f60d808af7ced9e16ea089ca`  
+**PR integrada:** [#19 — Fase 12](https://github.com/renedroyd/dubai-shop/pull/19)
 
 Este documento separa lo que está implementado y probado en el repositorio de la configuración comercial que aún debe cargarse, y de las capacidades que siguen en la hoja de ruta. La integración de una fase no significa que la tienda esté lista para producción.
 
@@ -12,7 +12,7 @@ Este documento separa lo que está implementado y probado en el repositorio de l
 
 Dubai Shop tiene implementado el núcleo de una tienda online: catálogo público, búsqueda y filtros, carrito de invitado, checkout, pedidos, reservas de inventario, pagos manuales auditados, administración con Filament y tarifas de envío configurables. La Fase 10 restringió la operación inicial a Guantánamo, estableció el compromiso de entrega dentro de 24 horas, reforzó el tratamiento de importes de envío y formalizó el uso de varias monedas sin mezclarlas.
 
-**Estado actual:** base funcional integrada; falta completar la configuración real del negocio, probar la operación completa con datos reales, terminar la identidad visual de Clásico Dubai y cerrar requisitos de producción.
+**Estado actual:** fases 1–12 integradas; Fase 13 en desarrollo. La base funcional incluye cuentas de clientes en la rama de trabajo, mientras se completa la comunicación transaccional. Falta verificar la configuración real del negocio, ejecutar pruebas de aceptación y cerrar requisitos de producción.
 
 La tienda no debe considerarse lista para producción solo porque CI esté verde. Aún es necesario cargar tarifas, configurar el destinatario Zelle en la administración, verificar los métodos activos y realizar pruebas de aceptación en un entorno real.
 
@@ -101,57 +101,60 @@ Los datos del destinatario Zelle y la imagen de marca fueron facilitados por el 
 
 ## 5. Estado de CI e integración
 
-- [PR #15 — Fase 10](https://github.com/renedroyd/dubai-shop/pull/15): integrada mediante squash.
-- Commit de integración: `e802dc67239eb0f0cc77a59a6ca50ca2a560084b`.
-- [CI de la PR #15](https://github.com/renedroyd/dubai-shop/actions/runs/41423708944): **success**.
-- Trabajos completados: PHP 8.4 Laravel tests, PHP 8.5 Laravel tests y frontend assets.
-- Tras la integración se inició una ejecución de CI sobre `main`; debe comprobarse su resultado antes de publicar/desplegar.
+- [PR #17 — Fase 11](https://github.com/renedroyd/dubai-shop/pull/17): integrada.
+- [PR #18 — Normalización de municipios](https://github.com/renedroyd/dubai-shop/pull/18): integrada.
+- [PR #19 — Fase 12, CMS](https://github.com/renedroyd/dubai-shop/pull/19): integrada mediante squash.
+- Commit base de Fase 13: `7bb812d685848234f60d808af7ced9e16ea089ca`.
+- [PR #20 — Fase 13](https://github.com/renedroyd/dubai-shop/pull/20): abierta como borrador, sin merge.
+- CI de la revisión `cc71e487c25feec902014a3ba00d942a44353382`, ejecución [41449500599](https://github.com/renedroyd/dubai-shop/actions/runs/41449500599): **success**.
+- Validaciones: 62 pruebas y 271 assertions correctas; PHP 8.4, PHP 8.5, compilación frontend y cachés de producción.
 
-La CI prueba la suite automatizada y la compilación. No reemplaza pruebas de aceptación con tarifas, credenciales, destinatario de pago y configuración reales.
+La CI valida pruebas automatizadas y compilación, pero no sustituye las pruebas de aceptación con SMTP real ni la verificación de la configuración comercial en el entorno de despliegue.
 
 ## 6. Trabajo pendiente organizado por fases
 
 ### Fase 11 — Identidad de marca y configuración operativa
-**Prioridad: crítica · en desarrollo**
+**Estado: integrada en PR #17 · validación operativa pendiente**
 
-**Implementado en la rama de trabajo (pendiente de CI y revisión):**
-- Seeder idempotente para fijar el nombre público Clásico Dubai.
-- Habilitación de efectivo contra entrega.
+**Implementado e integrado:**
+- Seeder idempotente para configurar el nombre público Clásico Dubai.
+- Efectivo contra entrega habilitado.
 - Tarifas temporales activas de 500 CUP para los diez municipios de Guantánamo.
-- Zelle solo se habilita desde el seeder cuando `ZELLE_RECIPIENT_NAME` y `ZELLE_RECIPIENT_EMAIL` están definidos y el correo es válido; los valores reales deben configurarse como variables privadas del entorno o desde Filament.
-- Logotipo vectorial horizontal y favicon SVG; integración en el storefront y en el encabezado de Filament.
-- Prueba automatizada de la configuración inicial y las diez tarifas.
+- Zelle habilitado por el seeder únicamente cuando el nombre y correo del destinatario se configuran mediante variables privadas válidas.
+- Logotipo vectorial horizontal y favicon SVG integrados en el storefront y en Filament.
+- Pruebas automatizadas de la configuración inicial y las diez tarifas.
 
-**Pendiente de confirmar antes de cerrar la fase:** ejecutar CI, comprobar render del logo en Filament (incluida pantalla de login), probar checkout real por moneda/método y verificar los datos Zelle en el entorno desplegado. El logo SVG actual es una reconstrucción vectorial a partir de la descripción visual disponible; no es una optimización píxel a píxel del archivo original.
+**Pendiente de validación operativa:** comprobar el logo en Filament (incluida la pantalla de login), verificar datos Zelle en el entorno desplegado y probar checkout real por moneda/método. El SVG es una reconstrucción vectorial, no una optimización píxel a píxel del archivo original.
 
-- Configurar nombre comercial Clásico Dubai en los ajustes reales de tienda.
-- Revisar el logotipo vectorial incorporado y sustituirlo por la versión maestra original optimizada si se vuelve a facilitar el archivo fuente.
-- En la barra de navegación de Filament: isotipo a la izquierda y nombre a la derecha, respetando el ancho disponible.
-- En la pantalla de login de Filament: composición completa del logotipo como en el original.
-- Completar y verificar los datos de destinatario Zelle en la configuración de pago, sin exponerlos en el repositorio.
-- Habilitar Zelle solo después de validar esos datos y confirmar que aplica exclusivamente a USD.
-- Verificar que el seeder haya creado las diez tarifas temporales de 500 CUP y que los destinos/localidades concretos coincidan con la cobertura real.
-- Confirmar que efectivo contra entrega está habilitado.
-- Revisar teléfono, correo de contacto, moneda, textos legales, políticas y contenido comercial.
-- Ejecutar compra de prueba con Zelle USD y efectivo contra entrega CUP/EUR.
-- Confirmar que el plazo de 24 horas se comunica correctamente y que el equipo puede cumplirlo.
+- Revisar el logotipo y sustituirlo por la versión maestra optimizada si se facilita el archivo fuente.
+- Verificar las diez tarifas, los destinos reales y el compromiso de entrega de 24 horas.
+- Revisar teléfono, correo, moneda, textos legales y políticas.
+- Ejecutar compras de prueba con Zelle USD y efectivo contra entrega CUP/EUR.
 
-**Criterio de salida:** identidad visible en tienda y panel, configuración real guardada, tarifas activas, pagos verificados y compra de extremo a extremo aceptada.
+**Criterio de salida operativa:** identidad visible, tarifas confirmadas, pagos verificados y compra de extremo a extremo aceptada.
 
 ### Fase 12 — Administración comercial y CMS
-**Prioridad: alta**
-- Completar administración de banners, promociones visuales, menús y bloques de portada.
-- Definir páginas administrables: acerca de, contacto, preguntas frecuentes, políticas de compra, privacidad y devoluciones.
-- Mejorar la gestión de ofertas y productos destacados.
-- Implementar cupones y reglas promocionales si se confirman como requisito.
-- Validar permisos y auditoría de cambios administrativos.
+**Estado: integrada en PR #19**
+
+- Banners administrables con imagen, texto, enlace, orden y vigencia.
+- Páginas administrables con borrador/publicación y metadatos SEO.
+- Menús configurables para cabecera y pie de página.
+- El contenido se escapa y los enlaces se validan; no se admite HTML arbitrario.
+- Cupones y descuentos automáticos quedan pendientes hasta definir reglas comerciales.
 
 ### Fase 13 — Clientes y comunicación
-**Prioridad: alta**
-- Decidir si se habilitarán cuentas de clientes o se mantendrá el modelo de invitado como opción.
-- Si se aprueban cuentas: registro, autenticación, historial de pedidos y direcciones guardadas.
-- Correos transaccionales: pedido recibido, pago aprobado/rechazado, cambios de estado y entrega.
-- Plantillas de notificación configurables y registro de envíos fallidos.
+**Estado: implementada en la rama de trabajo · PR #20 abierta como borrador**
+
+- Registro, inicio y cierre de sesión de clientes; recuperación y restablecimiento de contraseña mediante el broker de Laravel.
+- Las cuentas de clientes no acceden al panel Filament y las cuentas administrativas no reciben enlaces de recuperación desde el storefront.
+- Historial de pedidos y gestión de direcciones guardadas, incluida edición y selección predeterminada.
+- El checkout mantiene la compra como invitado y permite a clientes autenticados precargar/guardar direcciones.
+- Notificaciones de pedido recibido, pago aprobado/rechazado y cambios de estado hasta la entrega/cancelación.
+- Plantillas de correo editables y activables desde Filament.
+- Envíos mediante colas Laravel con tres intentos y backoff.
+- Registro de destinatarios, eventos, estados, intentos y errores; reintento manual desde Filament.
+- CI verde: 62 pruebas y 271 assertions, PHP 8.4/8.5, frontend y cachés de producción.
+- Pendiente antes de cerrar: revisión funcional, configuración SMTP y worker activo en el entorno de despliegue, prueba de aceptación de correo real y aprobación explícita para integrar la PR.
 
 ### Fase 14 — Operación logística
 **Prioridad: alta**

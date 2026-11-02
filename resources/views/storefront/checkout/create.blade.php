@@ -6,11 +6,15 @@
             @csrf
             <div class="checkout-main">
                 <section class="checkout-panel"><span class="eyebrow eyebrow--light">01 / TUS DATOS</span><h2>Información de contacto</h2><div class="checkout-fields">
-                    <label>Nombre completo<input name="customer_name" value="{{ old('customer_name') }}" autocomplete="name" required></label>
-                    <label>Correo electrónico<input type="email" name="customer_email" value="{{ old('customer_email') }}" autocomplete="email" required></label>
+                    <label>Nombre completo<input name="customer_name" value="{{ old('customer_name', auth()->user()?->name) }}" autocomplete="name" required></label>
+                    <label>Correo electrónico<input type="email" name="customer_email" value="{{ old('customer_email', auth()->user()?->email) }}" autocomplete="email" required></label>
                     <label>Teléfono<input name="customer_phone" value="{{ old('customer_phone') }}" autocomplete="tel" required></label>
                 </div></section>
-                <section class="checkout-panel"><span class="eyebrow eyebrow--light">02 / ENTREGA EN GUANTÁNAMO</span><h2>Dirección de entrega</h2><div class="checkout-fields">
+                <section class="checkout-panel"><span class="eyebrow eyebrow--light">02 / ENTREGA EN GUANTÁNAMO</span><h2>Dirección de entrega</h2>
+                @if ($savedAddresses->isNotEmpty())
+                    <label>Usar una dirección guardada<select id="saved-address"><option value="">Introducir una nueva dirección</option>@foreach ($savedAddresses as $address)<option value="{{ $address->id }}" data-name="{{ $address->recipient_name }}" data-phone="{{ $address->phone }}" data-address="{{ $address->address }}" data-line2="{{ $address->address_line_2 }}" data-city="{{ $address->city }}" data-locality="{{ $address->locality }}" data-region="{{ $address->region }}" data-postal="{{ $address->postal_code }}">{{ $address->label }} — {{ $address->address }}, {{ $address->city }}</option>@endforeach</select></label>
+                @endif
+                <div class="checkout-fields">
                     <label class="checkout-fields__wide">Dirección exacta<input name="shipping_address" value="{{ old('shipping_address') }}" autocomplete="address-line1" required></label>
                     <label class="checkout-fields__wide">Apartamento, piso o referencia (opcional)<input name="shipping_address_line_2" value="{{ old('shipping_address_line_2') }}" autocomplete="address-line2"></label>
                     <label>Provincia<select name="shipping_region" id="shipping-region" required><option value="">Selecciona una provincia</option>@foreach ($provinces as $value => $label)<option value="{{ $value }}" @selected(old('shipping_region') === $value)>{{ $label }}</option>@endforeach</select></label>
@@ -19,6 +23,7 @@
                     <input type="hidden" name="shipping_country" value="CU">
                     <label>Código postal (opcional)<input name="shipping_postal_code" value="{{ old('shipping_postal_code') }}" autocomplete="postal-code"></label>
                     <label class="checkout-fields__wide">Nota para la entrega<textarea name="customer_note" rows="3">{{ old('customer_note') }}</textarea></label>
+                    @auth<label class="checkout-fields__wide"><input type="checkbox" name="save_address" value="1" @checked(old('save_address'))> Guardar esta dirección en mi cuenta para próximas compras</label>@endauth
                 </div>
                 <div class="mt-4 flex flex-wrap items-center gap-3">
                     <button class="button button--outline" type="button" id="quote-shipping">Calcular costo de envío</button>
@@ -61,6 +66,28 @@
             const currency = @json($cart->currency);
             let quotedKey = null;
             const fields = ['shipping-region', 'shipping-city', 'shipping-locality'];
+            const savedAddress = document.getElementById('saved-address');
+            if (savedAddress) {
+                savedAddress.addEventListener('change', () => {
+                    const option = savedAddress.selectedOptions[0];
+                    if (!savedAddress.value) return;
+                    const values = {
+                        'customer_name': option.dataset.name,
+                        'customer_phone': option.dataset.phone,
+                        'shipping_address': option.dataset.address,
+                        'shipping_address_line_2': option.dataset.line2,
+                        'shipping_city': option.dataset.city,
+                        'shipping_locality': option.dataset.locality,
+                        'shipping-region': option.dataset.region,
+                        'shipping_postal_code': option.dataset.postal,
+                    };
+                    Object.entries(values).forEach(([name, value]) => {
+                        const field = document.getElementById(name) || form.elements.namedItem(name);
+                        if (field) field.value = value || '';
+                    });
+                    invalidate();
+                });
+            }
             const currentKey = () => fields.map(id => document.getElementById(id).value.trim()).join('|');
             const invalidate = () => { quotedKey = null; submit.disabled = true; amount.textContent = 'Pendiente de cálculo'; total.textContent = subtotal.toFixed(2) + ' ' + currency + ' + envío'; };
             fields.forEach(id => { document.getElementById(id).addEventListener('input', invalidate); document.getElementById(id).addEventListener('change', invalidate); });

@@ -5,6 +5,7 @@
         <p>{{ $order->shipping_address }} {{ $order->shipping_address_line_2 }}</p>
         <p>{{ $order->shipping_city }}@if ($order->shipping_locality), {{ $order->shipping_locality }}@endif, {{ $order->shipping_region }} {{ $order->shipping_postal_code }} · {{ $order->shipping_country === 'CU' ? 'Cuba' : $order->shipping_country }}</p>
         <p>Zona de envío: {{ $order->shipping_zone_label ?? '—' }}</p>
+        <p>Entrega comprometida: dentro de {{ $order->delivery_commitment_hours ?? 24 }} horas · Límite: {{ $order->delivery_due_at?->format('d/m/Y H:i') ?? '—' }}</p>
         @if ($order->customer_note)<p class="mt-2">Nota: {{ $order->customer_note }}</p>@endif
     </section>
     <section>

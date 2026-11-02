@@ -16,6 +16,7 @@ El proyecto cuenta con catálogo, carrito, checkout, pedidos, inventario, pagos 
 Consulta:
 - [Arquitectura técnica](docs/architecture.md)
 - [Modelo de dominio](docs/domain-model.md)
+- [Operación logística y seguimiento](docs/logistics-and-tracking.md)
 
 ## Requisitos
 PHP 8.4.1+, Composer 2, Node.js 22+ y npm.

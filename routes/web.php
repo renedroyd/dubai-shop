@@ -5,6 +5,7 @@ use App\Http\Controllers\Storefront\HomeController;
 use App\Http\Controllers\Storefront\CheckoutController;
 use App\Http\Controllers\Storefront\OrderController;
 use App\Http\Controllers\Storefront\ProductController;
+use App\Http\Controllers\Storefront\PageController;
 use App\Http\Controllers\Seo\SitemapController;
 use App\Http\Controllers\Seo\RobotsController;
 use Illuminate\Support\Facades\Route;
@@ -25,3 +26,5 @@ Route::get('/checkout', [CheckoutController::class, 'create'])->name('checkout.c
 Route::get('/checkout/envio', [CheckoutController::class, 'quoteShipping'])->middleware('throttle:30,1')->name('checkout.shipping-quote');
 Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('throttle:5,1')->name('checkout.store');
 Route::get('/pedido/{order}/{token}', [OrderController::class, 'show'])->name('orders.show');
+
+Route::get('/paginas/{slug}', [PageController::class, 'show'])->where('slug', '[A-Za-z0-9\-]+')->name('pages.show');

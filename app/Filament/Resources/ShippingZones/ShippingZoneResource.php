@@ -35,7 +35,7 @@ class ShippingZoneResource extends Resource
     {
         return $schema->components([
             Select::make('province')->label('Provincia')->options(ShippingRateService::provinces())->searchable()->required(),
-            TextInput::make('municipality')->label('Municipio')->maxLength(120)
+            TextInput::make('municipality')->label('Municipio')->maxLength(120)->rules(['required_with:locality'])
                 ->helperText('Déjalo vacío para aplicar la tarifa a toda la provincia.'),
             TextInput::make('locality')->label('Localidad / reparto')->maxLength(160)
                 ->helperText('Opcional. Si se completa, esta tarifa tiene prioridad sobre municipio y provincia.'),

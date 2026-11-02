@@ -39,6 +39,7 @@ class OrderResource extends Resource
             TextColumn::make('status')->label('Estado')->badge(),
             TextColumn::make('payment_status')->label('Pago')->badge(),
             TextColumn::make('placed_at')->label('Fecha')->dateTime()->sortable(),
+            TextColumn::make('delivery_due_at')->label('Entrega límite')->dateTime()->sortable(),
         ])->filters([
             SelectFilter::make('status')->options([
                 Order::STATUS_PENDING => 'Pendiente',

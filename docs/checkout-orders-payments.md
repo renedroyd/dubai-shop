@@ -38,7 +38,7 @@ Para integrar otra pasarela:
 No se almacenan datos de tarjetas. Las credenciales privadas de futuras pasarelas deben residir en variables de entorno o en un almacén de secretos, nunca en campos públicos.
 
 ## Límites que requieren definición comercial
-- El importe registrado actualmente incluye únicamente productos. Envío e impuestos se mantienen en cero hasta configurar zonas, tarifas y reglas fiscales; el checkout informa al cliente que esos importes se confirmarán por separado.
+- Las entregas están limitadas a Cuba. Las tarifas se administran en Filament > Configuración > Zonas y tarifas de envío y pueden definirse por provincia, municipio o localidad. La coincidencia más específica tiene prioridad; las tarifas sin configurar bloquean la confirmación del pedido. Los impuestos permanecen en cero.
 - Zelle se crea deshabilitado hasta que se configuren y verifiquen los datos del destinatario.
 - No se integra todavía una pasarela externa ni se reciben webhooks.
 - No se implementa aún el correo transaccional; la pantalla de confirmación muestra el estado del pedido.

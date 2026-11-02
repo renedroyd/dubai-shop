@@ -87,6 +87,20 @@ class CheckoutPaymentsTest extends TestCase
     }
 
 
+    public function test_checkout_form_displays_cuba_delivery_fields_and_shipping_quote(): void
+    {
+        $this->withoutVite();
+        $this->addProductToCart($this->product());
+
+        $this->get(route('checkout.create'))
+            ->assertOk()
+            ->assertSee('Entregas disponibles únicamente en Cuba.')
+            ->assertSee('shipping-region', false)
+            ->assertSee('shipping-city', false)
+            ->assertSee('Calcular costo de envío')
+            ->assertSee('checkout.shipping-quote', false);
+    }
+
     public function test_checkout_shipping_quote_returns_configured_zone_and_amount(): void
     {
         $this->withoutVite();

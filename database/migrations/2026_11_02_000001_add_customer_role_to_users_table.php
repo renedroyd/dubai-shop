@@ -17,10 +17,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        if (Schema::hasColumn('users', 'is_admin')) {
-            Schema::table('users', function (Blueprint $table) {
-                $table->dropColumn('is_admin');
-            });
-        }
+        // The column may predate this migration; never remove an existing admin role.
     }
 };

@@ -391,15 +391,12 @@ class CheckoutPaymentsTest extends TestCase
         $cart = app(\\App\\Services\\Cart\\CartService::class)->current((string) session('cart_session_key'));
         $this->assertSame('EUR', $cart->currency);
 
-        ShippingZone::query()->create([
-            'province' => 'Guantánamo',
-            'municipality' => 'Guantánamo',
-            'shipping_amount' => 2.75,
-            'currency' => 'EUR',
-            'is_active' => true,
-        ]);
         $method = PaymentMethod::query()->where('driver', 'cash_on_delivery')->firstOrFail();
         $data = $this->customerData($method);
+        ShippingZone::query()->firstOrFail()->update([
+            'shipping_amount' => 2.75,
+            'currency' => 'EUR',
+        ]);
         $data['shipping_city'] = 'Guantánamo';
         $data['shipping_locality'] = null;
 

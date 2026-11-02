@@ -81,6 +81,34 @@ class CatalogTest extends TestCase
             ->assertDontSee('Desk Lamp');
     }
 
+    public function test_products_with_variants_require_option_selection_from_the_product_detail(): void
+    {
+        $this->withoutVite();
+
+        $product = Product::create([
+            'name' => 'Gift Set with Options',
+            'slug' => 'gift-set-with-options',
+            'sku' => 'GIFT-OPTIONS-001',
+            'price_amount' => 2599,
+            'currency' => 'USD',
+            'status' => Product::STATUS_ACTIVE,
+            'is_visible' => true,
+        ]);
+
+        ProductVariant::create([
+            'product_id' => $product->id,
+            'name' => 'Large',
+            'sku' => 'GIFT-OPTIONS-L',
+            'is_active' => true,
+            'sort_order' => 1,
+        ]);
+
+        $this->get(route('products.index'))
+            ->assertOk()
+            ->assertSee('Elegir opciones')
+            ->assertDontSee('Agregar al carrito');
+    }
+
     public function test_product_detail_is_public_only_when_product_is_published_and_visible(): void
     {
         $this->withoutVite();

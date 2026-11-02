@@ -3,6 +3,8 @@
 namespace App\\Filament\\Pages;
 
 use App\\Filament\\Widgets\\CommerceOverview;
+use App\\Filament\\Widgets\\DeliveryAttention;
+use App\\Filament\\Widgets\\LowStockInventory;
 use App\\Filament\\Widgets\\OperationalAlerts;
 use App\\Filament\\Widgets\\OrderActivityChart;
 use App\\Filament\\Widgets\\OrderStatusChart;
@@ -17,6 +19,8 @@ class Dashboard extends BaseDashboard
         return [
             CommerceOverview::class,
             OperationalAlerts::class,
+            LowStockInventory::class,
+            DeliveryAttention::class,
             OrderActivityChart::class,
             OrderStatusChart::class,
             PaymentMethodsChart::class,

@@ -32,7 +32,8 @@ class StorefrontMenuItemResource extends Resource
         return $schema->components([
             TextInput::make('label')->label('Texto')->required()->maxLength(120),
             TextInput::make('url')->label('URL o ruta')->required()->maxLength(2048)
-                ->helperText('Ejemplos: /productos, /paginas/privacidad o https://example.com'),
+                ->rules(['regex:/^(\/|https?:\/\/|#)/i'])
+                ->helperText('Usa una ruta interna que comience por /, un enlace https:// o un ancla #.'),
             Select::make('location')->label('Ubicación')->options(['header' => 'Cabecera', 'footer' => 'Pie de página'])->required()->default('header'),
             Select::make('parent_id')->label('Elemento padre')->options(fn (?StorefrontMenuItem $record) => StorefrontMenuItem::query()->when($record, fn ($q) => $q->whereKeyNot($record->getKey()))->orderBy('sort_order')->pluck('label', 'id'))->searchable()->placeholder('Sin elemento padre'),
             Toggle::make('open_in_new_tab')->label('Abrir en pestaña nueva')->default(false),

@@ -37,6 +37,7 @@ class OperationalAlerts extends StatsOverviewWidget
 
         $failedNotifications = NotificationLog::query()
             ->where('status', 'failed')
+            ->where('created_at', '>=', now()->subDays(7))
             ->count();
 
         return [
@@ -57,7 +58,7 @@ class OperationalAlerts extends StatsOverviewWidget
                 ->descriptionIcon('heroicon-m-exclamation-triangle')
                 ->color($lowStock > 0 ? 'danger' : 'success'),
             Stat::make('Notificaciones fallidas', $failedNotifications)
-                ->description('Envíos que requieren comprobación')
+                ->description('Fallos registrados durante los últimos 7 días')
                 ->descriptionIcon('heroicon-m-envelope')
                 ->color($failedNotifications > 0 ? 'danger' : 'success'),
         ];

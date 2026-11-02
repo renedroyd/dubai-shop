@@ -6,7 +6,7 @@ Tienda online premium construida con Laravel, Livewire y FilamentPHP.
 - PHP 8.4.1+
 - Laravel 13
 - Filament 5
-- Livewire 3/4 a través de Filament; la tienda pública actual utiliza Blade y controladores Laravel
+- Livewire utilizado por Filament 5; la tienda pública actual utiliza Blade y controladores Laravel
 - Tailwind CSS 4
 - Vite 8
 

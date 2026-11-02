@@ -63,7 +63,7 @@
             const fields = ['shipping-region', 'shipping-city', 'shipping-locality'];
             const currentKey = () => fields.map(id => document.getElementById(id).value.trim()).join('|');
             const invalidate = () => { quotedKey = null; submit.disabled = true; amount.textContent = 'Pendiente de cálculo'; total.textContent = subtotal.toFixed(2) + ' ' + currency + ' + envío'; };
-            fields.forEach(id => document.getElementById(id).addEventListener('input', invalidate));
+            fields.forEach(id => { document.getElementById(id).addEventListener('input', invalidate); document.getElementById(id).addEventListener('change', invalidate); });
             button.addEventListener('click', async () => {
                 const province = document.getElementById('shipping-region').value;
                 const city = document.getElementById('shipping-city').value.trim();

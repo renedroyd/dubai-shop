@@ -48,8 +48,7 @@
     <header class="site-header">
         <div class="site-header__inner">
             <a href="{{ url('/') }}" class="brand" aria-label="{{ $storeName }}, inicio">
-                <span class="brand__mark">D<span>.</span></span>
-                <span class="brand__wordmark">{{ strtoupper($storeName) }}</span>
+                <img class="brand__logo" src="{{ asset('images/brand/clasico-dubai.svg') }}" alt="{{ $storeName }}">
             </a>
 
             <nav class="desktop-nav" aria-label="Navegación principal">

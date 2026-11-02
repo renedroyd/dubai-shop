@@ -87,6 +87,29 @@ class CheckoutPaymentsTest extends TestCase
     }
 
 
+    public function test_checkout_shipping_quote_returns_configured_zone_and_amount(): void
+    {
+        $this->withoutVite();
+        $this->addProductToCart($this->product());
+        ShippingZone::query()->create([
+            'province' => 'La Habana',
+            'municipality' => 'Habana Vieja',
+            'shipping_amount' => 4.50,
+            'currency' => 'USD',
+            'is_active' => true,
+        ]);
+
+        $this->getJson(route('checkout.shipping-quote', [
+            'shipping_region' => 'La Habana',
+            'shipping_city' => 'Habana Vieja',
+            'shipping_country' => 'CU',
+        ]))->assertOk()->assertJson([
+            'amount' => '4.50',
+            'currency' => 'USD',
+            'zone' => 'Habana Vieja · La Habana',
+        ]);
+    }
+
     public function test_checkout_rejects_delivery_outside_cuba(): void
     {
         $this->withoutVite();

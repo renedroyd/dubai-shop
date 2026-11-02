@@ -13,6 +13,7 @@
                 <div class="order-line"><span>Envío · {{ $order->shipping_zone_label }}</span><strong>{{ number_format($order->shipping_amount / 100, 2) }} {{ $order->currency }}</strong></div>
                 <div class="order-line"><span>Impuestos</span><strong>0.00 {{ $order->currency }}</strong></div>
                 <div class="order-line order-line--total"><span>Total del pedido</span><strong>{{ number_format($order->total_amount / 100, 2) }} {{ $order->currency }}</strong></div>
+                <p>Entrega comprometida: dentro de {{ $order->delivery_commitment_hours ?? 24 }} horas (hasta {{ $order->delivery_due_at?->format('d/m/Y H:i') }}).</p>
                 <p>Dirección de entrega: {{ $order->shipping_address }}, {{ $order->shipping_city }}, {{ $order->shipping_region }}, {{ $order->shipping_country === 'CU' ? 'Cuba' : $order->shipping_country }}.</p>
             </div>
         </div>

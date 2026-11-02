@@ -18,7 +18,7 @@ class OrderObserver implements ShouldHandleEventsAfterCommit
         if ($order->wasChanged('payment_status')) {
             $eventKey = match ($order->payment_status) {
                 'paid' => 'payment_approved',
-                'rejected' => 'payment_rejected',
+                'payment_rejected' => 'payment_rejected',
                 default => null,
             };
 

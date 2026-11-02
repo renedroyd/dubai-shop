@@ -3,7 +3,7 @@
         <h3 class="mb-2 font-semibold">Datos del cliente</h3>
         <p>{{ $order->customer_name }} · {{ $order->customer_email }} · {{ $order->customer_phone }}</p>
         <p>{{ $order->shipping_address }} {{ $order->shipping_address_line_2 }}</p>
-        <p>{{ $order->shipping_city }}@if ($order->shipping_locality), {{ $order->shipping_locality }}@endif, {{ $order->shipping_region }} {{ $order->shipping_postal_code }} · Cuba</p>
+        <p>{{ $order->shipping_city }}@if ($order->shipping_locality), {{ $order->shipping_locality }}@endif, {{ $order->shipping_region }} {{ $order->shipping_postal_code }} · {{ $order->shipping_country === 'CU' ? 'Cuba' : $order->shipping_country }}</p>
         <p>Zona de envío: {{ $order->shipping_zone_label ?? '—' }}</p>
         @if ($order->customer_note)<p class="mt-2">Nota: {{ $order->customer_note }}</p>@endif
     </section>

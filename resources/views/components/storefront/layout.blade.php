@@ -1,6 +1,6 @@
 @props([
-    'title' => 'Dubai Shop | Compra con estilo',
-    'description' => 'Descubre una selección especial de productos en Dubai Shop.',
+    'title' => 'Clásico Dubai | Compra con estilo',
+    'description' => 'Descubre una selección especial de productos en Clásico Dubai.',
     'canonical' => null,
     'ogImage' => null,
     'ogType' => 'website',
@@ -8,6 +8,7 @@
 ])
 
 @php($storeSettings = app(\App\Services\Storefront\StorefrontSettings::class)->all())
+@php($storeName = $storeSettings['site_name'] ?? config('app.name', 'Clásico Dubai'))
 @php($canonicalUrl = $canonical ?: request()->url())
 
 <!DOCTYPE html>
@@ -46,9 +47,9 @@
 
     <header class="site-header">
         <div class="site-header__inner">
-            <a href="{{ url('/') }}" class="brand" aria-label="Dubai Shop, inicio">
+            <a href="{{ url('/') }}" class="brand" aria-label="{{ $storeName }}, inicio">
                 <span class="brand__mark">D<span>.</span></span>
-                <span class="brand__wordmark">{{ strtoupper($storeSettings['site_name'] ?? 'DUBAI SHOP') }}</span>
+                <span class="brand__wordmark">{{ strtoupper($storeName) }}</span>
             </a>
 
             <nav class="desktop-nav" aria-label="Navegación principal">
@@ -107,7 +108,7 @@
             </div>
 
             <div class="site-footer__column">
-                <span class="footer-heading">Dubai Shop</span>
+                <span class="footer-heading">{{ $storeName }}</span>
                 <a href="#main-content">Inicio</a>
                 <a href="#footer">Contacto</a>
                 <a href="#footer">Ayuda</a>
@@ -119,7 +120,7 @@
             </div>
         </div>
         <div class="site-footer__bottom">
-            <span>© {{ date('Y') }} Dubai Shop. Todos los derechos reservados.</span>
+            <span>© {{ date('Y') }} {{ $storeName }}. Todos los derechos reservados.</span>
             <span>Diseñado para descubrir algo especial.</span>
         </div>
     </footer>

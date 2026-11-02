@@ -1,9 +1,10 @@
 <?php
 
-namespace App\\Filament\\Widgets;
+namespace App\Filament\Widgets;
 
-use App\\Models\\Order;
-use Filament\\Widgets\\ChartWidget;
+use App\Models\Order;
+use Filament\Widgets\ChartWidget;
+use Illuminate\Support\Carbon;
 
 class SalesTrendChart extends ChartWidget
 {
@@ -34,16 +35,18 @@ class SalesTrendChart extends ChartWidget
             ->map(fn (int $days): string => now()->subDays($days)->toDateString());
 
         $palette = ['#C9A227', '#E5C76B', '#8C6D1F', '#4D9B78', '#64748B', '#B85C5C'];
+        $currencies = $sales->keys()->values();
 
-        $datasets = $sales->map(function ($rows, string $currency) use ($dates, $palette, $sales): array {
+        $datasets = $sales->map(function ($rows, string $currency) use ($dates, $palette, $currencies): array {
             $totals = $rows->pluck('total', 'sale_date');
+            $currencyIndex = $currencies->search($currency);
 
             return [
                 'label' => $currency,
                 'data' => $dates
                     ->map(fn (string $date): float => round(((int) ($totals[$date] ?? 0)) / 100, 2))
                     ->all(),
-                'borderColor' => $palette[array_search($currency, $sales->keys()->all(), true) % count($palette)],
+                'borderColor' => $palette[$currencyIndex % count($palette)],
                 'backgroundColor' => 'transparent',
                 'fill' => false,
                 'tension' => 0.35,
@@ -54,7 +57,7 @@ class SalesTrendChart extends ChartWidget
         return [
             'datasets' => $datasets,
             'labels' => $dates
-                ->map(fn (string $date): string => \Illuminate\\Support\\Carbon::parse($date)->format('d/m'))
+                ->map(fn (string $date): string => Carbon::parse($date)->format('d/m'))
                 ->all(),
         ];
     }

@@ -27,7 +27,8 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->brandName(config('app.name', 'Clásico Dubai'))
+            ->brandLogo(asset('images/brand/clasico-dubai.svg'))
+            ->brandLogoHeight('2.5rem')
             ->login()
             ->colors([
                 'primary' => Color::Amber,

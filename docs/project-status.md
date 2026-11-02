@@ -2,8 +2,8 @@
 
 **Corte:** 2 de noviembre de 2026  
 **Rama de referencia:** `main`  
-**Última integración:** Fase 12 — CMS (PR #19); Fase 13 en desarrollo en `feature/fase-13-clientes-comunicacion`  
-**Commit de integración:** `7bb812d685848234f60d808af7ced9e16ea089ca`  
+**Última integración:** Fase 13 — cuentas de clientes y comunicación transaccional (PR #20); Fase 14 en desarrollo en `feature/fase-14-operacion-logistica`  
+**Commit de integración:** `1d730d0df874aacfa00087d2fc9171c8fa494e41`  
 **PR integrada:** [#19 — Fase 12](https://github.com/renedroyd/dubai-shop/pull/19)
 
 Este documento separa lo que está implementado y probado en el repositorio de la configuración comercial que aún debe cargarse, y de las capacidades que siguen en la hoja de ruta. La integración de una fase no significa que la tienda esté lista para producción.
@@ -12,7 +12,7 @@ Este documento separa lo que está implementado y probado en el repositorio de l
 
 Dubai Shop tiene implementado el núcleo de una tienda online: catálogo público, búsqueda y filtros, carrito de invitado, checkout, pedidos, reservas de inventario, pagos manuales auditados, administración con Filament y tarifas de envío configurables. La Fase 10 restringió la operación inicial a Guantánamo, estableció el compromiso de entrega dentro de 24 horas, reforzó el tratamiento de importes de envío y formalizó el uso de varias monedas sin mezclarlas.
 
-**Estado actual:** fases 1–12 integradas; Fase 13 en desarrollo. La base funcional incluye cuentas de clientes en la rama de trabajo, mientras se completa la comunicación transaccional. Falta verificar la configuración real del negocio, ejecutar pruebas de aceptación y cerrar requisitos de producción.
+**Estado actual:** fases 1–13 integradas; Fase 14 en desarrollo. La Fase 13 incluye cuentas de clientes y comunicación transaccional. La validación operativa de SMTP y worker de colas sigue pendiente. Falta verificar la configuración real del negocio, ejecutar pruebas de aceptación y cerrar requisitos de producción.
 
 La tienda no debe considerarse lista para producción solo porque CI esté verde. Aún es necesario cargar tarifas, configurar el destinatario Zelle en la administración, verificar los métodos activos y realizar pruebas de aceptación en un entorno real.
 
@@ -154,7 +154,7 @@ La CI valida pruebas automatizadas y compilación, pero no sustituye las pruebas
 - Envíos mediante colas Laravel con tres intentos y backoff.
 - Registro de destinatarios, eventos, estados, intentos y errores; reintento manual desde Filament.
 - CI verde: 62 pruebas y 271 assertions, PHP 8.4/8.5, frontend y cachés de producción.
-- Pendiente antes de cerrar: revisión funcional, configuración SMTP y worker activo en el entorno de despliegue, prueba de aceptación de correo real y aprobación explícita para integrar la PR.
+- Pendiente operativo: configurar SMTP y worker activo en el entorno de despliegue, y ejecutar una prueba de aceptación de correo real.
 
 ### Fase 14 — Operación logística
 **Prioridad: alta**

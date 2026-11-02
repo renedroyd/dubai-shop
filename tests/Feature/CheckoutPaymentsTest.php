@@ -98,7 +98,7 @@ class CheckoutPaymentsTest extends TestCase
             ->assertSee('shipping-region', false)
             ->assertSee('shipping-city', false)
             ->assertSee('Calcular costo de envío')
-            ->assertSee('checkout.shipping-quote', false);
+            ->assertSee(route('checkout.shipping-quote'), false);
     }
 
     public function test_checkout_shipping_quote_returns_configured_zone_and_amount(): void

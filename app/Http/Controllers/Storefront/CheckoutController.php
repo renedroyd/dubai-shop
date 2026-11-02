@@ -41,8 +41,11 @@ class CheckoutController extends Controller
                 'instructions' => $this->drivers->driver($method->driver)->checkoutInstructions($method),
             ]);
         $provinces = ShippingRateService::provinces();
+        $savedAddresses = $request->user()
+            ? $request->user()->customerAddresses()->orderByDesc('is_default')->get()
+            : collect();
 
-        return view('storefront.checkout.create', compact('cart', 'paymentMethods', 'provinces'));
+        return view('storefront.checkout.create', compact('cart', 'paymentMethods', 'provinces', 'savedAddresses'));
     }
 
     public function quoteShipping(Request $request): JsonResponse

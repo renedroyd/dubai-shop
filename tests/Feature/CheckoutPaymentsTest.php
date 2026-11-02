@@ -66,7 +66,10 @@ class CheckoutPaymentsTest extends TestCase
         $response->assertRedirect();
         $order = Order::query()->with('payments')->firstOrFail();
 
-        $this->assertSame(5198, $order->total_amount);
+        $this->assertSame(450, $order->shipping_amount);
+        $this->assertSame(0, $order->tax_amount);
+        $this->assertSame(5648, $order->total_amount);
+        $this->assertSame('Habana Vieja · La Habana', $order->shipping_zone_label);
         $this->assertSame('pending_collection', $order->payment_status);
         $this->assertSame(Payment::STATUS_PENDING_COLLECTION, $order->payments->first()->status);
         $this->assertDatabaseCount('order_items', 1);

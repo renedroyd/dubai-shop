@@ -11,7 +11,7 @@ Tienda online premium construida con Laravel, Livewire y FilamentPHP.
 - Vite 8
 
 ## Estado del proyecto
-El repositorio parte del esqueleto de Laravel. La implementación se desarrolla por fases y cada entrega se realiza en una rama independiente, con pruebas y revisión antes de integrar a main.
+El proyecto ya cuenta con catálogo, carrito, checkout, pedidos, inventario, pagos manuales y tarifas de envío. La Fase 10 está integrada; consulta el estado verificado y la hoja de ruta en [Estado del proyecto](docs/project-status.md).
 
 Consulta:
 - [Arquitectura técnica](docs/architecture.md)

@@ -62,6 +62,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: mbstring, dom, curl, fileinfo, pdo_sqlite, sqlite3
+          coverage: none
+          tools: composer:v2
+      - name: Install PHP dependencies for Filament theme
+        run: composer install --prefer-dist --no-interaction --no-progress
       - name: Setup Node
         uses: actions/setup-node@v4
         with:

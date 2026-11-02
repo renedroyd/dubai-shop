@@ -51,6 +51,46 @@ class CustomerAccountTest extends TestCase
         $this->assertGuest();
     }
 
+
+    public function test_customer_can_request_a_password_reset_link(): void
+    {
+        Notification::fake();
+        $customer = User::factory()->create(['is_admin' => false]);
+
+        $this->post(route('customer.password.email'), ['email' => strtoupper($customer->email)])
+            ->assertRedirect()
+            ->assertSessionHas('status');
+
+        Notification::assertSentTo($customer, ResetPassword::class);
+    }
+
+    public function test_administrator_does_not_receive_customer_password_reset_email(): void
+    {
+        Notification::fake();
+        $admin = User::factory()->create(['is_admin' => true]);
+
+        $this->post(route('customer.password.email'), ['email' => $admin->email])
+            ->assertRedirect()
+            ->assertSessionHas('status');
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_customer_can_reset_password_with_valid_token(): void
+    {
+        $customer = User::factory()->create(['is_admin' => false]);
+        $token = Password::broker()->createToken($customer);
+
+        $this->post(route('customer.password.update'), [
+            'token' => $token,
+            'email' => $customer->email,
+            'password' => 'NewStrongPassword123!',
+            'password_confirmation' => 'NewStrongPassword123!',
+        ])->assertRedirect(route('customer.login'));
+
+        $this->assertTrue(Hash::check('NewStrongPassword123!', $customer->fresh()->password));
+    }
+
     public function test_customer_can_save_address_and_other_customers_cannot_delete_it(): void
     {
         $owner = User::factory()->create(['is_admin' => false]);

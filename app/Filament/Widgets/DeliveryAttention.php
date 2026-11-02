@@ -1,11 +1,11 @@
 <?php
 
-namespace App\\Filament\\Widgets;
+namespace App\Filament\Widgets;
 
-use App\\Models\\Order;
-use Filament\\Tables\\Columns\\TextColumn;
-use Filament\\Tables\\Table;
-use Filament\\Widgets\\TableWidget;
+use App\Models\Order;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Filament\Widgets\TableWidget;
 
 class DeliveryAttention extends TableWidget
 {

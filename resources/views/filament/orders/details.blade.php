@@ -20,6 +20,25 @@
         <p class="text-right">Envío: {{ number_format($order->shipping_amount / 100, 2) }} {{ $order->currency }} · Impuestos: {{ number_format($order->tax_amount / 100, 2) }} {{ $order->currency }}</p>
         <p class="text-right font-bold">Total registrado: {{ number_format($order->total_amount / 100, 2) }} {{ $order->currency }}</p>
     </section>
+    @if ($order->shipment)
+        <section>
+            <h3 class="mb-2 font-semibold">Logística y seguimiento</h3>
+            <p>Código: <strong>{{ $order->shipment->tracking_code }}</strong> · Estado: {{ $order->shipment->status }}</p>
+            <p>Repartidor: {{ $order->shipment->courier_name ?? 'Sin asignar' }} · {{ $order->shipment->courier_phone ?? '—' }}</p>
+            @if ($order->shipment->events->isNotEmpty())
+                <h4 class="mt-3 font-medium">Historial</h4>
+                @foreach ($order->shipment->events as $event)
+                    <p>{{ $event->occurred_at->format('d/m/Y H:i') }} · {{ $event->description }}</p>
+                @endforeach
+            @endif
+            @if ($order->shipment->attempts->isNotEmpty())
+                <h4 class="mt-3 font-medium">Intentos de entrega</h4>
+                @foreach ($order->shipment->attempts as $attempt)
+                    <p>{{ $attempt->attempted_at->format('d/m/Y H:i') }} · {{ $attempt->result }} · {{ $attempt->note }}</p>
+                @endforeach
+            @endif
+        </section>
+    @endif
     <section>
         <h3 class="mb-2 font-semibold">Pagos</h3>
         @foreach ($order->payments as $payment)

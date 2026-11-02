@@ -1,11 +1,11 @@
 <?php
 
-namespace App\\Filament\\Widgets;
+namespace App\Filament\Widgets;
 
-use App\\Models\\Inventory;
-use Filament\\Tables\\Columns\\TextColumn;
-use Filament\\Tables\\Table;
-use Filament\\Widgets\\TableWidget;
+use App\Models\Inventory;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Filament\Widgets\TableWidget;
 
 class LowStockInventory extends TableWidget
 {

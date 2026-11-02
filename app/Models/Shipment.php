@@ -1,10 +1,10 @@
 <?php
 
-namespace App\\Models;
+namespace App\Models;
 
-use Illuminate\\Database\\Eloquent\\Model;
-use Illuminate\\Database\\Eloquent\\Relations\\BelongsTo;
-use Illuminate\\Database\\Eloquent\\Relations\\HasMany;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Shipment extends Model
 {
@@ -13,10 +13,7 @@ class Shipment extends Model
     public const STATUS_DELIVERY_FAILED = 'delivery_failed';
     public const STATUS_DELIVERED = 'delivered';
 
-    protected $fillable = [
-        'order_id', 'tracking_code', 'status', 'courier_name', 'courier_phone',
-        'dispatched_at', 'delivered_at', 'recipient_name', 'delivery_note',
-    ];
+    protected $fillable = ['order_id', 'tracking_code', 'status', 'courier_name', 'courier_phone', 'dispatched_at', 'delivered_at', 'recipient_name', 'delivery_note'];
 
     protected function casts(): array
     {

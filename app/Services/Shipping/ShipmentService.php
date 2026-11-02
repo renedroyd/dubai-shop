@@ -1,15 +1,15 @@
 <?php
 
-namespace App\\Services\\Shipping;
+namespace App\Services\Shipping;
 
-use App\\Models\\DeliveryAttempt;
-use App\\Models\\Order;
-use App\\Models\\Shipment;
-use App\\Models\\ShipmentEvent;
-use App\\Services\\Orders\\OrderInventoryService;
-use Illuminate\\Support\\Facades\\DB;
-use Illuminate\\Support\\Str;
-use Illuminate\\Validation\\ValidationException;
+use App\Models\DeliveryAttempt;
+use App\Models\Order;
+use App\Models\Shipment;
+use App\Models\ShipmentEvent;
+use App\Services\Orders\OrderInventoryService;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class ShipmentService
 {

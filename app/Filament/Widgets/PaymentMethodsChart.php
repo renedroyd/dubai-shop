@@ -1,10 +1,10 @@
 <?php
 
-namespace App\\Filament\\Widgets;
+namespace App\Filament\Widgets;
 
-use App\\Models\\Payment;
-use Filament\\Widgets\\ChartWidget;
-use Illuminate\\Support\\Facades\\DB;
+use App\Models\Payment;
+use Filament\Widgets\ChartWidget;
+use Illuminate\Support\Facades\DB;
 
 class PaymentMethodsChart extends ChartWidget
 {

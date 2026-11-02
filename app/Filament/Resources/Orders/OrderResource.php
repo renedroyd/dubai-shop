@@ -63,16 +63,6 @@ class OrderResource extends Resource
                 ->action(fn (Order $record) => $record->update(['status' => Order::STATUS_CONFIRMED, 'confirmed_at' => now()])),
             Action::make('processing')->label('Preparar')->visible(fn (Order $record): bool => $record->status === Order::STATUS_CONFIRMED)
                 ->action(fn (Order $record) => $record->update(['status' => Order::STATUS_PROCESSING])),
-            Action::make('ship')->label('Marcar enviado')->visible(fn (Order $record): bool => $record->status === Order::STATUS_PROCESSING)
-                ->action(fn (Order $record) => $record->update(['status' => Order::STATUS_SHIPPED])),
-            Action::make('deliver')->label('Marcar entregado')->color('success')->requiresConfirmation()
-                ->visible(fn (Order $record): bool => $record->status === Order::STATUS_SHIPPED && $record->payment_status === 'paid')
-                ->action(function (Order $record): void {
-                    DB::transaction(function () use ($record): void {
-                        app(OrderInventoryService::class)->fulfill($record);
-                        $record->update(['status' => Order::STATUS_DELIVERED]);
-                    });
-                }),
             Action::make('assignCourier')->label('Asignar repartidor')->icon('heroicon-o-user')
                 ->visible(fn (Order $record): bool => in_array($record->status, [Order::STATUS_PROCESSING, Order::STATUS_SHIPPED], true))
                 ->form([
@@ -87,7 +77,9 @@ class OrderResource extends Resource
                     $record, $data['courier_name'], $data['courier_phone'] ?? null, auth()->id(),
                 )),
             Action::make('dispatch')->label('Despachar pedido')->icon('heroicon-o-truck')->color('info')->requiresConfirmation()
-                ->visible(fn (Order $record): bool => $record->status === Order::STATUS_PROCESSING && filled($record->shipment?->courier_name))
+                ->visible(fn (Order $record): bool => in_array($record->status, [Order::STATUS_PROCESSING, Order::STATUS_SHIPPED], true)
+                    && filled($record->shipment?->courier_name)
+                    && in_array($record->shipment?->status, ['assigned', 'delivery_failed'], true))
                 ->action(fn (Order $record) => app(ShipmentService::class)->dispatch($record, auth()->id())),
             Action::make('deliveryAttempt')->label('Registrar intento de entrega')->icon('heroicon-o-clipboard-document-check')
                 ->visible(fn (Order $record): bool => $record->status === Order::STATUS_SHIPPED && $record->shipment && $record->shipment->status !== 'delivered')

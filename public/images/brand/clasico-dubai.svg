@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 220" role="img" aria-labelledby="title desc">
+  <title id="title">Clásico Dubai</title>
+  <desc id="desc">Logotipo dorado con una silueta lineal de edificios inspirada en Dubái y el nombre Clásico Dubai.</desc>
+  <g fill="none" stroke="#C9A227" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18 184H286"/>
+    <path d="M36 184V126H66V184M72 184V94H108V184M114 184V116H145V184M151 184V58H190V184M197 184V108H225V184M232 184V132H270V184"/>
+    <path d="M88 94V75L90 65L92 75V94M164 58V37L170 20L176 37V58M178 58V44L184 31L190 44V58M207 108V89L211 80L215 89V108"/>
+    <path d="M151 58L170 20L190 58M151 70H190M72 108H108M36 139H66M232 145H270"/>
+    <path d="M48 143V151M58 143V151M83 119V127M97 119V127M163 84V92M178 84V92M163 104V112M178 104V112M163 124V132M178 124V132M207 124V132M247 157V165"/>
+    <path d="M25 184V193H279V184"/>
+  </g>
+  <path d="M306 48V174" stroke="#C9A227" stroke-width="2" opacity=".75"/>
+  <text x="340" y="126" fill="#E5C76B" font-family="Georgia, 'Times New Roman', serif" font-size="76" letter-spacing="2">CLÁSICO</text>
+  <text x="344" y="184" fill="#C9A227" font-family="Georgia, 'Times New Roman', serif" font-size="47" letter-spacing="14">DUBAI</text>
+</svg>

@@ -12,7 +12,10 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
-        $this->call(ClassicDubaiOperationalSeeder::class);
+        $this->call([
+            ClassicDubaiOperationalSeeder::class,
+            NotificationTemplateSeeder::class,
+        ]);
 
         if (app()->environment(['local', 'testing'])) {
             User::factory()->create([

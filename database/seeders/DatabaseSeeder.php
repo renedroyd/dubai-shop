@@ -17,8 +17,9 @@ class DatabaseSeeder extends Seeder
         if (app()->environment(['local', 'testing'])) {
             User::factory()->create([
                 'name' => 'Test Administrator',
-                'email' => 'admin@example.test',
+                'email' => 'admin@shop.integraltec.cu',
                 'is_admin' => true,
+                'password' => bcrypt('Versat*19'),
             ]);
         }
 

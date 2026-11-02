@@ -430,4 +430,32 @@ class CheckoutPaymentsTest extends TestCase
         $this->assertDatabaseCount('cart_items', 1);
     }
 
+
+    public function test_zelle_is_not_available_for_non_usd_carts(): void
+    {
+        $this->withoutVite();
+        $product = Product::query()->create([
+            'name' => 'Producto en pesos',
+            'slug' => 'producto-pesos',
+            'sku' => 'CUP-001',
+            'price_amount' => 1000,
+            'currency' => 'CUP',
+            'status' => Product::STATUS_ACTIVE,
+            'is_visible' => true,
+        ]);
+        $this->addProductToCart($product);
+        $method = PaymentMethod::query()->where('driver', 'zelle_manual')->firstOrFail();
+        $method->update(['is_enabled' => true]);
+
+        $this->get(route('checkout.create'))
+            ->assertOk()
+            ->assertDontSee('value="'.$method->id.'"', false);
+
+        $this->post(route('checkout.store'), [
+            ...$this->customerData($method),
+        ])->assertSessionHasErrors('payment_method_id');
+
+        $this->assertDatabaseCount('orders', 0);
+    }
+
 }

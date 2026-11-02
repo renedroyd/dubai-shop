@@ -17,6 +17,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0B0B0B">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     <meta name="description" content="{{ $description }}">
     <meta name="robots" content="{{ $robots }}">
     <link rel="canonical" href="{{ $canonicalUrl }}">

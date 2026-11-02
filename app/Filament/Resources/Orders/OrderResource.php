@@ -82,7 +82,7 @@ class OrderResource extends Resource
                     && in_array($record->shipment?->status, ['assigned', 'delivery_failed'], true))
                 ->action(fn (Order $record) => app(ShipmentService::class)->dispatch($record, auth()->id())),
             Action::make('deliveryAttempt')->label('Registrar intento de entrega')->icon('heroicon-o-clipboard-document-check')
-                ->visible(fn (Order $record): bool => $record->status === Order::STATUS_SHIPPED && $record->shipment && $record->shipment->status !== 'delivered')
+                ->visible(fn (Order $record): bool => $record->status === Order::STATUS_SHIPPED && $record->shipment?->status === 'dispatched')
                 ->form([
                     Select::make('result')->label('Resultado')->options(['delivered' => 'Entregado', 'failed' => 'No se pudo entregar'])->required(),
                     TextInput::make('recipient_name')->label('Persona que recibe')->maxLength(160),

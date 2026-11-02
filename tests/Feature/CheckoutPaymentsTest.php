@@ -44,8 +44,8 @@ class CheckoutPaymentsTest extends TestCase
     private function customerData(PaymentMethod $method): array
     {
         ShippingZone::query()->create([
-            'province' => 'La Habana',
-            'municipality' => 'Habana Vieja',
+            'province' => 'Guantánamo',
+            'municipality' => 'Guantánamo',
             'shipping_amount' => 4.50,
             'currency' => 'USD',
             'is_active' => true,
@@ -56,9 +56,9 @@ class CheckoutPaymentsTest extends TestCase
             'customer_email' => 'cliente@example.com',
             'customer_phone' => '+13055550100',
             'shipping_address' => 'Calle 23 # 456',
-            'shipping_city' => 'Habana Vieja',
-            'shipping_locality' => 'Centro Habana',
-            'shipping_region' => 'La Habana',
+            'shipping_city' => 'Guantánamo',
+            'shipping_locality' => 'Centro',
+            'shipping_region' => 'Guantánamo',
             'shipping_country' => 'CU',
             'payment_method_id' => $method->id,
         ];
@@ -79,8 +79,10 @@ class CheckoutPaymentsTest extends TestCase
         $this->assertSame(450, $order->shipping_amount);
         $this->assertSame(0, $order->tax_amount);
         $this->assertSame(5648, $order->total_amount);
-        $this->assertSame('Habana Vieja · La Habana', $order->shipping_zone_label);
+        $this->assertSame('Guantánamo · Guantánamo', $order->shipping_zone_label);
         $this->assertSame('pending_collection', $order->payment_status);
+        $this->assertSame(24, $order->delivery_commitment_hours);
+        $this->assertTrue($order->delivery_due_at->equalTo($order->placed_at->copy()->addHours(24)));
         $this->assertSame(Payment::STATUS_PENDING_COLLECTION, $order->payments->first()->status);
         $this->assertDatabaseCount('order_items', 1);
         $this->assertDatabaseCount('cart_items', 0);
@@ -94,7 +96,7 @@ class CheckoutPaymentsTest extends TestCase
 
         $this->get(route('checkout.create'))
             ->assertOk()
-            ->assertSee('Entregas disponibles únicamente en Cuba.')
+            ->assertSee('Entregas disponibles en la provincia de Guantánamo. Tiempo de entrega: dentro de las 24 horas.')
             ->assertSee('shipping-region', false)
             ->assertSee('shipping-city', false)
             ->assertSee('Calcular costo de envío');
@@ -105,21 +107,21 @@ class CheckoutPaymentsTest extends TestCase
         $this->withoutVite();
         $this->addProductToCart($this->product());
         ShippingZone::query()->create([
-            'province' => 'La Habana',
-            'municipality' => 'Habana Vieja',
+            'province' => 'Guantánamo',
+            'municipality' => 'Guantánamo',
             'shipping_amount' => 4.50,
             'currency' => 'USD',
             'is_active' => true,
         ]);
 
         $this->getJson(route('checkout.shipping-quote', [
-            'shipping_region' => 'La Habana',
-            'shipping_city' => 'Habana Vieja',
+            'shipping_region' => 'Guantánamo',
+            'shipping_city' => 'Guantánamo',
             'shipping_country' => 'CU',
         ]))->assertOk()->assertJson([
             'amount' => '4.50',
             'currency' => 'USD',
-            'zone' => 'Habana Vieja · La Habana',
+            'zone' => 'Guantánamo · Guantánamo',
         ]);
     }
 
@@ -144,9 +146,9 @@ class CheckoutPaymentsTest extends TestCase
         $method = PaymentMethod::query()->where('driver', 'cash_on_delivery')->firstOrFail();
         $data = $this->customerData($method);
         ShippingZone::query()->create([
-            'province' => 'La Habana',
-            'municipality' => 'Habana Vieja',
-            'locality' => 'Centro Habana',
+            'province' => 'Guantánamo',
+            'municipality' => 'Guantánamo',
+            'locality' => 'Centro',
             'shipping_amount' => 2.25,
             'currency' => 'USD',
             'is_active' => true,
@@ -155,7 +157,7 @@ class CheckoutPaymentsTest extends TestCase
         $this->post(route('checkout.store'), $data)->assertRedirect();
         $order = Order::query()->firstOrFail();
         $this->assertSame(225, $order->shipping_amount);
-        $this->assertSame('Centro Habana · Habana Vieja · La Habana', $order->shipping_zone_label);
+        $this->assertSame('Centro · Guantánamo · Guantánamo', $order->shipping_zone_label);
         $this->assertSame(5423, $order->total_amount);
     }
 
@@ -168,7 +170,7 @@ class CheckoutPaymentsTest extends TestCase
         $data['shipping_region'] = 'Matanzas';
         $data['shipping_city'] = 'Matanzas';
 
-        $this->post(route('checkout.store'), $data)->assertSessionHasErrors('shipping_city');
+        $this->post(route('checkout.store'), $data)->assertSessionHasErrors('shipping_region');
         $this->assertDatabaseCount('orders', 0);
     }
 
@@ -357,6 +359,77 @@ class CheckoutPaymentsTest extends TestCase
         } catch (\Illuminate\Validation\ValidationException) {
             $this->assertDatabaseCount('payment_events', 2);
         }
+    }
+
+
+    public function test_checkout_rejects_a_province_outside_the_initial_guantanamo_coverage(): void
+    {
+        $this->withoutVite();
+        $this->addProductToCart($this->product());
+        $method = PaymentMethod::query()->where('driver', 'cash_on_delivery')->firstOrFail();
+        $data = $this->customerData($method);
+        $data['shipping_region'] = 'Santiago de Cuba';
+        $data['shipping_city'] = 'Santiago de Cuba';
+
+        $this->post(route('checkout.store'), $data)->assertSessionHasErrors('shipping_region');
+        $this->assertDatabaseCount('orders', 0);
+    }
+
+    public function test_eur_products_keep_their_currency_through_cart_shipping_and_payment(): void
+    {
+        $this->withoutVite();
+        $product = Product::query()->create([
+            'name' => 'Producto en euros',
+            'slug' => 'producto-euros',
+            'sku' => 'EUR-001',
+            'price_amount' => 1000,
+            'currency' => 'EUR',
+            'status' => Product::STATUS_ACTIVE,
+            'is_visible' => true,
+        ]);
+        $this->addProductToCart($product);
+        $cart = app(\\App\\Services\\Cart\\CartService::class)->current((string) session('cart_session_key'));
+        $this->assertSame('EUR', $cart->currency);
+
+        ShippingZone::query()->create([
+            'province' => 'Guantánamo',
+            'municipality' => 'Guantánamo',
+            'shipping_amount' => 2.75,
+            'currency' => 'EUR',
+            'is_active' => true,
+        ]);
+        $method = PaymentMethod::query()->where('driver', 'cash_on_delivery')->firstOrFail();
+        $data = $this->customerData($method);
+        $data['shipping_city'] = 'Guantánamo';
+        $data['shipping_locality'] = null;
+
+        $this->post(route('checkout.store'), $data)->assertRedirect();
+        $order = Order::query()->with('payments')->firstOrFail();
+        $this->assertSame('EUR', $order->currency);
+        $this->assertSame('EUR', $order->payments->first()->currency);
+        $this->assertSame(275, $order->shipping_amount);
+    }
+
+    public function test_cart_rejects_products_priced_in_a_different_currency(): void
+    {
+        $this->withoutVite();
+        $this->addProductToCart($this->product());
+        $eurProduct = Product::query()->create([
+            'name' => 'Producto en euros',
+            'slug' => 'producto-euros-mezcla',
+            'sku' => 'EUR-MIX-001',
+            'price_amount' => 1000,
+            'currency' => 'EUR',
+            'status' => Product::STATUS_ACTIVE,
+            'is_visible' => true,
+        ]);
+
+        $this->post(route('cart.items.store'), [
+            'product_id' => $eurProduct->id,
+            'quantity' => 1,
+        ])->assertSessionHasErrors('product_id');
+
+        $this->assertDatabaseCount('cart_items', 1);
     }
 
 }

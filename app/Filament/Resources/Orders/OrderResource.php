@@ -56,7 +56,7 @@ class OrderResource extends Resource
         ])->defaultSort('placed_at', 'desc')->recordActions([
             Action::make('details')->label('Ver pedido')->icon('heroicon-o-eye')
                 ->modalHeading(fn (Order $record): string => 'Pedido '.$record->number)
-                ->modalContent(fn (Order $record) => view('filament.orders.details', ['order' => $record->load(['items', 'payments.method', 'payments.events.actor'])]))
+                ->modalContent(fn (Order $record) => view('filament.orders.details', ['order' => $record->load(['items', 'payments.method', 'payments.events.actor', 'shipment.events', 'shipment.attempts'])]))
                 ->modalSubmitAction(false)->modalCancelActionLabel('Cerrar'),
             Action::make('confirm')->label('Confirmar pedido')->color('success')->requiresConfirmation()
                 ->visible(fn (Order $record): bool => $record->status === Order::STATUS_PENDING && in_array($record->payment_status, ['pending_collection', 'paid'], true))

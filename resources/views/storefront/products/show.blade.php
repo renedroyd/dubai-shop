@@ -79,18 +79,7 @@
             <div class="section-heading"><span class="eyebrow eyebrow--light"><span></span> TAMBIÉN TE PUEDE INTERESAR</span><h2>Continúa descubriendo.</h2></div>
             <div class="store-product-grid">
                 @foreach ($relatedProducts as $related)
-                    <a href="{{ route('products.show', $related) }}" class="store-product-card">
-                        <div class="store-product-card__image">
-                            @if ($related->images->isNotEmpty())
-                                <img src="{{ \Illuminate\Support\Facades\Storage::url($related->images->first()->path) }}" alt="{{ $related->images->first()->alt_text ?: $related->name }}" loading="lazy">
-                            @else
-                                <span class="store-product-card__placeholder">D.</span>
-                            @endif
-                        </div>
-                        <div class="store-product-card__meta"><span>{{ $related->brand?->name ?? 'Dubai Shop' }}</span><span>{{ $related->sku }}</span></div>
-                        <h2>{{ $related->name }}</h2>
-                        <strong>{{ $related->formatted_price }}</strong>
-                    </a>
+                    <x-storefront.product-card :product="$related" />
                 @endforeach
             </div>
         </section>

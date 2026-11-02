@@ -388,7 +388,7 @@ class CheckoutPaymentsTest extends TestCase
             'is_visible' => true,
         ]);
         $this->addProductToCart($product);
-        $cart = app(\\App\\Services\\Cart\\CartService::class)->current((string) session('cart_session_key'));
+        $cart = \\App\\Models\\Cart::query()->firstOrFail();
         $this->assertSame('EUR', $cart->currency);
 
         $method = PaymentMethod::query()->where('driver', 'cash_on_delivery')->firstOrFail();

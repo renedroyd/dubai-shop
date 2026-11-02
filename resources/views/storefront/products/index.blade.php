@@ -11,25 +11,28 @@
     </section>
 
     <section class="catalog-section page-container">
-        <form class="catalog-toolbar" method="GET" action="{{ route('products.index') }}">
+        <form class="catalog-toolbar" method="GET" action="{{ route('products.index') }}" data-catalog-filters>
             <label class="catalog-search">
                 <span class="sr-only">Buscar productos</span>
-                <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="¿Qué estás buscando?">
+                <input type="search" name="q" value="{{ $filters['q'] ?? '' }}" placeholder="¿Qué estás buscando?" autocomplete="off">
                 <button type="submit" aria-label="Buscar">⌕</button>
             </label>
-            <select name="category" aria-label="Filtrar por categoría" onchange="this.form.submit()">
+            <label class="sr-only" for="catalog-category">Categoría</label>
+            <select id="catalog-category" name="category" aria-label="Filtrar por categoría" data-auto-submit>
                 <option value="">Todas las categorías</option>
                 @foreach ($categories as $category)
                     <option value="{{ $category->slug }}" @selected(($filters['category'] ?? '') === $category->slug)>{{ $category->name }}</option>
                 @endforeach
             </select>
-            <select name="brand" aria-label="Filtrar por marca" onchange="this.form.submit()">
+            <label class="sr-only" for="catalog-brand">Marca</label>
+            <select id="catalog-brand" name="brand" aria-label="Filtrar por marca" data-auto-submit>
                 <option value="">Todas las marcas</option>
                 @foreach ($brands as $brand)
                     <option value="{{ $brand->slug }}" @selected(($filters['brand'] ?? '') === $brand->slug)>{{ $brand->name }}</option>
                 @endforeach
             </select>
-            <select name="sort" aria-label="Ordenar productos" onchange="this.form.submit()">
+            <label class="sr-only" for="catalog-sort">Ordenar productos</label>
+            <select id="catalog-sort" name="sort" aria-label="Ordenar productos" data-auto-submit>
                 <option value="latest" @selected(($filters['sort'] ?? 'latest') === 'latest')>Más recientes</option>
                 <option value="price_asc" @selected(($filters['sort'] ?? '') === 'price_asc')>Precio: menor a mayor</option>
                 <option value="price_desc" @selected(($filters['sort'] ?? '') === 'price_desc')>Precio: mayor a menor</option>
@@ -37,7 +40,7 @@
             </select>
         </form>
 
-        <div class="catalog-results-heading">
+        <div class="catalog-results-heading" aria-live="polite" aria-atomic="true">
             <span>{{ $products->total() }} {{ $products->total() === 1 ? 'producto' : 'productos' }}</span>
             @if (filled($filters['q'] ?? null))
                 <span>Resultados para “{{ $filters['q'] }}”</span>

@@ -72,6 +72,26 @@ class ShipmentServiceTest extends TestCase
         }
     }
 
+    public function test_paid_order_can_be_confirmed_as_delivered_and_fulfills_inventory(): void
+    {
+        Queue::fake();
+        $order = $this->createOrder(['status' => Order::STATUS_PROCESSING, 'payment_status' => 'paid']);
+        $service = app(ShipmentService::class);
+        $shipment = $service->assignCourier($order, 'Repartidor', null);
+        $service->dispatch($order);
+
+        $attempt = $service->recordAttempt($shipment, 'delivered', 'Persona que recibe', 'Recibido correctamente');
+
+        $this->assertSame('delivered', $attempt->result);
+        $this->assertSame(Shipment::STATUS_DELIVERED, $shipment->fresh()->status);
+        $this->assertSame(Order::STATUS_DELIVERED, $order->fresh()->status);
+        $this->assertNotNull($order->fresh()->inventory_processed_at);
+        $this->assertDatabaseHas('shipment_events', [
+            'shipment_id' => $shipment->id,
+            'event_key' => 'delivered',
+        ]);
+    }
+
     private function createOrder(array $overrides = []): Order
     {
         return Order::withoutEvents(fn (): Order => Order::query()->create(array_merge([

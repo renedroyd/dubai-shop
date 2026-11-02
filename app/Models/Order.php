@@ -17,8 +17,8 @@ class Order extends Model
 
     protected $fillable = [
         'number', 'public_token_hash', 'user_id', 'customer_name', 'customer_email', 'customer_phone',
-        'shipping_address', 'shipping_address_line_2', 'shipping_city', 'shipping_region',
-        'shipping_postal_code', 'shipping_country', 'customer_note', 'currency',
+        'shipping_address', 'shipping_address_line_2', 'shipping_city', 'shipping_locality', 'shipping_region',
+        'shipping_postal_code', 'shipping_country', 'shipping_zone_id', 'shipping_zone_label', 'customer_note', 'currency',
         'subtotal_amount', 'shipping_amount', 'tax_amount', 'total_amount',
         'status', 'payment_status', 'placed_at', 'confirmed_at', 'cancelled_at', 'inventory_processed_at',
     ];
@@ -35,4 +35,5 @@ class Order extends Model
     public function items(): HasMany { return $this->hasMany(OrderItem::class); }
     public function payments(): HasMany { return $this->hasMany(Payment::class); }
     public function user(): BelongsTo { return $this->belongsTo(User::class); }
+    public function shippingZone(): BelongsTo { return $this->belongsTo(ShippingZone::class); }
 }

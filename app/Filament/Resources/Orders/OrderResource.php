@@ -35,7 +35,7 @@ class OrderResource extends Resource
             TextColumn::make('number')->label('Pedido')->searchable()->sortable(),
             TextColumn::make('customer_name')->label('Cliente')->searchable(),
             TextColumn::make('customer_email')->label('Correo')->searchable(),
-            TextColumn::make('total_amount')->label('Importe productos')->formatStateUsing(fn ($state, Order $record) => number_format($state / 100, 2).' '.$record->currency),
+            TextColumn::make('total_amount')->label('Total del pedido')->formatStateUsing(fn ($state, Order $record) => number_format($state / 100, 2).' '.$record->currency),
             TextColumn::make('status')->label('Estado')->badge(),
             TextColumn::make('payment_status')->label('Pago')->badge(),
             TextColumn::make('placed_at')->label('Fecha')->dateTime()->sortable(),

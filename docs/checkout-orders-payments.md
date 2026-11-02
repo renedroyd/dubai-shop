@@ -38,7 +38,7 @@ Para integrar otra pasarela:
 No se almacenan datos de tarjetas. Las credenciales privadas de futuras pasarelas deben residir en variables de entorno o en un almacén de secretos, nunca en campos públicos.
 
 ## Límites que requieren definición comercial
-- El importe registrado actualmente incluye únicamente productos. Envío e impuestos se mantienen en cero hasta configurar zonas, tarifas y reglas fiscales; el checkout informa al cliente que esos importes se confirmarán por separado.
+- Las entregas están limitadas a Cuba. Las tarifas se administran en Filament > Configuración > Zonas y tarifas de envío y pueden definirse por provincia, municipio o localidad. La coincidencia más específica tiene prioridad; las tarifas sin configurar bloquean la confirmación del pedido. Los impuestos permanecen en cero.
 - Zelle se crea deshabilitado hasta que se configuren y verifiquen los datos del destinatario.
 - No se integra todavía una pasarela externa ni se reciben webhooks.
 - No se implementa aún el correo transaccional; la pantalla de confirmación muestra el estado del pedido.
@@ -54,3 +54,16 @@ Las credenciales de pasarelas externas deben mantenerse en configuración privad
 ## Auditoría del ciclo de vida del pago
 
 Cada pago registra eventos inmutables de creación, aprobación, rechazo o confirmación de cobro. Cada evento conserva estado anterior, estado nuevo, actor administrativo (si aplica), fecha y nota de revisión. Las transiciones se centralizan en PaymentStatusService y se ejecutan con bloqueos transaccionales para impedir dobles confirmaciones o cambios sobre pedidos no elegibles.
+
+
+## Entregas en Cuba — Fase 9
+
+- País permitido: Cuba (ISO 3166-1 alpha-2: `CU`). El checkout no permite seleccionar otro destino.
+- Provincias cubanas disponibles en el formulario: Pinar del Río, Artemisa, La Habana, Mayabeque, Matanzas, Cienfuegos, Villa Clara, Sancti Spíritus, Ciego de Ávila, Camagüey, Las Tunas, Holguín, Granma, Santiago de Cuba, Guantánamo e Isla de la Juventud.
+- En Filament > Configuración > Zonas y tarifas de envío se crean tarifas por provincia (municipio y localidad vacíos), municipio o localidad/reparto.
+- Prioridad de cálculo: localidad específica > municipio > provincia. Una zona inactiva no participa en el cálculo.
+- El cliente debe calcular y revisar la tarifa antes de habilitar la confirmación del checkout. El servidor vuelve a resolver la tarifa al crear el pedido; nunca acepta el importe enviado por el navegador.
+- Si no existe una tarifa activa para la dirección o su moneda no coincide con la moneda del carrito, el pedido no se crea.
+- El pedido conserva la zona aplicada y el importe de envío como una instantánea, aunque la tarifa se modifique o elimine posteriormente.
+- Impuestos: siempre 0. El total es subtotal de productos + envío.
+- Las tarifas se configuran en la moneda correspondiente al carrito (USD, CUP o EUR).

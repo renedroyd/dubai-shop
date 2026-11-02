@@ -22,5 +22,6 @@ Route::patch('/carrito/items/{cartItem}', [CartController::class, 'update'])->na
 Route::delete('/carrito/items/{cartItem}', [CartController::class, 'destroy'])->name('cart.items.destroy');
 
 Route::get('/checkout', [CheckoutController::class, 'create'])->name('checkout.create');
+Route::get('/checkout/envio', [CheckoutController::class, 'quoteShipping'])->middleware('throttle:30,1')->name('checkout.shipping-quote');
 Route::post('/checkout', [CheckoutController::class, 'store'])->middleware('throttle:5,1')->name('checkout.store');
 Route::get('/pedido/{order}/{token}', [OrderController::class, 'show'])->name('orders.show');

@@ -7,9 +7,12 @@ use App\Models\PaymentMethod;
 use App\Payments\PaymentDriverManager;
 use App\Services\Cart\CartService;
 use App\Services\Orders\CheckoutService;
+use App\Services\Shipping\ShippingRateService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -19,6 +22,7 @@ class CheckoutController extends Controller
         private readonly CartService $carts,
         private readonly CheckoutService $checkout,
         private readonly PaymentDriverManager $drivers,
+        private readonly ShippingRateService $shippingRates,
     ) {}
 
     public function create(Request $request): View|RedirectResponse
@@ -34,8 +38,28 @@ class CheckoutController extends Controller
                 'method' => $method,
                 'instructions' => $this->drivers->driver($method->driver)->checkoutInstructions($method),
             ]);
+        $provinces = ShippingRateService::provinces();
 
-        return view('storefront.checkout.create', compact('cart', 'paymentMethods'));
+        return view('storefront.checkout.create', compact('cart', 'paymentMethods', 'provinces'));
+    }
+
+    public function quoteShipping(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'shipping_region' => ['required', Rule::in(array_keys(ShippingRateService::provinces()))],
+            'shipping_city' => ['required', 'string', 'max:120'],
+            'shipping_locality' => ['nullable', 'string', 'max:160'],
+            'shipping_country' => ['required', Rule::in(['CU'])],
+        ]);
+
+        $cart = $this->carts->current((string) $request->session()->get('cart_session_key'));
+        $zone = $this->shippingRates->resolve($data, $cart->currency);
+
+        return response()->json([
+            'amount' => number_format((float) $zone->shipping_amount, 2, '.', ''),
+            'currency' => $zone->currency,
+            'zone' => $zone->label(),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -46,10 +70,11 @@ class CheckoutController extends Controller
             'customer_phone' => ['required', 'string', 'max:40'],
             'shipping_address' => ['required', 'string', 'max:255'],
             'shipping_address_line_2' => ['nullable', 'string', 'max:255'],
-            'shipping_city' => ['required', 'string', 'max:255'],
-            'shipping_region' => ['nullable', 'string', 'max:255'],
+            'shipping_city' => ['required', 'string', 'max:120'],
+            'shipping_locality' => ['nullable', 'string', 'max:160'],
+            'shipping_region' => ['required', Rule::in(array_keys(ShippingRateService::provinces()))],
             'shipping_postal_code' => ['nullable', 'string', 'max:30'],
-            'shipping_country' => ['required', 'string', 'size:2'],
+            'shipping_country' => ['required', Rule::in(['CU'])],
             'customer_note' => ['nullable', 'string', 'max:2000'],
             'payment_method_id' => ['required', 'integer', 'exists:payment_methods,id'],
             'payment_reference' => ['nullable', 'string', 'max:120'],
@@ -66,7 +91,7 @@ class CheckoutController extends Controller
         $cart = $this->carts->current((string) $request->session()->get('cart_session_key'));
         $customer = collect($data)->only([
             'customer_name', 'customer_email', 'customer_phone', 'shipping_address',
-            'shipping_address_line_2', 'shipping_city', 'shipping_region',
+            'shipping_address_line_2', 'shipping_city', 'shipping_locality', 'shipping_region',
             'shipping_postal_code', 'shipping_country', 'customer_note',
         ])->all();
 

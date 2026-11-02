@@ -6,18 +6,21 @@ use App\Models\Cart;
 use App\Models\Inventory;
 use App\Models\InventoryMovement;
 use App\Models\Order;
-use App\Models\OrderItem;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Payments\PaymentDriverManager;
+use App\Services\Shipping\ShippingRateService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class CheckoutService
 {
-    public function __construct(private readonly PaymentDriverManager $drivers) {}
+    public function __construct(
+        private readonly PaymentDriverManager $drivers,
+        private readonly ShippingRateService $shippingRates,
+    ) {}
 
     public function placeOrder(Cart $cart, array $customer, PaymentMethod $method, array $paymentData, string $publicToken): Order
     {
@@ -72,16 +75,22 @@ class CheckoutService
                 ];
             }
 
+            $zone = $this->shippingRates->resolve($customer, $cart->currency);
+            $shippingAmount = (int) round(((float) $zone->shipping_amount) * 100);
+            $taxAmount = 0;
+
             $order = Order::query()->create([
                 'number' => 'DS-'.now()->format('ymd').'-'.Str::upper(Str::random(8)),
                 'public_token_hash' => hash('sha256', $publicToken),
                 'user_id' => auth()->id(),
                 ...$customer,
+                'shipping_zone_id' => $zone->id,
+                'shipping_zone_label' => $zone->label(),
                 'currency' => $cart->currency,
                 'subtotal_amount' => $subtotal,
-                'shipping_amount' => 0,
-                'tax_amount' => 0,
-                'total_amount' => $subtotal,
+                'shipping_amount' => $shippingAmount,
+                'tax_amount' => $taxAmount,
+                'total_amount' => $subtotal + $shippingAmount + $taxAmount,
                 'status' => Order::STATUS_PENDING,
                 'payment_status' => 'awaiting_payment',
                 'placed_at' => now(),

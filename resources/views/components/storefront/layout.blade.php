@@ -10,6 +10,8 @@
 @php($storeSettings = app(\App\Services\Storefront\StorefrontSettings::class)->all())
 @php($storeName = $storeSettings['site_name'] ?? config('app.name', 'Clásico Dubai'))
 @php($canonicalUrl = $canonical ?: request()->url())
+@php($headerMenu = \App\Models\StorefrontMenuItem::query()->where('location', 'header')->whereNull('parent_id')->where('is_active', true)->with('children')->orderBy('sort_order')->get())
+@php($footerMenu = \App\Models\StorefrontMenuItem::query()->where('location', 'footer')->whereNull('parent_id')->where('is_active', true)->with('children')->orderBy('sort_order')->get())
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -53,65 +55,73 @@
             </a>
 
             <nav class="desktop-nav" aria-label="Navegación principal">
-                <a href="{{ route('products.index') }}">Productos</a>
-                <a href="#colecciones">Colecciones</a>
-                <a href="#experiencia">Nuestra esencia</a>
-                <a href="#beneficios">Por qué elegirnos</a>
+                @if ($headerMenu->isNotEmpty())
+                    @foreach ($headerMenu as $item)
+                        <a href="{{ $item->url }}" @if ($item->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif>{{ $item->label }}</a>
+                    @endforeach
+                @else
+                    <a href="{{ route('products.index') }}">Productos</a>
+                    <a href="{{ route('home') }}#colecciones">Colecciones</a>
+                    <a href="{{ route('home') }}#experiencia">Nuestra esencia</a>
+                    <a href="{{ route('home') }}#beneficios">Por qué elegirnos</a>
+                @endif
             </nav>
 
             <div class="site-header__actions">
                 <a class="header-link" href="{{ route('cart.index') }}">Carrito</a>
-                <a class="header-link" href="#colecciones">
-                    <x-storefront.icon name="search" :size="18" />
-                    <span>Explorar</span>
-                </a>
-                <a class="header-cta" href="#colecciones">
-                    Ver productos <x-storefront.icon name="arrow-up-right" :size="16" />
-                </a>
+                <a class="header-link" href="{{ route('products.index') }}"><x-storefront.icon name="search" :size="18" /><span>Explorar</span></a>
+                <a class="header-cta" href="{{ route('products.index') }}">Ver productos <x-storefront.icon name="arrow-up-right" :size="16" /></a>
             </div>
 
             <details class="mobile-menu">
-                <summary aria-label="Abrir menú de navegación">
-                    <x-storefront.icon name="menu" :size="22" />
-                </summary>
+                <summary aria-label="Abrir menú de navegación"><x-storefront.icon name="menu" :size="22" /></summary>
                 <nav aria-label="Navegación móvil">
-                    <a href="{{ route('products.index') }}">Productos</a>
-                    <a href="{{ route('cart.index') }}">Carrito</a>
-                    <a href="#colecciones">Colecciones</a>
-                    <a href="#experiencia">Nuestra esencia</a>
-                    <a href="#beneficios">Por qué elegirnos</a>
-                    <a href="#colecciones" class="mobile-menu__cta">Explorar tienda</a>
+                    @if ($headerMenu->isNotEmpty())
+                        @foreach ($headerMenu as $item)
+                            <a href="{{ $item->url }}" @if ($item->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif>{{ $item->label }}</a>
+                        @endforeach
+                    @else
+                        <a href="{{ route('products.index') }}">Productos</a>
+                        <a href="{{ route('cart.index') }}">Carrito</a>
+                        <a href="{{ route('home') }}#colecciones">Colecciones</a>
+                        <a href="{{ route('home') }}#experiencia">Nuestra esencia</a>
+                        <a href="{{ route('home') }}#beneficios">Por qué elegirnos</a>
+                    @endif
                 </nav>
             </details>
         </div>
     </header>
 
-    <main id="main-content">
-        {{ $slot }}
-    </main>
+    <main id="main-content">{{ $slot }}</main>
 
     <footer class="site-footer" id="footer">
         <div class="site-footer__top">
             <div class="site-footer__brand">
-                <a href="{{ url('/') }}" class="brand brand--footer" aria-label="Dubai Shop, inicio">
+                <a href="{{ url('/') }}" class="brand brand--footer" aria-label="{{ $storeName }}, inicio">
                     <span class="brand__mark">D<span>.</span></span>
-                    <span class="brand__wordmark">{{ strtoupper($storeSettings['site_name'] ?? 'DUBAI SHOP') }}</span>
+                    <span class="brand__wordmark">{{ strtoupper($storeName) }}</span>
                 </a>
                 <p>{{ $storeSettings['footer_description'] ?? 'Una experiencia de compra creada alrededor de los detalles que hacen la diferencia.' }}</p>
             </div>
 
             <div class="site-footer__column">
                 <span class="footer-heading">Explora</span>
-                <a href="#colecciones">Colecciones</a>
-                <a href="#experiencia">Nuestra esencia</a>
-                <a href="#beneficios">Ventajas</a>
+                @if ($footerMenu->isNotEmpty())
+                    @foreach ($footerMenu as $item)
+                        <a href="{{ $item->url }}" @if ($item->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif>{{ $item->label }}</a>
+                    @endforeach
+                @else
+                    <a href="{{ route('products.index') }}">Productos</a>
+                    <a href="{{ route('home') }}#colecciones">Colecciones</a>
+                @endif
             </div>
 
             <div class="site-footer__column">
                 <span class="footer-heading">{{ $storeName }}</span>
-                <a href="#main-content">Inicio</a>
-                <a href="#footer">Contacto</a>
-                <a href="#footer">Ayuda</a>
+                <a href="{{ route('home') }}">Inicio</a>
+                @foreach ($footerMenu->take(4) as $item)
+                    <a href="{{ $item->url }}" @if ($item->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif>{{ $item->label }}</a>
+                @endforeach
             </div>
 
             <div class="site-footer__signature">

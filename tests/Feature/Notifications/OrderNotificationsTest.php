@@ -99,8 +99,8 @@ class OrderNotificationsTest extends TestCase
     private function createOrder(): Order
     {
         return Order::query()->create([
-            'number' => 'DS-'.now()->format('ymd').'-'.str()->upper(str()->random(8)),
-            'public_token_hash' => hash('sha256', str()->random(64)),
+            'number' => 'DS-'.now()->format('ymd').'-'.Str::upper(Str::random(8)),
+            'public_token_hash' => hash('sha256', Str::random(64)),
             'customer_name' => 'Cliente Dubai',
             'customer_email' => 'cliente@example.com',
             'customer_phone' => '53000000',

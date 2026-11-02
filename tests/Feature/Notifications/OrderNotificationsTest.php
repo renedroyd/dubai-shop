@@ -89,7 +89,7 @@ class OrderNotificationsTest extends TestCase
         $seeder->run();
         $seeder->run();
 
-        $this->assertDatabaseCount('notification_templates', 8);
+        $this->assertDatabaseCount('notification_templates', 9);
         $this->assertDatabaseHas('notification_templates', [
             'event_key' => 'payment_approved',
             'is_active' => true,

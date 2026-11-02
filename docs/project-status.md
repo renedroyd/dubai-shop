@@ -2,9 +2,9 @@
 
 **Corte:** 2 de noviembre de 2026  
 **Rama de referencia:** `main`  
-**Última integración:** Documentación Fase 10 (PR #16); Fase 11 en desarrollo en rama independiente  
-**Commit de integración:** `e802dc67239eb0f0cc77a59a6ca50ca2a560084b`  
-**PR integrada:** [#15 — Fase 10](https://github.com/renedroyd/dubai-shop/pull/15)
+**Última integración:** Fase 12 — CMS (PR #19); Fase 13 en desarrollo en `feature/fase-13-clientes-comunicacion`  
+**Commit de integración:** `7bb812d685848234f60d808af7ced9e16ea089ca`  
+**PR integrada:** [#19 — Fase 12](https://github.com/renedroyd/dubai-shop/pull/19)
 
 Este documento separa lo que está implementado y probado en el repositorio de la configuración comercial que aún debe cargarse, y de las capacidades que siguen en la hoja de ruta. La integración de una fase no significa que la tienda esté lista para producción.
 
@@ -12,7 +12,7 @@ Este documento separa lo que está implementado y probado en el repositorio de l
 
 Dubai Shop tiene implementado el núcleo de una tienda online: catálogo público, búsqueda y filtros, carrito de invitado, checkout, pedidos, reservas de inventario, pagos manuales auditados, administración con Filament y tarifas de envío configurables. La Fase 10 restringió la operación inicial a Guantánamo, estableció el compromiso de entrega dentro de 24 horas, reforzó el tratamiento de importes de envío y formalizó el uso de varias monedas sin mezclarlas.
 
-**Estado actual:** base funcional integrada; falta completar la configuración real del negocio, probar la operación completa con datos reales, terminar la identidad visual de Clásico Dubai y cerrar requisitos de producción.
+**Estado actual:** fases 1–12 integradas; Fase 13 en desarrollo. La base funcional incluye cuentas de clientes en la rama de trabajo, mientras se completa la comunicación transaccional. Falta verificar la configuración real del negocio, ejecutar pruebas de aceptación y cerrar requisitos de producción.
 
 La tienda no debe considerarse lista para producción solo porque CI esté verde. Aún es necesario cargar tarifas, configurar el destinatario Zelle en la administración, verificar los métodos activos y realizar pruebas de aceptación en un entorno real.
 
@@ -114,7 +114,7 @@ La CI prueba la suite automatizada y la compilación. No reemplaza pruebas de ac
 ### Fase 11 — Identidad de marca y configuración operativa
 **Prioridad: crítica · en desarrollo**
 
-**Implementado en la rama de trabajo (pendiente de CI y revisión):**
+**Implementado e integrado:**
 - Seeder idempotente para fijar el nombre público Clásico Dubai.
 - Habilitación de efectivo contra entrega.
 - Tarifas temporales activas de 500 CUP para los diez municipios de Guantánamo.
@@ -122,7 +122,7 @@ La CI prueba la suite automatizada y la compilación. No reemplaza pruebas de ac
 - Logotipo vectorial horizontal y favicon SVG; integración en el storefront y en el encabezado de Filament.
 - Prueba automatizada de la configuración inicial y las diez tarifas.
 
-**Pendiente de confirmar antes de cerrar la fase:** ejecutar CI, comprobar render del logo en Filament (incluida pantalla de login), probar checkout real por moneda/método y verificar los datos Zelle en el entorno desplegado. El logo SVG actual es una reconstrucción vectorial a partir de la descripción visual disponible; no es una optimización píxel a píxel del archivo original.
+**Pendiente de validación operativa:** comprobar render del logo en Filament (incluida pantalla de login), probar checkout real por moneda/método y verificar los datos Zelle en el entorno desplegado. El logo SVG es una reconstrucción vectorial a partir de la descripción visual disponible; no es una optimización píxel a píxel del archivo original.
 
 - Configurar nombre comercial Clásico Dubai en los ajustes reales de tienda.
 - Revisar el logotipo vectorial incorporado y sustituirlo por la versión maestra original optimizada si se vuelve a facilitar el archivo fuente.

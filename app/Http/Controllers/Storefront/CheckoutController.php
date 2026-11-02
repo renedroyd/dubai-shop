@@ -33,7 +33,9 @@ class CheckoutController extends Controller
             return to_route('cart.index')->withErrors(['cart' => 'Agrega productos antes de continuar.']);
         }
 
-        $paymentMethods = PaymentMethod::query()->enabled()->orderBy('sort_order')->get()
+        $paymentMethods = PaymentMethod::query()->enabled()
+            ->when($cart->currency !== 'USD', fn ($query) => $query->where('driver', '!=', 'zelle_manual'))
+            ->orderBy('sort_order')->get()
             ->map(fn (PaymentMethod $method) => [
                 'method' => $method,
                 'instructions' => $this->drivers->driver($method->driver)->checkoutInstructions($method),
@@ -82,13 +84,17 @@ class CheckoutController extends Controller
             'payment_note' => ['nullable', 'string', 'max:1000'],
         ]);
 
+        $cart = $this->carts->current((string) $request->session()->get('cart_session_key'));
         $method = PaymentMethod::query()->enabled()->findOrFail($data['payment_method_id']);
+
+        if ($method->driver === 'zelle_manual' && $cart->currency !== 'USD') {
+            throw ValidationException::withMessages(['payment_method_id' => 'Zelle solo admite pagos en USD. Selecciona efectivo contra entrega para esta moneda.']);
+        }
 
         if ($method->driver === 'zelle_manual' && ! $request->hasFile('payment_proof')) {
             throw ValidationException::withMessages(['payment_proof' => 'Adjunta el comprobante de tu transferencia Zelle.']);
         }
 
-        $cart = $this->carts->current((string) $request->session()->get('cart_session_key'));
         $customer = collect($data)->only([
             'customer_name', 'customer_email', 'customer_phone', 'shipping_address',
             'shipping_address_line_2', 'shipping_city', 'shipping_locality', 'shipping_region',

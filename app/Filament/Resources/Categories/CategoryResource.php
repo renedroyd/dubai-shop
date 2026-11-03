@@ -24,8 +24,8 @@ use UnitEnum;
 class CategoryResource extends Resource
 {
     protected static ?string $model = Category::class;
-    protected static string | UnitEnum | null $navigationGroup = 'Catálogo';
-    protected static ?string $navigationLabel = 'Categorías';
+    public static function getNavigationGroup(): string|\UnitEnum|null { return __('Catálogo'); }
+    public static function getNavigationLabel(): string { return __('Categorías'); }
     protected static ?string $modelLabel = 'categoría';
     protected static ?string $pluralModelLabel = 'categorías';
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-rectangle-stack';
@@ -34,27 +34,27 @@ class CategoryResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            TextInput::make('name')->label('Nombre')->required()->maxLength(255),
-            TextInput::make('slug')->label('Slug')->required()->maxLength(255)->unique(ignoreRecord: true),
-            Select::make('parent_id')->label('Categoría superior')->relationship('parent', 'name')->searchable()->preload()->nullable(),
-            Textarea::make('description')->label('Descripción')->rows(3),
-            FileUpload::make('image_path')->label('Imagen')->image()->disk('public')->directory('categories'),
-            TextInput::make('sort_order')->label('Orden')->numeric()->integer()->default(0),
-            Toggle::make('is_active')->label('Activa')->default(true),
+            TextInput::make('name')->label(__('Nombre'))->required()->maxLength(255),
+            TextInput::make('slug')->label(__('Slug'))->required()->maxLength(255)->unique(ignoreRecord: true),
+            Select::make('parent_id')->label(__('Categoría superior'))->relationship('parent', 'name')->searchable()->preload()->nullable(),
+            Textarea::make('description')->label(__('Descripción'))->rows(3),
+            FileUpload::make('image_path')->label(__('Imagen'))->image()->disk('public')->directory('categories'),
+            TextInput::make('sort_order')->label(__('Orden'))->numeric()->integer()->default(0),
+            Toggle::make('is_active')->label(__('Activa'))->default(true),
         ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('name')->label('Categoría')->searchable()->sortable(),
-            TextColumn::make('parent.name')->label('Superior')->placeholder('Principal'),
-            TextColumn::make('products_count')->counts('products')->label('Productos'),
-            IconColumn::make('is_active')->label('Activa')->boolean(),
-            TextColumn::make('sort_order')->label('Orden')->sortable(),
+            TextColumn::make('name')->label(__('Categoría'))->searchable()->sortable(),
+            TextColumn::make('parent.name')->label(__('Superior'))->placeholder(__('Principal')),
+            TextColumn::make('products_count')->counts('products')->label(__('Productos')),
+            IconColumn::make('is_active')->label(__('Activa'))->boolean(),
+            TextColumn::make('sort_order')->label(__('Orden'))->sortable(),
         ])->defaultSort('sort_order')
           ->recordActions([EditAction::make(), DeleteAction::make()])
-          ->headerActions([CreateAction::make()->label('Nueva categoría')]);
+          ->headerActions([CreateAction::make()->label(__('Nueva categoría'))]);
     }
 
     public static function getPages(): array

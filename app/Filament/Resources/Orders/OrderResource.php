@@ -23,8 +23,8 @@ class OrderResource extends Resource
     protected static ?string $model = Order::class;
     public static function getNavigationGroup(): string|\UnitEnum|null { return __('Ventas'); }
     public static function getNavigationLabel(): string { return __('Pedidos'); }
-    protected static ?string $modelLabel = 'pedido';
-    protected static ?string $pluralModelLabel = 'pedidos';
+    public static function getModelLabel(): string { return __('pedido'); }
+    public static function getPluralModelLabel(): string { return __('pedidos'); }
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-shopping-bag';
     protected static ?int $navigationSort = 1;
 

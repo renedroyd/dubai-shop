@@ -7,9 +7,9 @@ use Filament\Widgets\ChartWidget;
 
 class OrderActivityChart extends ChartWidget
 {
-    protected ?string $heading = 'Actividad de pedidos';
+    public function getHeading(): ?string { return __('Actividad de pedidos'); }
 
-    protected ?string $description = 'Pedidos registrados durante los últimos 14 días';
+    public function getDescription(): ?string { return __('Pedidos registrados durante los últimos 14 días'); }
 
     protected int | string | array $columnSpan = [
         'default' => 1,
@@ -37,7 +37,7 @@ class OrderActivityChart extends ChartWidget
 
         return [
             'datasets' => [[
-                'label' => 'Pedidos',
+                'label' => __('Pedidos'),
                 'data' => $values->all(),
                 'borderColor' => '#C9A227',
                 'backgroundColor' => 'rgba(201, 162, 39, 0.16)',

@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\DB;
 
 class PaymentMethodsChart extends ChartWidget
 {
-    protected ?string $heading = 'Métodos de pago';
+    public function getHeading(): ?string { return __('Métodos de pago'); }
 
-    protected ?string $description = 'Pagos registrados según el método utilizado';
+    public function getDescription(): ?string { return __('Pagos registrados según el método utilizado'); }
 
     protected int | string | array $columnSpan = [
         'default' => 1,

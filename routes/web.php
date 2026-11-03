@@ -8,9 +8,12 @@ use App\Http\Controllers\Storefront\ProductController;
 use App\Http\Controllers\Storefront\PageController;
 use App\Http\Controllers\Storefront\CustomerAuthController;
 use App\Http\Controllers\Storefront\CustomerAccountController;
+use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\Seo\SitemapController;
 use App\Http\Controllers\Seo\RobotsController;
 use Illuminate\Support\Facades\Route;
+
+Route::post('/language/{locale}', [LocaleController::class, 'update'])->name('locale.update');
 
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 Route::get('/robots.txt', RobotsController::class)->name('robots');

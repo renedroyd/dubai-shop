@@ -19,23 +19,23 @@ class RecentOrders extends TableWidget
             ->query(Order::query()->latest('placed_at'))
             ->columns([
                 TextColumn::make('number')
-                    ->label('Pedido')
+                    ->label(__('Pedido'))
                     ->searchable(),
                 TextColumn::make('customer_name')
-                    ->label('Cliente')
+                    ->label(__('Cliente'))
                     ->searchable()
                     ->limit(28),
                 TextColumn::make('total_amount')
-                    ->label('Total')
+                    ->label(__('Total'))
                     ->formatStateUsing(fn ($state, Order $record): string => number_format(((int) $state) / 100, 2).' '.$record->currency),
                 TextColumn::make('status')
-                    ->label('Estado')
+                    ->label(__('Estado'))
                     ->badge(),
                 TextColumn::make('payment_status')
-                    ->label('Pago')
+                    ->label(__('Pago'))
                     ->badge(),
                 TextColumn::make('placed_at')
-                    ->label('Fecha')
+                    ->label(__('Fecha'))
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
             ])

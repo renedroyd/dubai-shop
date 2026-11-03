@@ -22,19 +22,19 @@ class CommerceOverview extends StatsOverviewWidget
             ->implode(' · ');
 
         return [
-            Stat::make('Pedidos de hoy', Order::query()->whereDate('placed_at', today())->count())
-                ->description('Pedidos registrados hoy')
+            Stat::make(__('Pedidos de hoy'), Order::query()->whereDate('placed_at', today())->count())
+                ->description(__('Pedidos registrados hoy'))
                 ->descriptionIcon('heroicon-m-shopping-bag'),
-            Stat::make('Pagos por revisar', Payment::query()->where('status', Payment::STATUS_AWAITING_REVIEW)->count())
-                ->description('Comprobantes pendientes de validación')
+            Stat::make(__('Pagos por revisar'), Payment::query()->where('status', Payment::STATUS_AWAITING_REVIEW)->count())
+                ->description(__('Comprobantes pendientes de validación'))
                 ->descriptionIcon('heroicon-m-clock')
                 ->color('warning'),
-            Stat::make('Ventas cobradas este mes', ($salesThisMonth ?: '0.00'))
-                ->description('Suma de pedidos marcados como pagados')
+            Stat::make(__('Ventas cobradas este mes'), ($salesThisMonth ?: '0.00'))
+                ->description(__('Suma de pedidos marcados como pagados'))
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color('success'),
-            Stat::make('Productos con stock bajo', Inventory::query()->whereRaw('(quantity_on_hand - quantity_reserved) <= 5')->count())
-                ->description('Existencias disponibles de 5 unidades o menos')
+            Stat::make(__('Productos con stock bajo'), Inventory::query()->whereRaw('(quantity_on_hand - quantity_reserved) <= 5')->count())
+                ->description(__('Existencias disponibles de 5 unidades o menos'))
                 ->descriptionIcon('heroicon-m-exclamation-triangle')
                 ->color('danger'),
         ];

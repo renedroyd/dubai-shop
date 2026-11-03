@@ -5,9 +5,9 @@
 >
     <section class="catalog-hero">
         <div class="page-container">
-            <span class="eyebrow eyebrow--light"><span></span> TU SELECCIÓN</span>
-            <h1>Tu <em>carrito.</em></h1>
-            <p>Revisa las cantidades y los productos que has elegido.</p>
+            <span class="eyebrow eyebrow--light"><span></span> {{ __('TU SELECCIÓN') }}</span>
+            <h1>{{ __('Tu') }} <em>{{ __('carrito.') }}</em></h1>
+            <p>{{ __('Revisa las cantidades y los productos que has elegido.') }}</p>
         </div>
     </section>
 
@@ -19,9 +19,9 @@
         @if ($cart->items->isEmpty())
             <div class="catalog-empty">
                 <span>✦</span>
-                <h2>Tu carrito está vacío</h2>
-                <p>Explora el catálogo y agrega tus productos favoritos.</p>
-                <a class="button button--gold" href="{{ route('products.index') }}">Explorar productos</a>
+                <h2>{{ __('Tu carrito está vacío') }}</h2>
+                <p>{{ __('Explora el catálogo y agrega tus productos favoritos.') }}</p>
+                <a class="button button--gold" href="{{ route('products.index') }}">{{ __('Explorar productos') }}</a>
             </div>
         @else
             <div class="cart-layout">
@@ -36,9 +36,9 @@
                                 @endif
                             </div>
                             <div class="cart-item__details">
-                                <h2>{{ $item->product?->name ?? 'Producto no disponible' }}</h2>
+                                <h2>{{ $item->product?->name ?? __('Producto no disponible') }}</h2>
                                 @if ($item->variant)<p>{{ $item->variant->name }}</p>@endif
-                                <span>{{ number_format($item->unit_price_amount / 100, 2) }} {{ $item->currency }} / unidad</span>
+                                <span>{{ number_format($item->unit_price_amount / 100, 2) }} {{ $item->currency }} / {{ __('unidad') }}</span>
                                 <div class="cart-item__actions">
                                     <form method="POST" action="{{ route('cart.items.update', $item) }}">
                                         @csrf
@@ -47,12 +47,12 @@
                                             <span class="sr-only">Cantidad</span>
                                             <input type="number" name="quantity" min="1" max="99" value="{{ $item->quantity }}">
                                         </label>
-                                        <button type="submit" class="button button--outline">Actualizar</button>
+                                        <button type="submit" class="button button--outline">{{ __('Actualizar') }}</button>
                                     </form>
                                     <form method="POST" action="{{ route('cart.items.destroy', $item) }}">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="cart-remove">Eliminar</button>
+                                        <button type="submit" class="cart-remove">{{ __('Eliminar') }}</button>
                                     </form>
                                 </div>
                             </div>
@@ -62,12 +62,12 @@
                 </div>
 
                 <aside class="cart-summary">
-                    <span class="eyebrow eyebrow--light">RESUMEN</span>
-                    <h2>Tu pedido</h2>
-                    <div><span>Subtotal</span><strong>{{ number_format($cart->subtotal_amount / 100, 2) }} {{ $cart->currency }}</strong></div>
-                    <p>Los gastos de envío, impuestos y disponibilidad final se calcularán durante el checkout.</p>
-                    <a class="button button--gold" href="{{ route("checkout.create") }}">Continuar al checkout</a>
-                    <a href="{{ route('products.index') }}">Seguir comprando</a>
+                    <span class="eyebrow eyebrow--light">{{ __('RESUMEN') }}</span>
+                    <h2>{{ __('Tu pedido') }}</h2>
+                    <div><span>{{ __('Subtotal') }}</span><strong>{{ number_format($cart->subtotal_amount / 100, 2) }} {{ $cart->currency }}</strong></div>
+                    <p>{{ __('Los gastos de envío, impuestos y disponibilidad final se calcularán durante el checkout.') }}</p>
+                    <a class="button button--gold" href="{{ route("checkout.create") }}">{{ __('Continuar al checkout') }}</a>
+                    <a href="{{ route('products.index') }}">{{ __('Seguir comprando') }}</a>
                 </aside>
             </div>
         @endif

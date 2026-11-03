@@ -7,9 +7,9 @@ use Filament\Widgets\ChartWidget;
 
 class OrderStatusChart extends ChartWidget
 {
-    protected ?string $heading = 'Pedidos por estado';
+    public function getHeading(): ?string { return __('Pedidos por estado'); }
 
-    protected ?string $description = 'Distribución de todos los pedidos registrados';
+    public function getDescription(): ?string { return __('Distribución de todos los pedidos registrados'); }
 
     protected int | string | array $columnSpan = [
         'default' => 1,
@@ -25,12 +25,12 @@ class OrderStatusChart extends ChartWidget
             ->get();
 
         $labels = [
-            Order::STATUS_PENDING => 'Pendientes',
-            Order::STATUS_CONFIRMED => 'Confirmados',
-            Order::STATUS_PROCESSING => 'En preparación',
-            Order::STATUS_SHIPPED => 'En camino',
-            Order::STATUS_DELIVERED => 'Entregados',
-            Order::STATUS_CANCELLED => 'Cancelados',
+            Order::STATUS_PENDING => __('Pendientes'),
+            Order::STATUS_CONFIRMED => __('Confirmados'),
+            Order::STATUS_PROCESSING => __('En preparación'),
+            Order::STATUS_SHIPPED => __('En camino'),
+            Order::STATUS_DELIVERED => __('Entregados'),
+            Order::STATUS_CANCELLED => __('Cancelados'),
         ];
 
         $colors = [

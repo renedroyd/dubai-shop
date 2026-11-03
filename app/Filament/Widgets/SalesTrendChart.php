@@ -8,9 +8,9 @@ use Illuminate\Support\Carbon;
 
 class SalesTrendChart extends ChartWidget
 {
-    protected ?string $heading = 'Evolución de ventas cobradas';
+    public function getHeading(): ?string { return __('Evolución de ventas cobradas'); }
 
-    protected ?string $description = 'Ingresos diarios de los últimos 30 días, separados por moneda';
+    public function getDescription(): ?string { return __('Ingresos diarios de los últimos 30 días, separados por moneda'); }
 
     protected int | string | array $columnSpan = [
         'default' => 1,

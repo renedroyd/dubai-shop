@@ -24,44 +24,44 @@ use UnitEnum;
 class ShippingZoneResource extends Resource
 {
     protected static ?string $model = ShippingZone::class;
-    protected static string | UnitEnum | null $navigationGroup = 'Configuración';
-    protected static ?string $navigationLabel = 'Zonas y tarifas de envío';
-    protected static ?string $modelLabel = 'tarifa de envío';
-    protected static ?string $pluralModelLabel = 'zonas y tarifas de envío';
+    public static function getNavigationGroup(): string|\UnitEnum|null { return __('Configuración'); }
+    public static function getNavigationLabel(): string { return __('Zonas y tarifas de envío'); }
+    public static function getModelLabel(): string { return __('tarifa de envío'); }
+    public static function getPluralModelLabel(): string { return __('zonas y tarifas de envío'); }
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-truck';
     protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Select::make('province')->label('Provincia')->options(ShippingRateService::provinces())->searchable()->required(),
-            TextInput::make('municipality')->label('Municipio')->maxLength(120)->rules(['required_with:locality'])
-                ->helperText('Déjalo vacío para aplicar la tarifa a toda la provincia.'),
-            TextInput::make('locality')->label('Localidad / reparto')->maxLength(160)
-                ->helperText('Opcional. Si se completa, esta tarifa tiene prioridad sobre municipio y provincia.'),
-            TextInput::make('shipping_amount')->label('Costo de envío')->numeric()->minValue(0)->step('0.01')->required(),
-            Select::make('currency')->label('Moneda')->options([
-                'USD' => 'USD — Dólar estadounidense',
-                'CUP' => 'CUP — Peso cubano',
-                'EUR' => 'EUR — Euro',
+            Select::make('province')->label(__('Provincia'))->options(ShippingRateService::provinces())->searchable()->required(),
+            TextInput::make('municipality')->label(__('Municipio'))->maxLength(120)->rules(['required_with:locality'])
+                ->helperText(__('Déjalo vacío para aplicar la tarifa a toda la provincia.')),
+            TextInput::make('locality')->label(__('Localidad / reparto'))->maxLength(160)
+                ->helperText(__('Opcional. Si se completa, esta tarifa tiene prioridad sobre municipio y provincia.')),
+            TextInput::make('shipping_amount')->label(__('Costo de envío'))->numeric()->minValue(0)->step('0.01')->required(),
+            Select::make('currency')->label(__('Moneda'))->options([
+                'USD' => __('USD — Dólar estadounidense'),
+                'CUP' => __('CUP — Peso cubano'),
+                'EUR' => __('EUR — Euro'),
             ])->default('USD')->required(),
-            Toggle::make('is_active')->label('Tarifa activa')->default(true),
+            Toggle::make('is_active')->label(__('Tarifa activa'))->default(true),
         ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('province')->label('Provincia')->searchable()->sortable(),
-            TextColumn::make('municipality')->label('Municipio')->placeholder('Toda la provincia')->searchable(),
-            TextColumn::make('locality')->label('Localidad')->placeholder('Todas')->searchable(),
-            TextColumn::make('shipping_amount')->label('Costo')->formatStateUsing(fn ($state, ShippingZone $record) => number_format((float) $state, 2).' '.$record->currency)->sortable(),
-            IconColumn::make('is_active')->label('Activa')->boolean(),
+            TextColumn::make('province')->label(__('Provincia'))->searchable()->sortable(),
+            TextColumn::make('municipality')->label(__('Municipio'))->placeholder(__('Toda la provincia'))->searchable(),
+            TextColumn::make('locality')->label(__('Localidad'))->placeholder(__('Todas'))->searchable(),
+            TextColumn::make('shipping_amount')->label(__('Costo'))->formatStateUsing(fn ($state, ShippingZone $record) => number_format((float) $state, 2).' '.$record->currency)->sortable(),
+            IconColumn::make('is_active')->label(__('Activa'))->boolean(),
         ])->filters([
             SelectFilter::make('province')->options(ShippingRateService::provinces()),
             SelectFilter::make('is_active')->options([1 => 'Activas', 0 => 'Inactivas']),
         ])->defaultSort('province')->recordActions([EditAction::make(), DeleteAction::make()])
-            ->headerActions([CreateAction::make()->label('Nueva tarifa')]);
+            ->headerActions([CreateAction::make()->label(__('Nueva tarifa'))]);
     }
 
     public static function getPages(): array

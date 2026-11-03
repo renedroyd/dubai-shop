@@ -27,8 +27,8 @@
     @endpush
 
     <section class="product-detail page-container">
-        <nav class="product-breadcrumb" aria-label="Ruta de navegación">
-            <a href="{{ route('home') }}">Inicio</a><span>/</span><a href="{{ route('products.index') }}">Productos</a>
+        <nav class="product-breadcrumb" aria-label="{{ __('Ruta de navegación') }}">
+            <a href="{{ route('home') }}">{{ __('Inicio') }}</a><span>/</span><a href="{{ route('products.index') }}">{{ __('Productos') }}</a>
             @if ($product->category)<span>/</span><a href="{{ route('products.index', ['category' => $product->category->slug]) }}">{{ $product->category->name }}</a>@endif
             <span>/</span><span>{{ $product->name }}</span>
         </nav>
@@ -52,9 +52,9 @@
                     <input type="hidden" name="product_id" value="{{ $product->id }}">
                     @if ($product->variants->isNotEmpty())
                         <label class="product-detail__variants">
-                            <span>Selecciona una opción</span>
+                            <span>{{ __('Selecciona una opción') }}</span>
                             <select name="product_variant_id" required>
-                                <option value="">Seleccionar</option>
+                                <option value="">{{ __('Seleccionar') }}</option>
                                 @foreach ($product->variants as $variant)
                                     <option value="{{ $variant->id }}">{{ $variant->name }} @if ($variant->price_amount !== null) — {{ number_format($variant->price_amount / 100, 2) }} {{ $product->currency }} @endif</option>
                                 @endforeach
@@ -62,10 +62,10 @@
                         </label>
                     @endif
                     <label class="product-quantity">
-                        <span>Cantidad</span>
+                        <span>{{ __('Cantidad') }}</span>
                         <input type="number" name="quantity" min="1" max="99" value="1" required>
                     </label>
-                    <button type="submit" class="button button--gold">Agregar al carrito <span aria-hidden="true">↗</span></button>
+                    <button type="submit" class="button button--gold">{{ __('Agregar al carrito') }} <span aria-hidden="true">↗</span></button>
                     @error('product_id')<p class="form-error">{{ $message }}</p>@enderror
                     @error('product_variant_id')<p class="form-error">{{ $message }}</p>@enderror
                     @error('quantity')<p class="form-error">{{ $message }}</p>@enderror
@@ -76,7 +76,7 @@
 
     @if ($relatedProducts->isNotEmpty())
         <section class="catalog-related page-container">
-            <div class="section-heading"><span class="eyebrow eyebrow--light"><span></span> TAMBIÉN TE PUEDE INTERESAR</span><h2>Continúa descubriendo.</h2></div>
+            <div class="section-heading"><span class="eyebrow eyebrow--light"><span></span> {{ __('TAMBIÉN TE PUEDE INTERESAR') }}</span><h2>{{ __('Continúa descubriendo.') }}</h2></div>
             <div class="store-product-grid">
                 @foreach ($relatedProducts as $related)
                     <x-storefront.product-card :product="$related" />

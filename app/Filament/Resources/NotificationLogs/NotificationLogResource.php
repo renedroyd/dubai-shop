@@ -16,8 +16,8 @@ use UnitEnum;
 class NotificationLogResource extends Resource
 {
     protected static ?string $model = NotificationLog::class;
-    protected static string | UnitEnum | null $navigationGroup = 'Comunicación';
-    protected static ?string $navigationLabel = 'Registro de correos';
+    public static function getNavigationGroup(): string|\UnitEnum|null { return __('Comunicación'); }
+    public static function getNavigationLabel(): string { return __('Registro de correos'); }
     protected static ?string $modelLabel = 'registro de correo';
     protected static ?string $pluralModelLabel = 'registros de correo';
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-clipboard-document-list';
@@ -31,30 +31,30 @@ class NotificationLogResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('order.number')->label('Pedido')->placeholder('—')->searchable(),
-            TextColumn::make('event_key')->label('Evento')->badge(),
-            TextColumn::make('recipient')->label('Destinatario')->searchable(),
-            TextColumn::make('subject')->label('Asunto')->limit(45),
-            TextColumn::make('status')->label('Estado')->badge()->color(fn (string $state): string => match ($state) {
+            TextColumn::make('order.number')->label(__('Pedido'))->placeholder(__('—'))->searchable(),
+            TextColumn::make('event_key')->label(__('Evento'))->badge(),
+            TextColumn::make('recipient')->label(__('Destinatario'))->searchable(),
+            TextColumn::make('subject')->label(__('Asunto'))->limit(45),
+            TextColumn::make('status')->label(__('Estado'))->badge()->color(fn (string $state): string => match ($state) {
                 'sent' => 'success',
                 'failed' => 'danger',
                 'sending' => 'warning',
                 'skipped' => 'gray',
                 default => 'info',
             }),
-            TextColumn::make('attempts')->label('Intentos')->sortable(),
-            TextColumn::make('error_message')->label('Error')->limit(70)->placeholder('—'),
-            TextColumn::make('sent_at')->label('Enviado')->dateTime()->placeholder('—')->sortable(),
-            TextColumn::make('created_at')->label('Registrado')->dateTime()->sortable(),
+            TextColumn::make('attempts')->label(__('Intentos'))->sortable(),
+            TextColumn::make('error_message')->label(__('Error'))->limit(70)->placeholder(__('—')),
+            TextColumn::make('sent_at')->label(__('Enviado'))->dateTime()->placeholder(__('—'))->sortable(),
+            TextColumn::make('created_at')->label(__('Registrado'))->dateTime()->sortable(),
         ])->filters([
-            SelectFilter::make('status')->label('Estado')->options([
+            SelectFilter::make('status')->label(__('Estado'))->options([
                 'queued' => 'En cola',
                 'sending' => 'Enviando',
                 'sent' => 'Enviado',
                 'failed' => 'Fallido',
                 'skipped' => 'Omitido',
             ]),
-            SelectFilter::make('event_key')->label('Evento')->options([
+            SelectFilter::make('event_key')->label(__('Evento'))->options([
                 'order_received' => 'Pedido recibido',
                 'payment_approved' => 'Pago aprobado',
                 'payment_rejected' => 'Pago rechazado',
@@ -65,7 +65,7 @@ class NotificationLogResource extends Resource
                 'order_cancelled' => 'Cancelado',
             ]),
         ])->defaultSort('created_at', 'desc')->recordActions([
-            Action::make('retry')->label('Reintentar')->icon('heroicon-o-arrow-path')->color('warning')
+            Action::make('retry')->label(__('Reintentar'))->icon('heroicon-o-arrow-path')->color('warning')
                 ->requiresConfirmation()
                 ->visible(fn (NotificationLog $record): bool => $record->status === 'failed' && $record->order_id !== null)
                 ->action(function (NotificationLog $record): void {

@@ -41,23 +41,23 @@ class OperationalAlerts extends StatsOverviewWidget
             ->count();
 
         return [
-            Stat::make(__('Pagos por validar'),, $pendingPayments)
+            Stat::make(__('Pagos por validar'), $pendingPayments)
                 ->description(__('Comprobantes pendientes de revisión'))
                 ->descriptionIcon('heroicon-m-clock')
                 ->color($pendingPayments > 0 ? 'warning' : 'success'),
-            Stat::make(__('Pedidos por confirmar'),, $pendingOrders)
+            Stat::make(__('Pedidos por confirmar'), $pendingOrders)
                 ->description(__('Pedidos que esperan confirmación'))
                 ->descriptionIcon('heroicon-m-shopping-bag')
                 ->color($pendingOrders > 0 ? 'warning' : 'success'),
-            Stat::make(__('Entregas fuera de plazo'),, $overdueDeliveries)
+            Stat::make(__('Entregas fuera de plazo'), $overdueDeliveries)
                 ->description(__('Pedidos que superaron su compromiso'))
                 ->descriptionIcon('heroicon-m-truck')
                 ->color($overdueDeliveries > 0 ? 'danger' : 'success'),
-            Stat::make(__('Stock bajo / agotado'),, $lowStock)
+            Stat::make(__('Stock bajo / agotado'), $lowStock)
                 ->description(__('Inventarios con 5 unidades disponibles o menos'))
                 ->descriptionIcon('heroicon-m-exclamation-triangle')
                 ->color($lowStock > 0 ? 'danger' : 'success'),
-            Stat::make(__('Notificaciones fallidas'),, $failedNotifications)
+            Stat::make(__('Notificaciones fallidas'), $failedNotifications)
                 ->description(__('Fallos registrados durante los últimos 7 días'))
                 ->descriptionIcon('heroicon-m-envelope')
                 ->color($failedNotifications > 0 ? 'danger' : 'success'),

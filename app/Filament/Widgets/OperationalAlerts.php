@@ -11,9 +11,9 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class OperationalAlerts extends StatsOverviewWidget
 {
-    protected ?string $heading = 'Centro de atención';
+    public function getHeading(): ?string { return __('Centro de atención'); }
 
-    protected ?string $description = 'Pendientes que requieren seguimiento del equipo';
+    public function getDescription(): ?string { return __('Pendientes que requieren seguimiento del equipo'); }
 
     protected function getStats(): array
     {
@@ -41,24 +41,24 @@ class OperationalAlerts extends StatsOverviewWidget
             ->count();
 
         return [
-            Stat::make('Pagos por validar', $pendingPayments)
-                ->description('Comprobantes pendientes de revisión')
+            Stat::make(__('Pagos por validar'),, $pendingPayments)
+                ->description(__('Comprobantes pendientes de revisión'))
                 ->descriptionIcon('heroicon-m-clock')
                 ->color($pendingPayments > 0 ? 'warning' : 'success'),
-            Stat::make('Pedidos por confirmar', $pendingOrders)
-                ->description('Pedidos que esperan confirmación')
+            Stat::make(__('Pedidos por confirmar'),, $pendingOrders)
+                ->description(__('Pedidos que esperan confirmación'))
                 ->descriptionIcon('heroicon-m-shopping-bag')
                 ->color($pendingOrders > 0 ? 'warning' : 'success'),
-            Stat::make('Entregas fuera de plazo', $overdueDeliveries)
-                ->description('Pedidos que superaron su compromiso')
+            Stat::make(__('Entregas fuera de plazo'),, $overdueDeliveries)
+                ->description(__('Pedidos que superaron su compromiso'))
                 ->descriptionIcon('heroicon-m-truck')
                 ->color($overdueDeliveries > 0 ? 'danger' : 'success'),
-            Stat::make('Stock bajo / agotado', $lowStock)
-                ->description('Inventarios con 5 unidades disponibles o menos')
+            Stat::make(__('Stock bajo / agotado'),, $lowStock)
+                ->description(__('Inventarios con 5 unidades disponibles o menos'))
                 ->descriptionIcon('heroicon-m-exclamation-triangle')
                 ->color($lowStock > 0 ? 'danger' : 'success'),
-            Stat::make('Notificaciones fallidas', $failedNotifications)
-                ->description('Fallos registrados durante los últimos 7 días')
+            Stat::make(__('Notificaciones fallidas'),, $failedNotifications)
+                ->description(__('Fallos registrados durante los últimos 7 días'))
                 ->descriptionIcon('heroicon-m-envelope')
                 ->color($failedNotifications > 0 ? 'danger' : 'success'),
         ];

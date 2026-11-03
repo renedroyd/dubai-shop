@@ -21,8 +21,8 @@ use UnitEnum;
 class OrderResource extends Resource
 {
     protected static ?string $model = Order::class;
-    protected static string | UnitEnum | null $navigationGroup = 'Ventas';
-    protected static ?string $navigationLabel = 'Pedidos';
+    public static function getNavigationGroup(): string|\UnitEnum|null { return __('Ventas'); }
+    public static function getNavigationLabel(): string { return __('Pedidos'); }
     protected static ?string $modelLabel = 'pedido';
     protected static ?string $pluralModelLabel = 'pedidos';
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-shopping-bag';
@@ -36,14 +36,14 @@ class OrderResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('number')->label('Pedido')->searchable()->sortable(),
-            TextColumn::make('customer_name')->label('Cliente')->searchable(),
-            TextColumn::make('customer_email')->label('Correo')->searchable(),
-            TextColumn::make('total_amount')->label('Total del pedido')->formatStateUsing(fn ($state, Order $record) => number_format($state / 100, 2).' '.$record->currency),
-            TextColumn::make('status')->label('Estado')->badge(),
-            TextColumn::make('payment_status')->label('Pago')->badge(),
-            TextColumn::make('placed_at')->label('Fecha')->dateTime()->sortable(),
-            TextColumn::make('delivery_due_at')->label('Entrega límite')->dateTime()->sortable(),
+            TextColumn::make('number')->label(__('Pedido'))->searchable()->sortable(),
+            TextColumn::make('customer_name')->label(__('Cliente'))->searchable(),
+            TextColumn::make('customer_email')->label(__('Correo'))->searchable(),
+            TextColumn::make('total_amount')->label(__('Total del pedido'))->formatStateUsing(fn ($state, Order $record) => number_format($state / 100, 2).' '.$record->currency),
+            TextColumn::make('status')->label(__('Estado'))->badge(),
+            TextColumn::make('payment_status')->label(__('Pago'))->badge(),
+            TextColumn::make('placed_at')->label(__('Fecha'))->dateTime()->sortable(),
+            TextColumn::make('delivery_due_at')->label(__('Entrega límite'))->dateTime()->sortable(),
         ])->filters([
             SelectFilter::make('status')->options([
                 Order::STATUS_PENDING => 'Pendiente',
@@ -54,20 +54,20 @@ class OrderResource extends Resource
                 Order::STATUS_CANCELLED => 'Cancelado',
             ]),
         ])->defaultSort('placed_at', 'desc')->recordActions([
-            Action::make('details')->label('Ver pedido')->icon('heroicon-o-eye')
+            Action::make('details')->label(__('Ver pedido'))->icon('heroicon-o-eye')
                 ->modalHeading(fn (Order $record): string => 'Pedido '.$record->number)
                 ->modalContent(fn (Order $record) => view('filament.orders.details', ['order' => $record->load(['items', 'payments.method', 'payments.events.actor', 'shipment.events', 'shipment.attempts'])]))
-                ->modalSubmitAction(false)->modalCancelActionLabel('Cerrar'),
-            Action::make('confirm')->label('Confirmar pedido')->color('success')->requiresConfirmation()
+                ->modalSubmitAction(false)->modalCancelActionLabel(__('Cerrar')),
+            Action::make('confirm')->label(__('Confirmar pedido'))->color('success')->requiresConfirmation()
                 ->visible(fn (Order $record): bool => $record->status === Order::STATUS_PENDING && in_array($record->payment_status, ['pending_collection', 'paid'], true))
                 ->action(fn (Order $record) => $record->update(['status' => Order::STATUS_CONFIRMED, 'confirmed_at' => now()])),
-            Action::make('processing')->label('Preparar')->visible(fn (Order $record): bool => $record->status === Order::STATUS_CONFIRMED)
+            Action::make('processing')->label(__('Preparar'))->visible(fn (Order $record): bool => $record->status === Order::STATUS_CONFIRMED)
                 ->action(fn (Order $record) => $record->update(['status' => Order::STATUS_PROCESSING])),
-            Action::make('assignCourier')->label('Asignar repartidor')->icon('heroicon-o-user')
+            Action::make('assignCourier')->label(__('Asignar repartidor'))->icon('heroicon-o-user')
                 ->visible(fn (Order $record): bool => in_array($record->status, [Order::STATUS_PROCESSING, Order::STATUS_SHIPPED], true))
                 ->form([
-                    TextInput::make('courier_name')->label('Nombre del repartidor')->required()->maxLength(160),
-                    TextInput::make('courier_phone')->label('Teléfono de contacto')->tel()->maxLength(40),
+                    TextInput::make('courier_name')->label(__('Nombre del repartidor'))->required()->maxLength(160),
+                    TextInput::make('courier_phone')->label(__('Teléfono de contacto'))->tel()->maxLength(40),
                 ])
                 ->fillForm(fn (Order $record): array => [
                     'courier_name' => $record->shipment?->courier_name,
@@ -76,22 +76,22 @@ class OrderResource extends Resource
                 ->action(fn (Order $record, array $data) => app(ShipmentService::class)->assignCourier(
                     $record, $data['courier_name'], $data['courier_phone'] ?? null, auth()->id(),
                 )),
-            Action::make('dispatch')->label('Despachar pedido')->icon('heroicon-o-truck')->color('info')->requiresConfirmation()
+            Action::make('dispatch')->label(__('Despachar pedido'))->icon('heroicon-o-truck')->color('info')->requiresConfirmation()
                 ->visible(fn (Order $record): bool => in_array($record->status, [Order::STATUS_PROCESSING, Order::STATUS_SHIPPED], true)
                     && filled($record->shipment?->courier_name)
                     && in_array($record->shipment?->status, ['assigned', 'delivery_failed'], true))
                 ->action(fn (Order $record) => app(ShipmentService::class)->dispatch($record, auth()->id())),
-            Action::make('deliveryAttempt')->label('Registrar intento de entrega')->icon('heroicon-o-clipboard-document-check')
+            Action::make('deliveryAttempt')->label(__('Registrar intento de entrega'))->icon('heroicon-o-clipboard-document-check')
                 ->visible(fn (Order $record): bool => $record->status === Order::STATUS_SHIPPED && $record->shipment?->status === 'dispatched')
                 ->form([
-                    Select::make('result')->label('Resultado')->options(['delivered' => 'Entregado', 'failed' => 'No se pudo entregar'])->required(),
-                    TextInput::make('recipient_name')->label('Persona que recibe')->maxLength(160),
-                    Textarea::make('note')->label('Observaciones / incidencia')->rows(3)->maxLength(2000),
+                    Select::make('result')->label(__('Resultado'))->options(['delivered' => 'Entregado', 'failed' => 'No se pudo entregar'])->required(),
+                    TextInput::make('recipient_name')->label(__('Persona que recibe'))->maxLength(160),
+                    Textarea::make('note')->label(__('Observaciones / incidencia'))->rows(3)->maxLength(2000),
                 ])
                 ->action(fn (Order $record, array $data) => app(ShipmentService::class)->recordAttempt(
                     $record->shipment, $data['result'], $data['recipient_name'] ?? null, $data['note'] ?? null, auth()->id(),
                 )),
-            Action::make('cancel')->label('Cancelar pedido')->color('danger')->requiresConfirmation()
+            Action::make('cancel')->label(__('Cancelar pedido'))->color('danger')->requiresConfirmation()
                 ->visible(fn (Order $record): bool => in_array($record->status, [Order::STATUS_PENDING, Order::STATUS_CONFIRMED, Order::STATUS_PROCESSING], true) && $record->payment_status !== 'paid')
                 ->action(function (Order $record): void {
                     DB::transaction(function () use ($record): void {

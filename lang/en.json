@@ -385,5 +385,12 @@
   "página": "page",
   "páginas": "pages",
   "configuración de tienda": "store setting",
-  "configuraciones de tienda": "store settings"
+  "configuraciones de tienda": "store settings",
+  "Selecciona la provincia e indica el municipio.": "Select the province and enter the municipality.",
+  "Calculando tarifa...": "Calculating rate...",
+  "No fue posible calcular el envío para esa dirección.": "Shipping could not be calculated for that address.",
+  "La dirección cambió durante el cálculo. Vuelve a calcular el envío.": "The address changed during calculation. Please calculate shipping again.",
+  "Tarifa aplicada: ": "Rate applied: ",
+  "Calcula y revisa el costo de envío antes de confirmar el pedido.": "Calculate and review shipping before placing your order.",
+  "Acceso de cliente": "Customer access"
 }

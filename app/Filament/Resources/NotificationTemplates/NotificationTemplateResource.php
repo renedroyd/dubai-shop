@@ -27,8 +27,8 @@ class NotificationTemplateResource extends Resource
     protected static ?string $model = NotificationTemplate::class;
     public static function getNavigationGroup(): string|\UnitEnum|null { return __('Comunicación'); }
     public static function getNavigationLabel(): string { return __('Plantillas de correo'); }
-    protected static ?string $modelLabel = 'plantilla de correo';
-    protected static ?string $pluralModelLabel = 'plantillas de correo';
+    public static function getModelLabel(): string { return __('plantilla de correo'); }
+    public static function getPluralModelLabel(): string { return __('plantillas de correo'); }
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-envelope';
     protected static ?int $navigationSort = 1;
 

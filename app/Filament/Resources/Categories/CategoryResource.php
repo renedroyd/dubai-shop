@@ -26,8 +26,8 @@ class CategoryResource extends Resource
     protected static ?string $model = Category::class;
     public static function getNavigationGroup(): string|\UnitEnum|null { return __('Catálogo'); }
     public static function getNavigationLabel(): string { return __('Categorías'); }
-    protected static ?string $modelLabel = 'categoría';
-    protected static ?string $pluralModelLabel = 'categorías';
+    public static function getModelLabel(): string { return __('categoría'); }
+    public static function getPluralModelLabel(): string { return __('categorías'); }
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?int $navigationSort = 2;
 

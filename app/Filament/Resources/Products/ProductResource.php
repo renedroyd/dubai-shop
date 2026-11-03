@@ -40,7 +40,7 @@ class ProductResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make('Información del producto')->columns(2)->schema([
+            Section::make(__('Información del producto'))->columns(2)->schema([
                 TextInput::make('name')->label(__('Nombre'))->required()->maxLength(255),
                 TextInput::make('slug')->label(__('Slug'))->required()->maxLength(255)->unique(ignoreRecord: true),
                 TextInput::make('sku')->label(__('SKU'))->required()->maxLength(100)->unique(ignoreRecord: true),
@@ -50,9 +50,9 @@ class ProductResource extends Resource
                 TextInput::make('compare_at_price_amount')->label(__('Precio anterior (en centavos)'))->numeric()->integer()->minValue(0),
                 Select::make('currency')->label(__('Moneda'))->options(['USD' => 'USD', 'EUR' => 'EUR', 'CUP' => 'CUP'])->default('USD')->required(),
                 Select::make('status')->label(__('Estado'))->options([
-                    Product::STATUS_DRAFT => 'Borrador',
-                    Product::STATUS_ACTIVE => 'Publicado',
-                    Product::STATUS_ARCHIVED => 'Archivado',
+                    Product::STATUS_DRAFT => __('Borrador'),
+                    Product::STATUS_ACTIVE => __('Publicado'),
+                    Product::STATUS_ARCHIVED => __('Archivado'),
                 ])->default(Product::STATUS_DRAFT)->required(),
                 Toggle::make('is_visible')->label(__('Visible en la tienda'))->default(true),
                 Toggle::make('is_featured')->label(__('Producto destacado'))->default(false),
@@ -61,7 +61,7 @@ class ProductResource extends Resource
                 TextInput::make('short_description')->label(__('Descripción corta'))->maxLength(500)->columnSpanFull(),
                 Textarea::make('description')->label(__('Descripción completa'))->rows(7)->columnSpanFull(),
             ]),
-            Section::make('Imágenes')->description(__('La primera imagen marcada como principal se utilizará como imagen destacada del producto.'))->schema([
+            Section::make(__('Imágenes'))->description(__('La primera imagen marcada como principal se utilizará como imagen destacada del producto.'))->schema([
                 Repeater::make('images')->relationship()->label(__('Galería'))->schema([
                     FileUpload::make('path')->label(__('Imagen'))->image()->disk('public')->directory('products')->required(),
                     TextInput::make('alt_text')->label(__('Texto alternativo'))->maxLength(255),
@@ -69,7 +69,7 @@ class ProductResource extends Resource
                     Toggle::make('is_primary')->label(__('Imagen principal'))->default(false),
                 ])->columns(2)->orderColumn('sort_order')->collapsible()->defaultItems(0),
             ]),
-            Section::make('Variantes')->description(__('Opciones como talla, color o presentación. El control de existencias se incorporará en la fase de inventario.'))->schema([
+            Section::make(__('Variantes'))->description(__('Opciones como talla, color o presentación. El control de existencias se incorporará en la fase de inventario.'))->schema([
                 Repeater::make('variants')->relationship()->label(__('Variantes'))->schema([
                     TextInput::make('name')->label(__('Nombre'))->required()->maxLength(255),
                     TextInput::make('sku')->label(__('SKU'))->required()->maxLength(100),
@@ -100,9 +100,9 @@ class ProductResource extends Resource
             ->defaultSort('updated_at', 'desc')
             ->filters([
                 SelectFilter::make('status')->label(__('Estado'))->options([
-                    Product::STATUS_DRAFT => 'Borrador',
-                    Product::STATUS_ACTIVE => 'Publicado',
-                    Product::STATUS_ARCHIVED => 'Archivado',
+                    Product::STATUS_DRAFT => __('Borrador'),
+                    Product::STATUS_ACTIVE => __('Publicado'),
+                    Product::STATUS_ARCHIVED => __('Archivado'),
                 ]),
                 SelectFilter::make('category')->relationship('category', 'name')->label(__('Categoría')),
                 SelectFilter::make('brand')->relationship('brand', 'name')->label(__('Marca')),

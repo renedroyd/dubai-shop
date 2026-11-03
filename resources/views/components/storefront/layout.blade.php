@@ -40,7 +40,7 @@
     @stack('head')
 </head>
 <body class="storefront-body">
-    <a class="skip-link" href="#main-content">Saltar al contenido</a>
+    <a class="skip-link" href="#main-content">{{ __('Saltar al contenido') }}</a>
 
     <div class="announcement-bar">
         <span class="announcement-bar__sparkle" aria-hidden="true">✦</span>
@@ -54,7 +54,7 @@
                 <img class="brand__logo" src="{{ asset('images/brand/clasico-dubai.svg') }}" alt="{{ $storeName }}">
             </a>
 
-            <nav class="desktop-nav" aria-label="Navegación principal">
+            <nav class="desktop-nav" aria-label="{{ __('Navegación principal') }}">
                 @if ($headerMenu->isNotEmpty())
                     @foreach ($headerMenu as $item)
                         <a href="{{ $item->url }}" @if ($item->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif>{{ $item->label }}</a>
@@ -79,6 +79,17 @@
                 <a class="header-link" href="{{ route('cart.index') }}">Carrito</a>
                 <a class="header-link" href="{{ route('products.index') }}"><x-storefront.icon name="search" :size="18" /><span>Explorar</span></a>
                 <a class="header-cta" href="{{ route('products.index') }}">Ver productos <x-storefront.icon name="arrow-up-right" :size="16" /></a>
+                <form method="POST" action="{{ route('locale.update', ['locale' => app()->getLocale()]) }}" class="language-switcher" aria-label="{{ __('Seleccionar idioma') }}">
+                    @csrf
+                    <input type="hidden" name="scope" value="storefront">
+                    <label class="sr-only" for="storefront-language">{{ __('Idioma') }}</label>
+                    <select id="storefront-language" aria-label="{{ __('Idioma') }}"
+                        onchange="this.form.action=this.form.action.replace(/\\/language\\/[^/]+$/, '/language/'+this.value); this.form.submit()">
+                        @foreach (config('locales.available') as $code => $label)
+                            <option value="{{ $code }}" @selected(app()->getLocale() === $code)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </form>
             </div>
 
             <details class="mobile-menu">

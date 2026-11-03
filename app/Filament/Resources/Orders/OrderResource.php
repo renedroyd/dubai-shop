@@ -46,16 +46,16 @@ class OrderResource extends Resource
             TextColumn::make('delivery_due_at')->label(__('Entrega límite'))->dateTime()->sortable(),
         ])->filters([
             SelectFilter::make('status')->options([
-                Order::STATUS_PENDING => 'Pendiente',
-                Order::STATUS_CONFIRMED => 'Confirmado',
-                Order::STATUS_PROCESSING => 'En preparación',
-                Order::STATUS_SHIPPED => 'Enviado',
-                Order::STATUS_DELIVERED => 'Entregado',
-                Order::STATUS_CANCELLED => 'Cancelado',
+                Order::STATUS_PENDING => __('Pendiente'),
+                Order::STATUS_CONFIRMED => __('Confirmado'),
+                Order::STATUS_PROCESSING => __('En preparación'),
+                Order::STATUS_SHIPPED => __('Enviado'),
+                Order::STATUS_DELIVERED => __('Entregado'),
+                Order::STATUS_CANCELLED => __('Cancelado'),
             ]),
         ])->defaultSort('placed_at', 'desc')->recordActions([
             Action::make('details')->label(__('Ver pedido'))->icon('heroicon-o-eye')
-                ->modalHeading(fn (Order $record): string => 'Pedido '.$record->number)
+                ->modalHeading(fn (Order $record): string => __('Pedido').' '.$record->number)
                 ->modalContent(fn (Order $record) => view('filament.orders.details', ['order' => $record->load(['items', 'payments.method', 'payments.events.actor', 'shipment.events', 'shipment.attempts'])]))
                 ->modalSubmitAction(false)->modalCancelActionLabel(__('Cerrar')),
             Action::make('confirm')->label(__('Confirmar pedido'))->color('success')->requiresConfirmation()
@@ -84,7 +84,7 @@ class OrderResource extends Resource
             Action::make('deliveryAttempt')->label(__('Registrar intento de entrega'))->icon('heroicon-o-clipboard-document-check')
                 ->visible(fn (Order $record): bool => $record->status === Order::STATUS_SHIPPED && $record->shipment?->status === 'dispatched')
                 ->form([
-                    Select::make('result')->label(__('Resultado'))->options(['delivered' => 'Entregado', 'failed' => 'No se pudo entregar'])->required(),
+                    Select::make('result')->label(__('Resultado'))->options(['delivered' => __('Entregado'), 'failed' => __('No se pudo entregar')])->required(),
                     TextInput::make('recipient_name')->label(__('Persona que recibe'))->maxLength(160),
                     Textarea::make('note')->label(__('Observaciones / incidencia'))->rows(3)->maxLength(2000),
                 ])

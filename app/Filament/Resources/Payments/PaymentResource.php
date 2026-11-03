@@ -18,8 +18,8 @@ use UnitEnum;
 class PaymentResource extends Resource
 {
     protected static ?string $model = Payment::class;
-    protected static string | UnitEnum | null $navigationGroup = 'Ventas';
-    protected static ?string $navigationLabel = 'Pagos';
+    public static function getNavigationGroup(): string|\UnitEnum|null { return __('Ventas'); }
+    public static function getNavigationLabel(): string { return __('Pagos'); }
     protected static ?string $modelLabel = 'pago';
     protected static ?string $pluralModelLabel = 'pagos';
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-banknotes';
@@ -33,17 +33,17 @@ class PaymentResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('order.number')->label('Pedido')->searchable()->sortable(),
-            TextColumn::make('order.customer_name')->label('Cliente')->searchable(),
-            TextColumn::make('method.name')->label('Método')->placeholder(fn (Payment $record) => $record->driver),
-            TextColumn::make('amount')->label('Importe')->formatStateUsing(fn ($state, Payment $record) => number_format($state / 100, 2).' '.$record->currency),
-            TextColumn::make('status')->label('Estado')->badge()->color(fn (string $state): string => match ($state) {
+            TextColumn::make('order.number')->label(__('Pedido'))->searchable()->sortable(),
+            TextColumn::make('order.customer_name')->label(__('Cliente'))->searchable(),
+            TextColumn::make('method.name')->label(__('Método'))->placeholder(fn (Payment $record) => $record->driver),
+            TextColumn::make('amount')->label(__('Importe'))->formatStateUsing(fn ($state, Payment $record) => number_format($state / 100, 2).' '.$record->currency),
+            TextColumn::make('status')->label(__('Estado'))->badge()->color(fn (string $state): string => match ($state) {
                 Payment::STATUS_PAID => 'success',
                 Payment::STATUS_REJECTED => 'danger',
                 Payment::STATUS_AWAITING_REVIEW => 'warning',
                 default => 'gray',
             }),
-            TextColumn::make('created_at')->label('Fecha')->dateTime()->sortable(),
+            TextColumn::make('created_at')->label(__('Fecha'))->dateTime()->sortable(),
         ])->filters([
             SelectFilter::make('status')->options([
                 Payment::STATUS_PENDING => 'Pendiente',
@@ -53,24 +53,24 @@ class PaymentResource extends Resource
                 Payment::STATUS_PENDING_COLLECTION => 'Pendiente de cobro',
             ]),
         ])->defaultSort('created_at', 'desc')->recordActions([
-            Action::make('downloadProof')->label('Ver comprobante')->icon('heroicon-o-arrow-down-tray')
+            Action::make('downloadProof')->label(__('Ver comprobante'))->icon('heroicon-o-arrow-down-tray')
                 ->visible(fn (Payment $record): bool => filled($record->proof_path) && Storage::disk('local')->exists($record->proof_path))
                 ->action(fn (Payment $record) => response()->download(Storage::disk('local')->path($record->proof_path))),
-            Action::make('approve')->label('Aprobar pago')->color('success')->requiresConfirmation()
+            Action::make('approve')->label(__('Aprobar pago'))->color('success')->requiresConfirmation()
                 ->visible(fn (Payment $record): bool => $record->status === Payment::STATUS_AWAITING_REVIEW && $record->order?->status === Order::STATUS_PENDING)
                 ->action(fn (Payment $record) => app(PaymentStatusService::class)->approve(
                     $record,
                     auth()->id(),
                     'Aprobado manualmente desde Filament.',
                 )),
-            Action::make('reject')->label('Rechazar')->color('danger')->requiresConfirmation()
+            Action::make('reject')->label(__('Rechazar'))->color('danger')->requiresConfirmation()
                 ->visible(fn (Payment $record): bool => $record->status === Payment::STATUS_AWAITING_REVIEW && $record->order?->status === Order::STATUS_PENDING)
                 ->action(fn (Payment $record) => app(PaymentStatusService::class)->reject(
                     $record,
                     auth()->id(),
                     'Rechazado manualmente desde Filament.',
                 )),
-            Action::make('confirmCollection')->label('Confirmar cobro')->color('success')->requiresConfirmation()
+            Action::make('confirmCollection')->label(__('Confirmar cobro'))->color('success')->requiresConfirmation()
                 ->visible(fn (Payment $record): bool => $record->driver === 'cash_on_delivery' && $record->status === Payment::STATUS_PENDING_COLLECTION)
                 ->action(fn (Payment $record) => app(PaymentStatusService::class)->confirmCollection(
                     $record,

@@ -98,6 +98,19 @@
                         <a href="{{ route('home') }}#experiencia">Nuestra esencia</a>
                         <a href="{{ route('home') }}#beneficios">Por qué elegirnos</a>
                     @endif
+
+                    <div class="mobile-menu__account" aria-label="Acceso de cliente">
+                        @auth
+                            <a href="{{ route('customer.dashboard') }}">Mi cuenta</a>
+                            <form method="POST" action="{{ route('customer.logout') }}">
+                                @csrf
+                                <button type="submit">Cerrar sesión</button>
+                            </form>
+                        @else
+                            <a href="{{ route('customer.login') }}">Ingresar</a>
+                            <a href="{{ route('customer.register') }}">Crear cuenta</a>
+                        @endauth
+                    </div>
                 </nav>
             </details>
         </div>

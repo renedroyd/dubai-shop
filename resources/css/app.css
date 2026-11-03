@@ -489,3 +489,10 @@ button, input { font: inherit; }
 .store-product-card__actions .button:hover, .store-product-card__actions a:hover { transform:translateY(-2px); background:var(--gold-light); }
 .store-product-card__actions .button:focus-visible, .store-product-card__actions a:focus-visible { outline:2px solid var(--gold-light); outline-offset:3px; }
 @media (max-width:650px) { .store-product-card__rating { margin-inline:10px; font-size:8px; } .store-product-card__stars { font-size:13px; } .store-product-card__actions { margin-inline:10px; } .store-product-card__actions .button, .store-product-card__actions a { min-height:38px; padding-inline:6px; font-size:7px; } }
+
+
+/* Customer authentication links in the mobile navigation */
+.mobile-menu__account { display:grid; gap:10px; margin-top:12px; padding-top:16px; border-top:1px solid rgba(229,199,107,.28); }
+.mobile-menu__account a, .mobile-menu__account button { display:block; width:100%; padding:10px 0; border:0; background:transparent; color:var(--gold-light); font:600 11px 'Montserrat',sans-serif; letter-spacing:.08em; text-align:left; text-decoration:none; text-transform:uppercase; cursor:pointer; }
+.mobile-menu__account a:hover, .mobile-menu__account button:hover { color:var(--ivory); }
+.mobile-menu__account a:focus-visible, .mobile-menu__account button:focus-visible { outline:2px solid var(--gold-light); outline-offset:3px; }

@@ -40,6 +40,31 @@ class CustomerAccountTest extends TestCase
         $this->get(route('customer.dashboard'))->assertOk();
     }
 
+    public function test_mobile_navigation_exposes_customer_authentication_links_for_guests(): void
+    {
+        $response = $this->get(route('home'));
+
+        $response->assertOk()
+            ->assertSee('class="mobile-menu"', false)
+            ->assertSee(route('customer.login'), false)
+            ->assertSee(route('customer.register'), false)
+            ->assertSee('Ingresar')
+            ->assertSee('Crear cuenta');
+    }
+
+    public function test_mobile_navigation_exposes_account_and_logout_for_authenticated_customers(): void
+    {
+        $customer = User::factory()->create(['is_admin' => false]);
+
+        $response = $this->actingAs($customer)->get(route('home'));
+
+        $response->assertOk()
+            ->assertSee(route('customer.dashboard'), false)
+            ->assertSee(route('customer.logout'), false)
+            ->assertSee('Mi cuenta')
+            ->assertSee('Cerrar sesión');
+    }
+
     public function test_customer_can_log_in_and_log_out(): void
     {
         $user = User::factory()->create(['is_admin' => false]);

@@ -89,15 +89,15 @@
                 });
             }
             const currentKey = () => fields.map(id => document.getElementById(id).value.trim()).join('|');
-            const invalidate = () => { quotedKey = null; submit.disabled = true; amount.textContent = 'Pendiente de cálculo'; total.textContent = subtotal.toFixed(2) + ' ' + currency + ' + envío'; };
+            const invalidate = () => { quotedKey = null; submit.disabled = true; amount.textContent = @json(__('Pendiente de cálculo')); total.textContent = subtotal.toFixed(2) + ' ' + currency + ' + ' + @json(__('envío')); };
             fields.forEach(id => { document.getElementById(id).addEventListener('input', invalidate); document.getElementById(id).addEventListener('change', invalidate); });
             button.addEventListener('click', async () => {
                 const province = document.getElementById('shipping-region').value;
                 const city = document.getElementById('shipping-city').value.trim();
-                if (!province || !city) { message.textContent = 'Selecciona la provincia e indica el municipio.'; return; }
+                if (!province || !city) { message.textContent = @json(__('Selecciona la provincia e indica el municipio.')); return; }
                 button.disabled = true;
                 const requestKey = currentKey();
-                message.textContent = 'Calculando tarifa...';
+                message.textContent = @json(__('Calculando tarifa...'));
                 invalidate();
                 try {
                     const params = new URLSearchParams({
@@ -110,12 +110,12 @@
                         headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
                     });
                     const data = await response.json();
-                    if (!response.ok) throw new Error(Object.values(data.errors || {}).flat()[0] || 'No fue posible calcular el envío para esa dirección.');
-                    if (currentKey() !== requestKey) throw new Error('La dirección cambió durante el cálculo. Vuelve a calcular el envío.');
+                    if (!response.ok) throw new Error(Object.values(data.errors || {}).flat()[0] || @json(__('No fue posible calcular el envío para esa dirección.')));
+                    if (currentKey() !== requestKey) throw new Error(@json(__('La dirección cambió durante el cálculo. Vuelve a calcular el envío.')));
                     quotedKey = requestKey;
                     amount.textContent = Number(data.amount).toFixed(2) + ' ' + data.currency;
                     total.textContent = (subtotal + Number(data.amount)).toFixed(2) + ' ' + data.currency;
-                    message.textContent = 'Tarifa aplicada: ' + data.zone + '.';
+                    message.textContent = @json(__('Tarifa aplicada:')) + ' ' + data.zone + '.';
                     submit.disabled = false;
                 } catch (error) {
                     message.textContent = error.message;
@@ -126,7 +126,7 @@
             form.addEventListener('submit', event => {
                 if (!quotedKey || quotedKey !== currentKey()) {
                     event.preventDefault();
-                    message.textContent = 'Calcula y revisa el costo de envío antes de confirmar el pedido.';
+                    message.textContent = @json(__('Calcula y revisa el costo de envío antes de confirmar el pedido.'));
                     submit.disabled = true;
                 }
             });

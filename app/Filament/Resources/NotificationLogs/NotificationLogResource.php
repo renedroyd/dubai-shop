@@ -18,8 +18,8 @@ class NotificationLogResource extends Resource
     protected static ?string $model = NotificationLog::class;
     public static function getNavigationGroup(): string|\UnitEnum|null { return __('Comunicación'); }
     public static function getNavigationLabel(): string { return __('Registro de correos'); }
-    protected static ?string $modelLabel = 'registro de correo';
-    protected static ?string $pluralModelLabel = 'registros de correo';
+    public static function getModelLabel(): string { return __('registro de correo'); }
+    public static function getPluralModelLabel(): string { return __('registros de correo'); }
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-clipboard-document-list';
     protected static ?int $navigationSort = 2;
 

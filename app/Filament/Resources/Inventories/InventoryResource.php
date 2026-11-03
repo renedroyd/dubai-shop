@@ -22,8 +22,8 @@ use UnitEnum;
 class InventoryResource extends Resource
 {
     protected static ?string $model = Inventory::class;
-    protected static string | UnitEnum | null $navigationGroup = 'Inventario';
-    protected static ?string $navigationLabel = 'Existencias';
+    public static function getNavigationGroup(): string|\UnitEnum|null { return __('Inventario'); }
+    public static function getNavigationLabel(): string { return __('Existencias'); }
     protected static ?string $modelLabel = 'existencia';
     protected static ?string $pluralModelLabel = 'existencias';
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-archive-box';
@@ -37,20 +37,20 @@ class InventoryResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('product.name')->label('Producto')->searchable()->sortable(),
-            TextColumn::make('variant.name')->label('Variante')->placeholder('Producto general'),
-            TextColumn::make('quantity_on_hand')->label('Existencia')->sortable(),
-            TextColumn::make('quantity_reserved')->label('Reservado')->sortable(),
-            TextColumn::make('available_quantity')->label('Disponible')->state(fn (Inventory $record): int => $record->available_quantity)->badge()
+            TextColumn::make('product.name')->label(__('Producto'))->searchable()->sortable(),
+            TextColumn::make('variant.name')->label(__('Variante'))->placeholder(__('Producto general')),
+            TextColumn::make('quantity_on_hand')->label(__('Existencia'))->sortable(),
+            TextColumn::make('quantity_reserved')->label(__('Reservado'))->sortable(),
+            TextColumn::make('available_quantity')->label(__('Disponible'))->state(fn (Inventory $record): int => $record->available_quantity)->badge()
                 ->color(fn (int $state): string => $state === 0 ? 'danger' : ($state <= 5 ? 'warning' : 'success')),
-            TextColumn::make('updated_at')->label('Actualizado')->dateTime()->sortable(),
+            TextColumn::make('updated_at')->label(__('Actualizado'))->dateTime()->sortable(),
         ])->filters([
-            Filter::make('low_stock')->label('Stock bajo')->query(fn (Builder $query): Builder => $query->whereRaw('(quantity_on_hand - quantity_reserved) <= 5')),
+            Filter::make('low_stock')->label(__('Stock bajo'))->query(fn (Builder $query): Builder => $query->whereRaw('(quantity_on_hand - quantity_reserved) <= 5')),
         ])->defaultSort('updated_at', 'desc')->recordActions([
-            Action::make('adjust')->label('Ajustar existencia')->icon('heroicon-o-adjustments-horizontal')
+            Action::make('adjust')->label(__('Ajustar existencia'))->icon('heroicon-o-adjustments-horizontal')
                 ->schema([
-                    TextInput::make('quantity')->label('Nueva existencia total')->numeric()->integer()->minValue(0)->required(),
-                    Textarea::make('reason')->label('Motivo del ajuste')->required()->maxLength(500),
+                    TextInput::make('quantity')->label(__('Nueva existencia total'))->numeric()->integer()->minValue(0)->required(),
+                    Textarea::make('reason')->label(__('Motivo del ajuste'))->required()->maxLength(500),
                 ])
                 ->fillForm(fn (Inventory $record): array => ['quantity' => $record->quantity_on_hand])
                 ->action(function (Inventory $record, array $data): void {
@@ -63,12 +63,12 @@ class InventoryResource extends Resource
                     );
                 }),
         ])->headerActions([
-            Action::make('registerStock')->label('Registrar producto / variante')->icon('heroicon-o-plus')
+            Action::make('registerStock')->label(__('Registrar producto / variante'))->icon('heroicon-o-plus')
                 ->schema([
-                    Select::make('product_id')->label('Producto')->options(fn () => Product::query()->orderBy('name')->pluck('name', 'id'))->searchable()->required(),
-                    Select::make('product_variant_id')->label('Variante (opcional)')->options(fn (callable $get) => ProductVariant::query()->where('product_id', $get('product_id'))->where('is_active', true)->orderBy('name')->pluck('name', 'id'))->searchable(),
-                    TextInput::make('quantity')->label('Existencia inicial')->numeric()->integer()->minValue(0)->required()->default(0),
-                    Textarea::make('reason')->label('Motivo')->required()->maxLength(500)->default('Carga inicial'),
+                    Select::make('product_id')->label(__('Producto'))->options(fn () => Product::query()->orderBy('name')->pluck('name', 'id'))->searchable()->required(),
+                    Select::make('product_variant_id')->label(__('Variante (opcional)'))->options(fn (callable $get) => ProductVariant::query()->where('product_id', $get('product_id'))->where('is_active', true)->orderBy('name')->pluck('name', 'id'))->searchable(),
+                    TextInput::make('quantity')->label(__('Existencia inicial'))->numeric()->integer()->minValue(0)->required()->default(0),
+                    Textarea::make('reason')->label(__('Motivo'))->required()->maxLength(500)->default('Carga inicial'),
                 ])
                 ->action(function (array $data): void {
                     $product = Product::query()->findOrFail($data['product_id']);

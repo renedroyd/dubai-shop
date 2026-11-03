@@ -34,7 +34,7 @@ class StorefrontMenuItemResource extends Resource
             TextInput::make('url')->label(__('URL o ruta'))->required()->maxLength(2048)
                 ->rules(['regex:/^(\/|https?:\/\/|#)/i'])
                 ->helperText(__('Usa una ruta interna que comience por /, un enlace https:// o un ancla #.')),
-            Select::make('location')->label(__('Ubicación'))->options(['header' => 'Cabecera', 'footer' => 'Pie de página'])->required()->default('header'),
+            Select::make('location')->label(__('Ubicación'))->options(['header' => __('Cabecera'), 'footer' => __('Pie de página')])->required()->default('header'),
             Select::make('parent_id')->label(__('Elemento padre'))->options(fn (?StorefrontMenuItem $record) => StorefrontMenuItem::query()->when($record, fn ($q) => $q->whereKeyNot($record->getKey()))->orderBy('sort_order')->pluck('label', 'id'))->searchable()->placeholder(__('Sin elemento padre')),
             Toggle::make('open_in_new_tab')->label(__('Abrir en pestaña nueva'))->default(false),
             Toggle::make('is_active')->label(__('Activo'))->default(true),
@@ -50,7 +50,7 @@ class StorefrontMenuItemResource extends Resource
             TextColumn::make('parent.label')->label(__('Padre'))->placeholder(__('Principal')),
             IconColumn::make('is_active')->label(__('Activo'))->boolean(),
             TextColumn::make('sort_order')->label(__('Orden'))->sortable(),
-        ])->filters([SelectFilter::make('location')->options(['header' => 'Cabecera', 'footer' => 'Pie'])])
+        ])->filters([SelectFilter::make('location')->options(['header' => __('Cabecera'), 'footer' => __('Pie')])])
             ->defaultSort('sort_order')->recordActions([EditAction::make(), DeleteAction::make()])
             ->headerActions([CreateAction::make()->label(__('Nuevo enlace'))]);
     }

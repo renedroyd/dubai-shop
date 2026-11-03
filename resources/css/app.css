@@ -496,3 +496,12 @@ button, input { font: inherit; }
 .mobile-menu__account a, .mobile-menu__account button { display:block; width:100%; padding:10px 0; border:0; background:transparent; color:var(--gold-light); font:600 11px 'Montserrat',sans-serif; letter-spacing:.08em; text-align:left; text-decoration:none; text-transform:uppercase; cursor:pointer; }
 .mobile-menu__account a:hover, .mobile-menu__account button:hover { color:var(--ivory); }
 .mobile-menu__account a:focus-visible, .mobile-menu__account button:focus-visible { outline:2px solid var(--gold-light); outline-offset:3px; }
+
+
+/* Product card inventory availability */
+.store-product-card__stock { display:flex; align-items:baseline; gap:5px; margin:10px 15px 0; color:#c9b77e; font:600 9px 'Montserrat',sans-serif; letter-spacing:.04em; }
+.store-product-card__stock-quantity { color:var(--gold-light); font-size:14px; font-weight:700; }
+.store-product-card__stock-label { color:#b9ad93; }
+.store-product-card__stock--empty { color:#d58c82; }
+.store-product-card__stock--empty .store-product-card__stock-label { color:#d58c82; }
+@media (max-width:650px) { .store-product-card__stock { margin-inline:10px; font-size:8px; } .store-product-card__stock-quantity { font-size:13px; } }

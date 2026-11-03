@@ -4,8 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Cart;
 use App\Models\CartItem;
-use App\Models\Inventory;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Services\Inventory\InventoryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -48,6 +48,72 @@ class CartInventoryTest extends TestCase
             ->assertOk()
             ->assertSee('Producto de prueba')
             ->assertSee('25.00 USD');
+    }
+
+    public function test_product_card_displays_available_stock_after_reservations(): void
+    {
+        $this->withoutVite();
+        $product = $this->product();
+        $inventory = app(InventoryService::class)->setOnHand($product, 9, reason: 'Carga inicial');
+        $inventory->update(['quantity_reserved' => 4]);
+
+        $this->get(route('products.index'))
+            ->assertOk()
+            ->assertSee('Producto de prueba')
+            ->assertSee('5')
+            ->assertSee('disponibles');
+    }
+
+    public function test_product_card_displays_out_of_stock_when_all_units_are_reserved(): void
+    {
+        $this->withoutVite();
+        $product = $this->product();
+        $inventory = app(InventoryService::class)->setOnHand($product, 3, reason: 'Carga inicial');
+        $inventory->update(['quantity_reserved' => 3]);
+
+        $this->get(route('products.index'))
+            ->assertOk()
+            ->assertSee('Agotado');
+    }
+
+    public function test_product_card_aggregates_available_stock_across_active_variants(): void
+    {
+        $this->withoutVite();
+        $product = $this->product();
+        $small = ProductVariant::query()->create([
+            'product_id' => $product->id,
+            'name' => 'Pequeño',
+            'sku' => 'SMALL-'.uniqid(),
+            'is_active' => true,
+            'sort_order' => 1,
+        ]);
+        $large = ProductVariant::query()->create([
+            'product_id' => $product->id,
+            'name' => 'Grande',
+            'sku' => 'LARGE-'.uniqid(),
+            'is_active' => true,
+            'sort_order' => 2,
+        ]);
+
+        $smallStock = app(InventoryService::class)->setOnHand($product, 5, $small, reason: 'Carga inicial');
+        $smallStock->update(['quantity_reserved' => 2]);
+        app(InventoryService::class)->setOnHand($product, 4, $large, reason: 'Carga inicial');
+
+        $this->get(route('products.index'))
+            ->assertOk()
+            ->assertSee('7')
+            ->assertSee('disponibles');
+    }
+
+    public function test_product_card_does_not_claim_zero_stock_when_inventory_is_not_tracked(): void
+    {
+        $this->withoutVite();
+        $this->product();
+
+        $this->get(route('products.index'))
+            ->assertOk()
+            ->assertSee('Consultar disponibilidad')
+            ->assertDontSee('Agotado');
     }
 
     public function test_cart_rejects_products_that_are_not_published_and_visible(): void

@@ -1,14 +1,14 @@
 <?php
 
-namespace Tests\\Feature;
+namespace Tests\Feature;
 
-use App\\Models\\Cart;
-use App\\Models\\CartItem;
-use App\\Models\\Product;
-use App\\Models\\ProductVariant;
-use App\\Services\\Inventory\\InventoryService;
-use Illuminate\\Foundation\\Testing\\RefreshDatabase;
-use Tests\\TestCase;
+use App\Models\Cart;
+use App\Models\CartItem;
+use App\Models\Product;
+use App\Models\ProductVariant;
+use App\Services\Inventory\InventoryService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class CartInventoryTest extends TestCase
 {

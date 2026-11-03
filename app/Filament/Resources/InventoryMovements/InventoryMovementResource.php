@@ -16,8 +16,8 @@ class InventoryMovementResource extends Resource
     protected static ?string $model = InventoryMovement::class;
     public static function getNavigationGroup(): string|\UnitEnum|null { return __('Inventario'); }
     public static function getNavigationLabel(): string { return __('Movimientos'); }
-    protected static ?string $modelLabel = 'movimiento';
-    protected static ?string $pluralModelLabel = 'movimientos';
+    public static function getModelLabel(): string { return __('movimiento'); }
+    public static function getPluralModelLabel(): string { return __('movimientos'); }
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-clipboard-document-list';
     protected static ?int $navigationSort = 2;
 

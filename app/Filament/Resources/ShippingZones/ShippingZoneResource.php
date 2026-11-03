@@ -41,9 +41,9 @@ class ShippingZoneResource extends Resource
                 ->helperText(__('Opcional. Si se completa, esta tarifa tiene prioridad sobre municipio y provincia.')),
             TextInput::make('shipping_amount')->label(__('Costo de envío'))->numeric()->minValue(0)->step('0.01')->required(),
             Select::make('currency')->label(__('Moneda'))->options([
-                'USD' => 'USD — Dólar estadounidense',
-                'CUP' => 'CUP — Peso cubano',
-                'EUR' => 'EUR — Euro',
+                'USD' => __('USD — Dólar estadounidense'),
+                'CUP' => __('CUP — Peso cubano'),
+                'EUR' => __('EUR — Euro'),
             ])->default('USD')->required(),
             Toggle::make('is_active')->label(__('Tarifa activa'))->default(true),
         ]);

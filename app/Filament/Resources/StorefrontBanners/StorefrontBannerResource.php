@@ -26,8 +26,8 @@ class StorefrontBannerResource extends Resource
     protected static ?string $model = StorefrontBanner::class;
     public static function getNavigationGroup(): string|\UnitEnum|null { return __('Tienda'); }
     public static function getNavigationLabel(): string { return __('Banners y campañas'); }
-    protected static ?string $modelLabel = 'banner';
-    protected static ?string $pluralModelLabel = 'banners';
+    public static function getModelLabel(): string { return __('banner'); }
+    public static function getPluralModelLabel(): string { return __('banners'); }
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-photo';
     protected static ?int $navigationSort = 2;
 

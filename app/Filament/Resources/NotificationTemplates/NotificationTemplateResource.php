@@ -25,8 +25,8 @@ use UnitEnum;
 class NotificationTemplateResource extends Resource
 {
     protected static ?string $model = NotificationTemplate::class;
-    protected static string | UnitEnum | null $navigationGroup = 'Comunicación';
-    protected static ?string $navigationLabel = 'Plantillas de correo';
+    public static function getNavigationGroup(): string|\UnitEnum|null { return __('Comunicación'); }
+    public static function getNavigationLabel(): string { return __('Plantillas de correo'); }
     protected static ?string $modelLabel = 'plantilla de correo';
     protected static ?string $pluralModelLabel = 'plantillas de correo';
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-envelope';
@@ -36,7 +36,7 @@ class NotificationTemplateResource extends Resource
     {
         return $schema->components([
             Section::make('Contenido de la notificación')->schema([
-                Select::make('event_key')->label('Evento')->options([
+                Select::make('event_key')->label(__('Evento'))->options([
                     'order_received' => 'Pedido recibido',
                     'payment_approved' => 'Pago aprobado',
                     'payment_rejected' => 'Pago rechazado',
@@ -47,11 +47,11 @@ class NotificationTemplateResource extends Resource
                     'order_delivered' => 'Pedido entregado',
                     'order_cancelled' => 'Pedido cancelado',
                 ])->required()->unique(ignoreRecord: true),
-                TextInput::make('name')->label('Nombre interno')->required()->maxLength(160),
-                TextInput::make('subject')->label('Asunto del correo')->required()->maxLength(255),
-                Textarea::make('body')->label('Mensaje')->required()->rows(12)->columnSpanFull()
-                    ->helperText('Variables disponibles: {order_number}, {customer_name}, {order_status}, {payment_status}, {order_total}, {currency}, {store_name}, {tracking_code}, {courier_name}, {courier_phone}. El mensaje se envía como texto plano.'),
-                Toggle::make('is_active')->label('Plantilla activa')->default(true),
+                TextInput::make('name')->label(__('Nombre interno'))->required()->maxLength(160),
+                TextInput::make('subject')->label(__('Asunto del correo'))->required()->maxLength(255),
+                Textarea::make('body')->label(__('Mensaje'))->required()->rows(12)->columnSpanFull()
+                    ->helperText(__('Variables disponibles: {order_number}, {customer_name}, {order_status}, {payment_status}, {order_total}, {currency}, {store_name}, {tracking_code}, {courier_name}, {courier_phone}. El mensaje se envía como texto plano.')),
+                Toggle::make('is_active')->label(__('Plantilla activa'))->default(true),
             ]),
         ]);
     }
@@ -59,18 +59,18 @@ class NotificationTemplateResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('name')->label('Plantilla')->searchable()->sortable(),
-            TextColumn::make('event_key')->label('Evento')->badge(),
-            TextColumn::make('subject')->label('Asunto')->limit(55),
-            IconColumn::make('is_active')->label('Activa')->boolean(),
-            TextColumn::make('updated_at')->label('Actualizada')->dateTime()->sortable(),
+            TextColumn::make('name')->label(__('Plantilla'))->searchable()->sortable(),
+            TextColumn::make('event_key')->label(__('Evento'))->badge(),
+            TextColumn::make('subject')->label(__('Asunto'))->limit(55),
+            IconColumn::make('is_active')->label(__('Activa'))->boolean(),
+            TextColumn::make('updated_at')->label(__('Actualizada'))->dateTime()->sortable(),
         ])->filters([
-            TernaryFilter::make('is_active')->label('Estado')->trueLabel('Activas')->falseLabel('Inactivas'),
+            TernaryFilter::make('is_active')->label(__('Estado'))->trueLabel(__('Activas'))->falseLabel(__('Inactivas')),
         ])->defaultSort('name')->recordActions([
             EditAction::make(),
             DeleteAction::make()->requiresConfirmation(),
         ])->headerActions([
-            CreateAction::make()->label('Nueva plantilla'),
+            CreateAction::make()->label(__('Nueva plantilla')),
         ]);
     }
 

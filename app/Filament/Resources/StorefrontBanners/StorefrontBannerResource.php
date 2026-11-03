@@ -24,8 +24,8 @@ use UnitEnum;
 class StorefrontBannerResource extends Resource
 {
     protected static ?string $model = StorefrontBanner::class;
-    protected static string | UnitEnum | null $navigationGroup = 'Tienda';
-    protected static ?string $navigationLabel = 'Banners y campañas';
+    public static function getNavigationGroup(): string|\UnitEnum|null { return __('Tienda'); }
+    public static function getNavigationLabel(): string { return __('Banners y campañas'); }
     protected static ?string $modelLabel = 'banner';
     protected static ?string $pluralModelLabel = 'banners';
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-photo';
@@ -35,20 +35,20 @@ class StorefrontBannerResource extends Resource
     {
         return $schema->components([
             Section::make('Contenido')->columns(2)->schema([
-                TextInput::make('title')->label('Título interno')->required()->maxLength(255),
-                TextInput::make('eyebrow')->label('Texto superior')->maxLength(255),
-                Textarea::make('description')->label('Descripción')->rows(3)->columnSpanFull(),
-                FileUpload::make('image_path')->label('Imagen')->image()->disk('public')->directory('storefront/banners')->required(),
-                TextInput::make('image_alt')->label('Texto alternativo')->maxLength(255),
-                TextInput::make('link_url')->label('Enlace')->url()->maxLength(2048),
-                TextInput::make('link_label')->label('Texto del botón')->maxLength(80),
+                TextInput::make('title')->label(__('Título interno'))->required()->maxLength(255),
+                TextInput::make('eyebrow')->label(__('Texto superior'))->maxLength(255),
+                Textarea::make('description')->label(__('Descripción'))->rows(3)->columnSpanFull(),
+                FileUpload::make('image_path')->label(__('Imagen'))->image()->disk('public')->directory('storefront/banners')->required(),
+                TextInput::make('image_alt')->label(__('Texto alternativo'))->maxLength(255),
+                TextInput::make('link_url')->label(__('Enlace'))->url()->maxLength(2048),
+                TextInput::make('link_label')->label(__('Texto del botón'))->maxLength(80),
             ]),
             Section::make('Publicación')->columns(2)->schema([
-                Select::make('placement')->label('Ubicación')->options(['home' => 'Página de inicio', 'campaign' => 'Campaña'])->required()->default('home'),
-                Toggle::make('is_active')->label('Activo')->default(false),
-                DateTimePicker::make('starts_at')->label('Mostrar desde'),
-                DateTimePicker::make('ends_at')->label('Mostrar hasta')->afterOrEqual('starts_at'),
-                TextInput::make('sort_order')->label('Orden')->numeric()->integer()->default(0)->required(),
+                Select::make('placement')->label(__('Ubicación'))->options(['home' => 'Página de inicio', 'campaign' => 'Campaña'])->required()->default('home'),
+                Toggle::make('is_active')->label(__('Activo'))->default(false),
+                DateTimePicker::make('starts_at')->label(__('Mostrar desde')),
+                DateTimePicker::make('ends_at')->label(__('Mostrar hasta'))->afterOrEqual('starts_at'),
+                TextInput::make('sort_order')->label(__('Orden'))->numeric()->integer()->default(0)->required(),
             ]),
         ]);
     }
@@ -56,14 +56,14 @@ class StorefrontBannerResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('title')->label('Banner')->searchable()->sortable(),
-            TextColumn::make('placement')->label('Ubicación')->badge(),
-            IconColumn::make('is_active')->label('Activo')->boolean(),
-            TextColumn::make('starts_at')->label('Desde')->dateTime(),
-            TextColumn::make('ends_at')->label('Hasta')->dateTime(),
+            TextColumn::make('title')->label(__('Banner'))->searchable()->sortable(),
+            TextColumn::make('placement')->label(__('Ubicación'))->badge(),
+            IconColumn::make('is_active')->label(__('Activo'))->boolean(),
+            TextColumn::make('starts_at')->label(__('Desde'))->dateTime(),
+            TextColumn::make('ends_at')->label(__('Hasta'))->dateTime(),
         ])->filters([SelectFilter::make('placement')->options(['home' => 'Inicio', 'campaign' => 'Campaña'])])
             ->defaultSort('sort_order')->recordActions([EditAction::make(), DeleteAction::make()])
-            ->headerActions([CreateAction::make()->label('Nuevo banner')]);
+            ->headerActions([CreateAction::make()->label(__('Nuevo banner'))]);
     }
 
     public static function getPages(): array

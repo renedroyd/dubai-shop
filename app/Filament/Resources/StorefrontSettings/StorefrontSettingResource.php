@@ -26,8 +26,8 @@ class StorefrontSettingResource extends Resource
     protected static ?string $model = StorefrontSetting::class;
     public static function getNavigationGroup(): string|\UnitEnum|null { return __('Tienda'); }
     public static function getNavigationLabel(): string { return __('Contenido y textos'); }
-    protected static ?string $modelLabel = 'configuración de contenido';
-    protected static ?string $pluralModelLabel = 'contenido de la tienda';
+    public static function getModelLabel(): string { return __('configuración de contenido'); }
+    public static function getPluralModelLabel(): string { return __('contenido de la tienda'); }
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-document-text';
     protected static ?int $navigationSort = 1;
 

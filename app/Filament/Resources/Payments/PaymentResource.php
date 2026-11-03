@@ -46,11 +46,11 @@ class PaymentResource extends Resource
             TextColumn::make('created_at')->label(__('Fecha'))->dateTime()->sortable(),
         ])->filters([
             SelectFilter::make('status')->options([
-                Payment::STATUS_PENDING => 'Pendiente',
-                Payment::STATUS_AWAITING_REVIEW => 'Por revisar',
-                Payment::STATUS_PAID => 'Pagado',
-                Payment::STATUS_REJECTED => 'Rechazado',
-                Payment::STATUS_PENDING_COLLECTION => 'Pendiente de cobro',
+                Payment::STATUS_PENDING => __('Pendiente'),
+                Payment::STATUS_AWAITING_REVIEW => __('Por revisar'),
+                Payment::STATUS_PAID => __('Pagado'),
+                Payment::STATUS_REJECTED => __('Rechazado'),
+                Payment::STATUS_PENDING_COLLECTION => __('Pendiente de cobro'),
             ]),
         ])->defaultSort('created_at', 'desc')->recordActions([
             Action::make('downloadProof')->label(__('Ver comprobante'))->icon('heroicon-o-arrow-down-tray')

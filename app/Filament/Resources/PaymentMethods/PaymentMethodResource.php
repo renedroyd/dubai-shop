@@ -27,8 +27,8 @@ class PaymentMethodResource extends Resource
     protected static ?string $model = PaymentMethod::class;
     public static function getNavigationGroup(): string|\UnitEnum|null { return __('Configuración'); }
     public static function getNavigationLabel(): string { return __('Métodos de pago'); }
-    protected static ?string $modelLabel = 'método de pago';
-    protected static ?string $pluralModelLabel = 'métodos de pago';
+    public static function getModelLabel(): string { return __('método de pago'); }
+    public static function getPluralModelLabel(): string { return __('métodos de pago'); }
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-credit-card';
     protected static ?int $navigationSort = 1;
 

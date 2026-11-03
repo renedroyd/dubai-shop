@@ -25,8 +25,8 @@ use UnitEnum;
 class PaymentMethodResource extends Resource
 {
     protected static ?string $model = PaymentMethod::class;
-    protected static string | UnitEnum | null $navigationGroup = 'Configuración';
-    protected static ?string $navigationLabel = 'Métodos de pago';
+    public static function getNavigationGroup(): string|\UnitEnum|null { return __('Configuración'); }
+    public static function getNavigationLabel(): string { return __('Métodos de pago'); }
     protected static ?string $modelLabel = 'método de pago';
     protected static ?string $pluralModelLabel = 'métodos de pago';
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-credit-card';
@@ -35,30 +35,30 @@ class PaymentMethodResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            TextInput::make('name')->label('Nombre visible')->required()->maxLength(255),
-            TextInput::make('code')->label('Código interno')->required()->alphaDash()->unique(ignoreRecord: true),
-            Select::make('driver')->label('Integración')
+            TextInput::make('name')->label(__('Nombre visible'))->required()->maxLength(255),
+            TextInput::make('code')->label(__('Código interno'))->required()->alphaDash()->unique(ignoreRecord: true),
+            Select::make('driver')->label(__('Integración'))
                 ->options(fn (): array => app(PaymentDriverManager::class)->options())
                 ->required()
-                ->helperText('Los drivers disponibles se registran en config/payments.php.'),
-            Textarea::make('description')->label('Descripción para el cliente')->rows(2),
-            Textarea::make('instructions')->label('Instrucciones para el cliente')->rows(3),
-            KeyValue::make('settings')->label('Datos de la cuenta / configuración')->keyLabel('Campo')->valueLabel('Valor')
-                ->helperText('Para Zelle puedes definir recipient_name y recipient_email. Estos datos se muestran durante el checkout.'),
-            TextInput::make('sort_order')->label('Orden')->numeric()->integer()->default(0),
-            Toggle::make('is_enabled')->label('Método habilitado')->default(false),
+                ->helperText(__('Los drivers disponibles se registran en config/payments.php.')),
+            Textarea::make('description')->label(__('Descripción para el cliente'))->rows(2),
+            Textarea::make('instructions')->label(__('Instrucciones para el cliente'))->rows(3),
+            KeyValue::make('settings')->label(__('Datos de la cuenta / configuración'))->keyLabel(__('Campo'))->valueLabel(__('Valor'))
+                ->helperText(__('Para Zelle puedes definir recipient_name y recipient_email. Estos datos se muestran durante el checkout.')),
+            TextInput::make('sort_order')->label(__('Orden'))->numeric()->integer()->default(0),
+            Toggle::make('is_enabled')->label(__('Método habilitado'))->default(false),
         ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('name')->label('Método')->searchable()->sortable(),
-            TextColumn::make('driver')->label('Integración')->badge(),
-            IconColumn::make('is_enabled')->label('Habilitado')->boolean(),
-            TextColumn::make('sort_order')->label('Orden')->sortable(),
+            TextColumn::make('name')->label(__('Método'))->searchable()->sortable(),
+            TextColumn::make('driver')->label(__('Integración'))->badge(),
+            IconColumn::make('is_enabled')->label(__('Habilitado'))->boolean(),
+            TextColumn::make('sort_order')->label(__('Orden'))->sortable(),
         ])->defaultSort('sort_order')->recordActions([EditAction::make(), DeleteAction::make()])
-            ->headerActions([CreateAction::make()->label('Nuevo método de pago')]);
+            ->headerActions([CreateAction::make()->label(__('Nuevo método de pago'))]);
     }
 
     public static function getPages(): array

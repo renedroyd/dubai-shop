@@ -34,7 +34,7 @@ class StorefrontBannerResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make('Contenido')->columns(2)->schema([
+            Section::make(__('Contenido'))->columns(2)->schema([
                 TextInput::make('title')->label(__('Título interno'))->required()->maxLength(255),
                 TextInput::make('eyebrow')->label(__('Texto superior'))->maxLength(255),
                 Textarea::make('description')->label(__('Descripción'))->rows(3)->columnSpanFull(),
@@ -43,8 +43,8 @@ class StorefrontBannerResource extends Resource
                 TextInput::make('link_url')->label(__('Enlace'))->url()->maxLength(2048),
                 TextInput::make('link_label')->label(__('Texto del botón'))->maxLength(80),
             ]),
-            Section::make('Publicación')->columns(2)->schema([
-                Select::make('placement')->label(__('Ubicación'))->options(['home' => 'Página de inicio', 'campaign' => 'Campaña'])->required()->default('home'),
+            Section::make(__('Publicación'))->columns(2)->schema([
+                Select::make('placement')->label(__('Ubicación'))->options(['home' => __('Página de inicio'), 'campaign' => __('Campaña')])->required()->default('home'),
                 Toggle::make('is_active')->label(__('Activo'))->default(false),
                 DateTimePicker::make('starts_at')->label(__('Mostrar desde')),
                 DateTimePicker::make('ends_at')->label(__('Mostrar hasta'))->afterOrEqual('starts_at'),
@@ -61,7 +61,7 @@ class StorefrontBannerResource extends Resource
             IconColumn::make('is_active')->label(__('Activo'))->boolean(),
             TextColumn::make('starts_at')->label(__('Desde'))->dateTime(),
             TextColumn::make('ends_at')->label(__('Hasta'))->dateTime(),
-        ])->filters([SelectFilter::make('placement')->options(['home' => 'Inicio', 'campaign' => 'Campaña'])])
+        ])->filters([SelectFilter::make('placement')->options(['home' => __('Inicio'), 'campaign' => __('Campaña')])])
             ->defaultSort('sort_order')->recordActions([EditAction::make(), DeleteAction::make()])
             ->headerActions([CreateAction::make()->label(__('Nuevo banner'))]);
     }

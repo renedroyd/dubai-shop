@@ -23,8 +23,8 @@ use UnitEnum;
 class BrandResource extends Resource
 {
     protected static ?string $model = Brand::class;
-    protected static string | UnitEnum | null $navigationGroup = 'Catálogo';
-    protected static ?string $navigationLabel = 'Marcas';
+    public static function getNavigationGroup(): string|\UnitEnum|null { return __('Catálogo'); }
+    public static function getNavigationLabel(): string { return __('Marcas'); }
     protected static ?string $modelLabel = 'marca';
     protected static ?string $pluralModelLabel = 'marcas';
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-tag';
@@ -33,22 +33,22 @@ class BrandResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            TextInput::make('name')->label('Nombre')->required()->maxLength(255),
-            TextInput::make('slug')->label('Slug')->required()->maxLength(255)->unique(ignoreRecord: true),
-            Textarea::make('description')->label('Descripción')->rows(3),
-            FileUpload::make('logo_path')->label('Logo')->image()->disk('public')->directory('brands'),
-            Toggle::make('is_active')->label('Activa')->default(true),
+            TextInput::make('name')->label(__('Nombre'))->required()->maxLength(255),
+            TextInput::make('slug')->label(__('Slug'))->required()->maxLength(255)->unique(ignoreRecord: true),
+            Textarea::make('description')->label(__('Descripción'))->rows(3),
+            FileUpload::make('logo_path')->label(__('Logo'))->image()->disk('public')->directory('brands'),
+            Toggle::make('is_active')->label(__('Activa'))->default(true),
         ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table->columns([
-            TextColumn::make('name')->label('Marca')->searchable()->sortable(),
-            TextColumn::make('products_count')->counts('products')->label('Productos'),
-            IconColumn::make('is_active')->label('Activa')->boolean(),
+            TextColumn::make('name')->label(__('Marca'))->searchable()->sortable(),
+            TextColumn::make('products_count')->counts('products')->label(__('Productos')),
+            IconColumn::make('is_active')->label(__('Activa'))->boolean(),
         ])->recordActions([EditAction::make(), DeleteAction::make()])
-          ->headerActions([CreateAction::make()->label('Nueva marca')]);
+          ->headerActions([CreateAction::make()->label(__('Nueva marca'))]);
     }
 
     public static function getPages(): array

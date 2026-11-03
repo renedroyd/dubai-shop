@@ -110,7 +110,7 @@
                         <a href="{{ route('home') }}#beneficios">{{ __('Por qué elegirnos') }}</a>
                     @endif
 
-                    <div class="mobile-menu__account" aria-label="Acceso de cliente">
+                    <div class="mobile-menu__account" aria-label="{{ __('Acceso de cliente') }}">
                         @auth
                             <a href="{{ route('customer.dashboard') }}">{{ __('Mi cuenta') }}</a>
                             <form method="POST" action="{{ route('customer.logout') }}">
@@ -122,6 +122,17 @@
                             <a href="{{ route('customer.register') }}">{{ __('Crear cuenta') }}</a>
                         @endauth
                     </div>
+                    <form method="POST" action="{{ route('locale.update', ['locale' => app()->getLocale()]) }}" class="language-switcher language-switcher--mobile" aria-label="{{ __('Seleccionar idioma') }}">
+                        @csrf
+                        <input type="hidden" name="scope" value="storefront">
+                        <label class="sr-only" for="storefront-language-mobile">{{ __('Idioma') }}</label>
+                        <select id="storefront-language-mobile" aria-label="{{ __('Idioma') }}"
+                            onchange="this.form.action=this.form.action.substring(0,this.form.action.lastIndexOf('/')+1)+this.value; this.form.submit()">
+                            @foreach (config('locales.available') as $code => $label)
+                                <option value="{{ $code }}" @selected(app()->getLocale() === $code)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </form>
                 </nav>
             </details>
         </div>

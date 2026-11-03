@@ -38,10 +38,10 @@ class InventoryMovementResource extends Resource
             TextColumn::make('created_at')->label(__('Fecha'))->dateTime()->sortable(),
         ])->filters([
             SelectFilter::make('type')->options([
-                'adjustment' => 'Ajuste',
-                'reservation' => 'Reserva',
-                'reservation_release' => 'Liberación de reserva',
-                'sale' => 'Venta',
+                'adjustment' => __('Ajuste'),
+                'reservation' => __('Reserva'),
+                'reservation_release' => __('Liberación de reserva'),
+                'sale' => __('Venta'),
             ]),
         ])->defaultSort('created_at', 'desc');
     }

@@ -26,8 +26,8 @@ class ShippingZoneResource extends Resource
     protected static ?string $model = ShippingZone::class;
     public static function getNavigationGroup(): string|\UnitEnum|null { return __('Configuración'); }
     public static function getNavigationLabel(): string { return __('Zonas y tarifas de envío'); }
-    protected static ?string $modelLabel = 'tarifa de envío';
-    protected static ?string $pluralModelLabel = 'zonas y tarifas de envío';
+    public static function getModelLabel(): string { return __('tarifa de envío'); }
+    public static function getPluralModelLabel(): string { return __('zonas y tarifas de envío'); }
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-truck';
     protected static ?int $navigationSort = 2;
 

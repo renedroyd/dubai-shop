@@ -27,20 +27,20 @@ class LowStockInventory extends TableWidget
             )
             ->columns([
                 TextColumn::make('product.name')
-                    ->label('Producto')
-                    ->placeholder('Producto eliminado')
+                    ->label(__('Producto'))
+                    ->placeholder(__('Producto eliminado'))
                     ->searchable(),
                 TextColumn::make('variant.name')
-                    ->label('Variante')
-                    ->placeholder('—'),
+                    ->label(__('Variante'))
+                    ->placeholder(__('—')),
                 TextColumn::make('quantity_on_hand')
-                    ->label('En almacén')
+                    ->label(__('En almacén'))
                     ->numeric(),
                 TextColumn::make('quantity_reserved')
-                    ->label('Reservado')
+                    ->label(__('Reservado'))
                     ->numeric(),
                 TextColumn::make('available_quantity')
-                    ->label('Disponible')
+                    ->label(__('Disponible'))
                     ->state(fn (Inventory $record): int => max(0, $record->quantity_on_hand - $record->quantity_reserved))
                     ->badge()
                     ->color(fn (int $state): string => $state === 0 ? 'danger' : 'warning'),

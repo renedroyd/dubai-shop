@@ -43,6 +43,30 @@ class LocalizationTest extends TestCase
         ]);
     }
 
+    public function test_spanish_is_the_default_storefront_language(): void
+    {
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('<html lang="es">', false)
+            ->assertSee('Ingresar');
+    }
+
+    public function test_admin_locale_is_applied_to_the_filament_panel(): void
+    {
+        $admin = User::factory()->create([
+            'is_admin' => true,
+            'admin_locale' => 'en',
+        ]);
+
+        $this->actingAs($admin)
+            ->get('/admin')
+            ->assertOk()
+            ->assertSee('admin-language')
+            ->assertSee('English');
+
+        $this->assertSame('en', app()->getLocale());
+    }
+
     public function test_unsupported_language_is_rejected(): void
     {
         $this->post(route('locale.update', 'fr'), ['scope' => 'storefront'])->assertNotFound();

@@ -23,8 +23,8 @@ class StorefrontPageResource extends Resource
     protected static ?string $model = StorefrontPage::class;
     public static function getNavigationGroup(): string|\UnitEnum|null { return __('Tienda'); }
     public static function getNavigationLabel(): string { return __('Páginas'); }
-    protected static ?string $modelLabel = 'página';
-    protected static ?string $pluralModelLabel = 'páginas';
+    public static function getModelLabel(): string { return __('página'); }
+    public static function getPluralModelLabel(): string { return __('páginas'); }
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-document';
     protected static ?int $navigationSort = 3;
 

@@ -392,5 +392,6 @@
   "La dirección cambió durante el cálculo. Vuelve a calcular el envío.": "The address changed during calculation. Please calculate shipping again.",
   "Tarifa aplicada: ": "Rate applied: ",
   "Calcula y revisa el costo de envío antes de confirmar el pedido.": "Calculate and review shipping before placing your order.",
-  "Acceso de cliente": "Customer access"
+  "Acceso de cliente": "Customer access",
+  "Tarifa aplicada:": "Rate applied:"
 }

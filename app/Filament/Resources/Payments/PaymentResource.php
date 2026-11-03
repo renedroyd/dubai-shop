@@ -20,8 +20,8 @@ class PaymentResource extends Resource
     protected static ?string $model = Payment::class;
     public static function getNavigationGroup(): string|\UnitEnum|null { return __('Ventas'); }
     public static function getNavigationLabel(): string { return __('Pagos'); }
-    protected static ?string $modelLabel = 'pago';
-    protected static ?string $pluralModelLabel = 'pagos';
+    public static function getModelLabel(): string { return __('pago'); }
+    public static function getPluralModelLabel(): string { return __('pagos'); }
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-banknotes';
     protected static ?int $navigationSort = 2;
 

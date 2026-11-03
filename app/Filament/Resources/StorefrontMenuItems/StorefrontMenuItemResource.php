@@ -22,8 +22,8 @@ class StorefrontMenuItemResource extends Resource
     protected static ?string $model = StorefrontMenuItem::class;
     public static function getNavigationGroup(): string|\UnitEnum|null { return __('Tienda'); }
     public static function getNavigationLabel(): string { return __('Menús'); }
-    protected static ?string $modelLabel = 'enlace de menú';
-    protected static ?string $pluralModelLabel = 'menús';
+    public static function getModelLabel(): string { return __('enlace de menú'); }
+    public static function getPluralModelLabel(): string { return __('menús'); }
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-bars-3';
     protected static ?int $navigationSort = 4;
 

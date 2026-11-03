@@ -63,28 +63,28 @@
                         @endforeach
                     @endforeach
                 @else
-                    <a href="{{ route('products.index') }}">Productos</a>
-                    <a href="{{ route('home') }}#colecciones">Colecciones</a>
-                    <a href="{{ route('home') }}#experiencia">Nuestra esencia</a>
-                    <a href="{{ route('home') }}#beneficios">Por qué elegirnos</a>
+                    <a href="{{ route('products.index') }}">{{ __('Productos') }}</a>
+                    <a href="{{ route('home') }}#colecciones">{{ __('Colecciones') }}</a>
+                    <a href="{{ route('home') }}#experiencia">{{ __('Nuestra esencia') }}</a>
+                    <a href="{{ route('home') }}#beneficios">{{ __('Por qué elegirnos') }}</a>
                 @endif
             </nav>
 
             <div class="site-header__actions">
                 @auth
-                    <a class="header-link" href="{{ route('customer.dashboard') }}">Mi cuenta</a>
+                    <a class="header-link" href="{{ route('customer.dashboard') }}">{{ __('Mi cuenta') }}</a>
                 @else
-                    <a class="header-link" href="{{ route('customer.login') }}">Ingresar</a>
+                    <a class="header-link" href="{{ route('customer.login') }}">{{ __('Ingresar') }}</a>
                 @endauth
-                <a class="header-link" href="{{ route('cart.index') }}">Carrito</a>
-                <a class="header-link" href="{{ route('products.index') }}"><x-storefront.icon name="search" :size="18" /><span>Explorar</span></a>
-                <a class="header-cta" href="{{ route('products.index') }}">Ver productos <x-storefront.icon name="arrow-up-right" :size="16" /></a>
+                <a class="header-link" href="{{ route('cart.index') }}">{{ __('Carrito') }}</a>
+                <a class="header-link" href="{{ route('products.index') }}"><x-storefront.icon name="search" :size="18" /><span>{{ __('Explorar') }}</span></a>
+                <a class="header-cta" href="{{ route('products.index') }}">{{ __('Ver productos') }} <x-storefront.icon name="arrow-up-right" :size="16" /></a>
                 <form method="POST" action="{{ route('locale.update', ['locale' => app()->getLocale()]) }}" class="language-switcher" aria-label="{{ __('Seleccionar idioma') }}">
                     @csrf
                     <input type="hidden" name="scope" value="storefront">
                     <label class="sr-only" for="storefront-language">{{ __('Idioma') }}</label>
                     <select id="storefront-language" aria-label="{{ __('Idioma') }}"
-                        onchange="this.form.action=this.form.action.replace(/\\/language\\/[^/]+$/, '/language/'+this.value); this.form.submit()">
+                        onchange="this.form.action=this.form.action.substring(0,this.form.action.lastIndexOf('/')+1)+this.value; this.form.submit()">
                         @foreach (config('locales.available') as $code => $label)
                             <option value="{{ $code }}" @selected(app()->getLocale() === $code)>{{ $label }}</option>
                         @endforeach
@@ -103,23 +103,23 @@
                             @endforeach
                         @endforeach
                     @else
-                        <a href="{{ route('products.index') }}">Productos</a>
-                        <a href="{{ route('cart.index') }}">Carrito</a>
-                        <a href="{{ route('home') }}#colecciones">Colecciones</a>
-                        <a href="{{ route('home') }}#experiencia">Nuestra esencia</a>
-                        <a href="{{ route('home') }}#beneficios">Por qué elegirnos</a>
+                        <a href="{{ route('products.index') }}">{{ __('Productos') }}</a>
+                        <a href="{{ route('cart.index') }}">{{ __('Carrito') }}</a>
+                        <a href="{{ route('home') }}#colecciones">{{ __('Colecciones') }}</a>
+                        <a href="{{ route('home') }}#experiencia">{{ __('Nuestra esencia') }}</a>
+                        <a href="{{ route('home') }}#beneficios">{{ __('Por qué elegirnos') }}</a>
                     @endif
 
                     <div class="mobile-menu__account" aria-label="Acceso de cliente">
                         @auth
-                            <a href="{{ route('customer.dashboard') }}">Mi cuenta</a>
+                            <a href="{{ route('customer.dashboard') }}">{{ __('Mi cuenta') }}</a>
                             <form method="POST" action="{{ route('customer.logout') }}">
                                 @csrf
-                                <button type="submit">Cerrar sesión</button>
+                                <button type="submit">{{ __('Cerrar sesión') }}</button>
                             </form>
                         @else
-                            <a href="{{ route('customer.login') }}">Ingresar</a>
-                            <a href="{{ route('customer.register') }}">Crear cuenta</a>
+                            <a href="{{ route('customer.login') }}">{{ __('Ingresar') }}</a>
+                            <a href="{{ route('customer.register') }}">{{ __('Crear cuenta') }}</a>
                         @endauth
                     </div>
                 </nav>
@@ -140,20 +140,20 @@
             </div>
 
             <div class="site-footer__column">
-                <span class="footer-heading">Explora</span>
+                <span class="footer-heading">{{ __('Explora') }}</span>
                 @if ($footerMenu->isNotEmpty())
                     @foreach ($footerMenu as $item)
                         <a href="{{ $item->url }}" @if ($item->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif>{{ $item->label }}</a>
                     @endforeach
                 @else
-                    <a href="{{ route('products.index') }}">Productos</a>
-                    <a href="{{ route('home') }}#colecciones">Colecciones</a>
+                    <a href="{{ route('products.index') }}">{{ __('Productos') }}</a>
+                    <a href="{{ route('home') }}#colecciones">{{ __('Colecciones') }}</a>
                 @endif
             </div>
 
             <div class="site-footer__column">
                 <span class="footer-heading">{{ $storeName }}</span>
-                <a href="{{ route('home') }}">Inicio</a>
+                <a href="{{ route('home') }}">{{ __('Inicio') }}</a>
                 @foreach ($footerMenu->take(4) as $item)
                     <a href="{{ $item->url }}" @if ($item->open_in_new_tab) target="_blank" rel="noopener noreferrer" @endif>{{ $item->label }}</a>
                 @endforeach
@@ -165,8 +165,8 @@
             </div>
         </div>
         <div class="site-footer__bottom">
-            <span>© {{ date('Y') }} {{ $storeName }}. Todos los derechos reservados.</span>
-            <span>Diseñado para descubrir algo especial.</span>
+            <span>© {{ date('Y') }} {{ $storeName }}. {{ __('Todos los derechos reservados.') }}</span>
+            <span>{{ __('Diseñado para descubrir algo especial.') }}</span>
         </div>
     </footer>
 </body>

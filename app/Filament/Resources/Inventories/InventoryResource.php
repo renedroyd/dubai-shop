@@ -24,8 +24,8 @@ class InventoryResource extends Resource
     protected static ?string $model = Inventory::class;
     public static function getNavigationGroup(): string|\UnitEnum|null { return __('Inventario'); }
     public static function getNavigationLabel(): string { return __('Existencias'); }
-    protected static ?string $modelLabel = 'existencia';
-    protected static ?string $pluralModelLabel = 'existencias';
+    public static function getModelLabel(): string { return __('existencia'); }
+    public static function getPluralModelLabel(): string { return __('existencias'); }
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-archive-box';
     protected static ?int $navigationSort = 1;
 

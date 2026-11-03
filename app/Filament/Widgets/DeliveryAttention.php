@@ -28,17 +28,17 @@ class DeliveryAttention extends TableWidget
             )
             ->columns([
                 TextColumn::make('number')
-                    ->label('Pedido')
+                    ->label(__('Pedido'))
                     ->searchable(),
                 TextColumn::make('customer_name')
-                    ->label('Cliente')
+                    ->label(__('Cliente'))
                     ->limit(24),
                 TextColumn::make('delivery_due_at')
-                    ->label('Compromiso')
+                    ->label(__('Compromiso'))
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
                 TextColumn::make('status')
-                    ->label('Estado')
+                    ->label(__('Estado'))
                     ->badge(),
             ])
             ->paginated([5]);

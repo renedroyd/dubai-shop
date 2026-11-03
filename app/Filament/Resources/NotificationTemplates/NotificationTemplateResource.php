@@ -35,17 +35,17 @@ class NotificationTemplateResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make('Contenido de la notificación')->schema([
+            Section::make(__('Contenido de la notificación'))->schema([
                 Select::make('event_key')->label(__('Evento'))->options([
-                    'order_received' => 'Pedido recibido',
-                    'payment_approved' => 'Pago aprobado',
-                    'payment_rejected' => 'Pago rechazado',
-                    'order_confirmed' => 'Pedido confirmado',
-                    'order_processing' => 'Pedido en preparación',
-                    'order_shipped' => 'Pedido enviado',
-                    'delivery_attempt_failed' => 'Intento de entrega no completado',
-                    'order_delivered' => 'Pedido entregado',
-                    'order_cancelled' => 'Pedido cancelado',
+                    'order_received' => __('Pedido recibido'),
+                    'payment_approved' => __('Pago aprobado'),
+                    'payment_rejected' => __('Pago rechazado'),
+                    'order_confirmed' => __('Pedido confirmado'),
+                    'order_processing' => __('Pedido en preparación'),
+                    'order_shipped' => __('Pedido enviado'),
+                    'delivery_attempt_failed' => __('Intento de entrega no completado'),
+                    'order_delivered' => __('Pedido entregado'),
+                    'order_cancelled' => __('Pedido cancelado'),
                 ])->required()->unique(ignoreRecord: true),
                 TextInput::make('name')->label(__('Nombre interno'))->required()->maxLength(160),
                 TextInput::make('subject')->label(__('Asunto del correo'))->required()->maxLength(255),

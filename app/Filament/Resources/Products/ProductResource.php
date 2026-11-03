@@ -31,8 +31,8 @@ class ProductResource extends Resource
     protected static ?string $model = Product::class;
     public static function getNavigationGroup(): string|\UnitEnum|null { return __('Catálogo'); }
     public static function getNavigationLabel(): string { return __('Productos'); }
-    protected static ?string $modelLabel = 'producto';
-    protected static ?string $pluralModelLabel = 'productos';
+    public static function getModelLabel(): string { return __('producto'); }
+    public static function getPluralModelLabel(): string { return __('productos'); }
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-cube';
     protected static ?int $navigationSort = 1;
     protected static ?string $recordTitleAttribute = 'name';

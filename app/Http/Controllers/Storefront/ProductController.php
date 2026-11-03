@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\Storefront;
+namespace App\\Http\\Controllers\\Storefront;
 
-use App\Http\Controllers\Controller;
-use App\Models\Brand;
-use App\Models\Category;
-use App\Models\Product;
-use Illuminate\Http\Request;
-use Illuminate\View\View;
+use App\\Http\\Controllers\\Controller;
+use App\\Models\\Brand;
+use App\\Models\\Category;
+use App\\Models\\Product;
+use Illuminate\\Http\\Request;
+use Illuminate\\View\\View;
 
 class ProductController extends Controller
 {
@@ -22,7 +22,13 @@ class ProductController extends Controller
 
         $products = Product::query()
             ->published()
-            ->with(['category', 'brand', 'images', 'variants'])
+            ->with([
+                'category',
+                'brand',
+                'images',
+                'inventory',
+                'variants' => fn ($query) => $query->where('is_active', true)->with('inventory'),
+            ])
             ->when($filters['q'] ?? null, function ($query, string $term): void {
                 $query->where(function ($query) use ($term): void {
                     $query->where('name', 'like', "%{$term}%")
@@ -51,13 +57,24 @@ class ProductController extends Controller
     {
         abort_unless($product->status === Product::STATUS_ACTIVE && $product->is_visible, 404);
 
-        $product->load(['category', 'brand', 'images', 'variants' => fn ($query) => $query->where('is_active', true)]);
+        $product->load([
+            'category',
+            'brand',
+            'images',
+            'inventory',
+            'variants' => fn ($query) => $query->where('is_active', true)->with('inventory'),
+        ]);
 
         $relatedProducts = Product::query()
             ->published()
             ->where('category_id', $product->category_id)
             ->where('id', '<>', $product->id)
-            ->with(['images', 'brand', 'variants'])
+            ->with([
+                'images',
+                'brand',
+                'inventory',
+                'variants' => fn ($query) => $query->where('is_active', true)->with('inventory'),
+            ])
             ->latest()
             ->limit(4)
             ->get();

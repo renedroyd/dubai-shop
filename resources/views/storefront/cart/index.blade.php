@@ -36,7 +36,7 @@
                                 @endif
                             </div>
                             <div class="cart-item__details">
-                                <h2>{{ $item->product?->name ?? '{{ __('Producto no disponible') }}' }}</h2>
+                                <h2>{{ $item->product?->name ?? __('Producto no disponible') }}</h2>
                                 @if ($item->variant)<p>{{ $item->variant->name }}</p>@endif
                                 <span>{{ number_format($item->unit_price_amount / 100, 2) }} {{ $item->currency }} / {{ __('unidad') }}</span>
                                 <div class="cart-item__actions">

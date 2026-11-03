@@ -38,10 +38,10 @@ class StorefrontSettingResource extends Resource
             TextInput::make('key')->label(__('Clave interna'))->required()->rules(['regex:/^[a-zA-Z0-9_.-]+$/'])->unique(ignoreRecord: true)
                 ->helperText(__('Usa puntos para agrupar claves, por ejemplo home.hero_title.')),
             Select::make('group')->label(__('Sección'))->options([
-                'general' => 'General',
-                'inicio' => 'Página de inicio',
-                'beneficios' => 'Beneficios',
-                'seo' => 'SEO',
+                'general' => __('General'),
+                'inicio' => __('Página de inicio'),
+                'beneficios' => __('Beneficios'),
+                'seo' => __('SEO'),
             ])->required()->default('general'),
             Textarea::make('value')->label(__('Contenido'))->rows(4)->columnSpanFull(),
             TextInput::make('sort_order')->label(__('Orden'))->numeric()->integer()->default(0),
@@ -59,10 +59,10 @@ class StorefrontSettingResource extends Resource
             IconColumn::make('is_public')->label(__('Público'))->boolean(),
         ])->filters([
             SelectFilter::make('group')->options([
-                'general' => 'General',
-                'inicio' => 'Página de inicio',
-                'beneficios' => 'Beneficios',
-                'seo' => 'SEO',
+                'general' => __('General'),
+                'inicio' => __('Página de inicio'),
+                'beneficios' => __('Beneficios'),
+                'seo' => __('SEO'),
             ]),
         ])->defaultSort('sort_order')->recordActions([EditAction::make(), DeleteAction::make()])
             ->headerActions([CreateAction::make()->label(__('Nuevo contenido'))]);

@@ -1,11 +1,11 @@
 <?php
 
-namespace Tests\\Feature;
+namespace Tests\Feature;
 
-use App\\Http\\Middleware\\TrustConfiguredProxies;
-use Illuminate\\Http\\Request;
-use PHPUnit\\Framework\\Attributes\\DataProvider;
-use Tests\\TestCase;
+use App\Http\Middleware\TrustConfiguredProxies;
+use Illuminate\Http\Request;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Tests\TestCase;
 
 class TrustConfiguredProxiesTest extends TestCase
 {
@@ -34,7 +34,7 @@ class TrustConfiguredProxiesTest extends TestCase
             'REMOTE_ADDR' => '192.0.2.10',
         ]);
 
-        $this->expectException(\\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('APP_ENV=local');
 
         (new TrustConfiguredProxies())->handle($request, fn (Request $request) => response('ok'));
@@ -58,7 +58,7 @@ class TrustConfiguredProxiesTest extends TestCase
             'REMOTE_ADDR' => '192.0.2.10',
         ]);
 
-        $this->expectException(\\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('TRUSTED_PROXIES=**');
 
         (new TrustConfiguredProxies())->handle($request, fn (Request $request) => response('ok'));
@@ -73,7 +73,7 @@ class TrustConfiguredProxiesTest extends TestCase
             'REMOTE_ADDR' => '192.0.2.10',
         ]);
 
-        $this->expectException(\\InvalidArgumentException::class);
+        $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('allowed only by itself');
 
         (new TrustConfiguredProxies())->handle($request, fn (Request $request) => response('ok'));

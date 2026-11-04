@@ -5,11 +5,13 @@ Esta guía complementa las pruebas automatizadas. Un CI verde no significa que l
 ## Estado de seguridad cubierto por el código
 
 - Filament valida el acceso mediante `User::canAccessPanel()` y exige `is_admin=true`. Las cuentas de clientes no deben recibir permisos administrativos.
-- Los comprobantes Zelle se guardan en el disco privado local (`storage/app/private`) y se descargan desde una acción protegida del panel. No cambiar el disco a `public` ni exponer rutas directas.
+- Los comprobantes Zelle se validan como JPG/JPEG/PNG/PDF con un máximo de 5 MB, se guardan en el disco privado local (`storage/app/private`) y se descargan desde una acción protegida del panel. No cambiar el disco a `public` ni exponer rutas directas.
+- Las imágenes de productos, categorías y banners se validan como imágenes y tienen un límite de 5 MB; la importación de catálogo acepta archivos de hasta 10 MB.
 - El enlace público de pedido requiere un token aleatorio cuya huella SHA-256 se almacena en la base de datos. La respuesta se marca `private, no-store` y `no-referrer`.
 - Las rutas de registro, login, recuperación, restablecimiento y checkout tienen límites de solicitudes. Las operaciones de carrito y el cambio de idioma también están limitados.
 - Se aplican cabeceras contra MIME sniffing, framing, filtración de referencias y permisos del navegador. HSTS se emite únicamente en solicitudes HTTPS.
 - Los proxies inversos no se consideran confiables por defecto. `TRUSTED_PROXIES` acepta una lista explícita separada por comas.
+- CI ejecuta `composer audit` y `npm audit --audit-level=high` además de las pruebas y el build; la revisión de esta fase no reporta avisos Composer y la auditoría npm pasó.
 
 La política CSP no se activa en esta entrega: antes debe definirse y probarse una estrategia compatible con los scripts de Filament/Livewire y los recursos reales del storefront; una política improvisada podría romper el panel o debilitarse mediante excepciones amplias.
 

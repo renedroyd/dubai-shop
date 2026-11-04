@@ -1,9 +1,9 @@
 <?php
 
-namespace App\\Console\\Commands;
+namespace App\Console\Commands;
 
-use Illuminate\\Console\\Command;
-use Illuminate\\Support\\Facades\\DB;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class ProductionReadinessCheck extends Command
 {
@@ -46,7 +46,7 @@ class ProductionReadinessCheck extends Command
         try {
             DB::connection()->getPdo();
             $this->components->twoColumnDetail('Database connection', '<fg=green;options=bold>PASS</>');
-        } catch (\\Throwable $exception) {
+        } catch (\Throwable $exception) {
             $failed++;
             $this->components->twoColumnDetail('Database connection', '<fg=red;options=bold>FAIL</>');
             $this->line('  <fg=yellow>Verify database host, credentials, network access and migrations.</>');

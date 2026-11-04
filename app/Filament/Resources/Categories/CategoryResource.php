@@ -39,7 +39,7 @@ class CategoryResource extends Resource
             TextInput::make('slug')->label(__('Slug'))->required()->maxLength(255)->unique(ignoreRecord: true),
             Select::make('parent_id')->label(__('Categoría superior'))->relationship('parent', 'name')->searchable()->preload()->nullable(),
             Textarea::make('description')->label(__('Descripción'))->rows(3),
-            FileUpload::make('image_path')->label(__('Imagen'))->image()->disk('public')->directory('categories'),
+            FileUpload::make('image_path')->label(__('Imagen'))->image()->maxSize(5120)->disk('public')->directory('categories'),
             TextInput::make('sort_order')->label(__('Orden'))->numeric()->integer()->default(0),
             Toggle::make('is_active')->label(__('Activa'))->default(true),
         ]);

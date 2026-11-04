@@ -38,7 +38,7 @@ class StorefrontBannerResource extends Resource
                 TextInput::make('title')->label(__('Título interno'))->required()->maxLength(255),
                 TextInput::make('eyebrow')->label(__('Texto superior'))->maxLength(255),
                 Textarea::make('description')->label(__('Descripción'))->rows(3)->columnSpanFull(),
-                FileUpload::make('image_path')->label(__('Imagen'))->image()->disk('public')->directory('storefront/banners')->required(),
+                FileUpload::make('image_path')->label(__('Imagen'))->image()->maxSize(5120)->disk('public')->directory('storefront/banners')->required(),
                 TextInput::make('image_alt')->label(__('Texto alternativo'))->maxLength(255),
                 TextInput::make('link_url')->label(__('Enlace'))->url()->maxLength(2048),
                 TextInput::make('link_label')->label(__('Texto del botón'))->maxLength(80),

@@ -9,7 +9,10 @@ use Filament\Widgets\TableWidget;
 
 class DeliveryAttention extends TableWidget
 {
-    protected static ?string $heading = 'Entregas fuera de plazo';
+    public function getHeading(): ?string
+    {
+        return __('Entregas fuera de plazo');
+    }
 
     protected int | string | array $columnSpan = [
         'default' => 1,

@@ -36,6 +36,18 @@ class SecurityHeadersTest extends TestCase
             ->assertHeaderMissing('Strict-Transport-Security');
     }
 
+    public function test_configured_reverse_proxy_can_assert_https(): void
+    {
+        config(['app.trusted_proxies' => ['127.0.0.1']]);
+
+        $this->withServerVariables([
+            'REMOTE_ADDR' => '127.0.0.1',
+            'HTTP_X_FORWARDED_PROTO' => 'https',
+        ])->get(route('robots'))
+            ->assertOk()
+            ->assertHeader('Strict-Transport-Security', 'max-age=31536000');
+    }
+
     public function test_cart_page_is_marked_noindex(): void
     {
         $this->withoutVite();

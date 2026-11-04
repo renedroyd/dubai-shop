@@ -6,6 +6,7 @@ use App\Filament\Resources\Products\Pages\CreateProduct;
 use App\Filament\Resources\Products\Pages\EditProduct;
 use App\Filament\Resources\Products\Pages\ListProducts;
 use App\Models\Product;
+use App\Filament\Actions\CatalogImportActions;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -109,7 +110,7 @@ class ProductResource extends Resource
             ])
             ->recordActions([EditAction::make(), DeleteAction::make()])
             ->toolbarActions([BulkActionGroup::make([DeleteBulkAction::make()])])
-            ->headerActions([CreateAction::make()->label(__('Nuevo producto'))]);
+            ->headerActions([...CatalogImportActions::make('products'), CreateAction::make()->label(__('Nuevo producto'))]);
     }
 
     public static function getPages(): array

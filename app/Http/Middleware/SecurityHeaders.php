@@ -19,6 +19,13 @@ class SecurityHeaders
             $request->routeIs('orders.show') ? 'no-referrer' : 'strict-origin-when-cross-origin',
         );
         $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+        $response->headers->set('X-Permitted-Cross-Domain-Policies', 'none');
+
+        // HSTS must never be emitted over plain HTTP. Behind a reverse proxy,
+        // HTTPS detection depends on explicitly trusted proxy addresses.
+        if ($request->isSecure()) {
+            $response->headers->set('Strict-Transport-Security', 'max-age=31536000');
+        }
 
         return $response;
     }

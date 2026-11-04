@@ -13,7 +13,9 @@ use App\Http\Controllers\Seo\SitemapController;
 use App\Http\Controllers\Seo\RobotsController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/language/{locale}', [LocaleController::class, 'update'])->name('locale.update');
+Route::post('/language/{locale}', [LocaleController::class, 'update'])
+    ->middleware('throttle:10,1')
+    ->name('locale.update');
 
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 Route::get('/robots.txt', RobotsController::class)->name('robots');
@@ -44,9 +46,9 @@ Route::middleware('auth')->prefix('cuenta')->name('customer.')->group(function (
 });
 
 Route::get('/carrito', [CartController::class, 'index'])->name('cart.index');
-Route::post('/carrito/items', [CartController::class, 'store'])->name('cart.items.store');
-Route::patch('/carrito/items/{cartItem}', [CartController::class, 'update'])->name('cart.items.update');
-Route::delete('/carrito/items/{cartItem}', [CartController::class, 'destroy'])->name('cart.items.destroy');
+Route::post('/carrito/items', [CartController::class, 'store'])->middleware('throttle:30,1')->name('cart.items.store');
+Route::patch('/carrito/items/{cartItem}', [CartController::class, 'update'])->middleware('throttle:30,1')->name('cart.items.update');
+Route::delete('/carrito/items/{cartItem}', [CartController::class, 'destroy'])->middleware('throttle:30,1')->name('cart.items.destroy');
 
 Route::get('/checkout', [CheckoutController::class, 'create'])->name('checkout.create');
 Route::get('/checkout/envio', [CheckoutController::class, 'quoteShipping'])->middleware('throttle:30,1')->name('checkout.shipping-quote');

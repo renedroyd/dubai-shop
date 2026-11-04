@@ -1,52 +1,119 @@
-# Preparación para producción — Fase 8
+# Preparación para producción — Fase 16
 
-## Requisitos previos
-- PHP 8.4.1 o superior y extensiones requeridas por Laravel.
-- Base de datos persistente y respaldada.
-- Node.js 22 para compilar assets durante el despliegue.
-- Dominio con HTTPS y certificado válido.
-- SMTP transaccional para futuras notificaciones; esta entrega no envía correos de pedidos todavía.
+Esta guía complementa las pruebas automatizadas. Un CI verde no significa que la tienda esté lista para recibir pedidos reales: HTTPS, secretos, SMTP, workers, copias de seguridad, restauración y monitoreo deben configurarse y probarse en el entorno de despliegue.
 
-## Variables de entorno esenciales
-- `APP_ENV=production`
-- `APP_DEBUG=false`
-- `APP_URL=https://tu-dominio`
-- `APP_KEY` única y persistente.
-- Credenciales de base de datos seguras.
-- `SESSION_SECURE_COOKIE=true` al servir exclusivamente por HTTPS.
-- `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` para bootstrap del administrador.
+## Estado de seguridad cubierto por el código
 
-No incluyas secretos en Git ni reutilices credenciales de pruebas.
+- Filament valida el acceso mediante `User::canAccessPanel()` y exige `is_admin=true`. Las cuentas de clientes no deben recibir permisos administrativos.
+- Los comprobantes Zelle se validan como JPG/JPEG/PNG/PDF con un máximo de 5 MB, se guardan en el disco privado local (`storage/app/private`) y se descargan desde una acción protegida del panel. No cambiar el disco a `public` ni exponer rutas directas.
+- Las imágenes de productos, categorías y banners se validan como imágenes y tienen un límite de 5 MB; la importación de catálogo acepta archivos de hasta 10 MB.
+- El enlace público de pedido requiere un token aleatorio cuya huella SHA-256 se almacena en la base de datos. La respuesta se marca `private, no-store` y `no-referrer`.
+- Las rutas de registro, login, recuperación, restablecimiento y checkout tienen límites de solicitudes. Las operaciones de carrito y el cambio de idioma también están limitados.
+- Se aplican cabeceras contra MIME sniffing, framing, filtración de referencias y permisos del navegador. HSTS se emite únicamente en solicitudes HTTPS.
+- Los proxies inversos no se consideran confiables por defecto. `TRUSTED_PROXIES` acepta una lista explícita separada por comas.
+- CI ejecuta `composer audit` y `npm audit --audit-level=high` además de las pruebas y el build; la revisión de esta fase no reporta avisos Composer y la auditoría npm pasó.
 
-## Despliegue inicial
-1. Instalar dependencias PHP con `composer install --no-dev --prefer-dist --optimize-autoloader`.
-2. Compilar frontend con `npm ci && npm run build`.
-3. Ejecutar `php artisan migrate --force`.
-4. Crear el administrador con las variables ADMIN_* y `php artisan db:seed --force`.
-5. Ejecutar `php artisan storage:link` para imágenes públicas del catálogo.
-6. Configurar permisos de escritura para `storage` y `bootstrap/cache`.
-7. Ejecutar `php artisan optimize` después de configurar el entorno.
-8. Configurar respaldos automáticos de base de datos y archivos.
+La política CSP no se activa en esta entrega: antes debe definirse y probarse una estrategia compatible con los scripts de Filament/Livewire y los recursos reales del storefront; una política improvisada podría romper el panel o debilitarse mediante excepciones amplias.
 
-## Seguridad y datos
-- El panel Filament requiere usuarios con `is_admin=true`.
-- Las páginas de carrito, checkout y confirmación de pedido llevan `noindex,nofollow`.
-- Las confirmaciones de pedido usan token aleatorio, respuesta `private, no-store` y política `no-referrer`.
-- Los comprobantes Zelle se guardan en el disco privado local; no los muevas al disco público.
-- El middleware añade X-Content-Type-Options, X-Frame-Options, Referrer-Policy y Permissions-Policy.
-- `robots.txt` excluye el panel administrativo y declara el sitemap.
-- Verifica que el almacenamiento privado de comprobantes esté incluido en los respaldos con acceso restringido.
+## Variables obligatorias del entorno de producción
 
-## Operación
-- `/up` es el endpoint de salud de Laravel.
-- `/sitemap.xml` publica URLs indexables del catálogo.
-- Configura monitorización de errores, latencia, uso de disco y disponibilidad de base de datos.
-- Define una política de retención y eliminación de comprobantes de pago.
-- Prueba el proceso de restauración de respaldos antes de abrir la tienda.
+Configura estas variables directamente en el proveedor de despliegue o en el gestor de secretos. Nunca las subas al repositorio:
 
-## Límites comerciales pendientes
-- Las tarifas de envío y los impuestos no se calculan todavía; el checkout indica que se confirmarán por separado.
-- No hay devoluciones ni reembolsos automatizados.
-- No hay notificaciones por correo ni webhooks de pasarelas externas.
-- Zelle continúa siendo revisión manual; efectivo contra entrega requiere confirmar el cobro en Filament.
-- Antes de activar ventas reales, configura y valida datos de Zelle, moneda, zonas de entrega, tarifas, impuestos y políticas de cancelación.
+```dotenv
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://tu-dominio-real
+APP_KEY=<clave-unica-y-persistente>
+LOG_LEVEL=warning
+
+SESSION_DRIVER=database
+SESSION_SECURE_COOKIE=true
+SESSION_HTTP_ONLY=true
+SESSION_SAME_SITE=lax
+SESSION_ENCRYPT=true
+
+TRUSTED_PROXIES=<IPs-o-CIDR-reales-del-proxy>
+QUEUE_CONNECTION=database
+CACHE_STORE=database
+
+MAIL_MAILER=smtp
+MAIL_HOST=<servidor-smtp>
+MAIL_PORT=587
+MAIL_USERNAME=<usuario>
+MAIL_PASSWORD=<secreto>
+MAIL_SCHEME=tls
+MAIL_FROM_ADDRESS=<correo-del-dominio>
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+Notas:
+- Si el servidor recibe tráfico directamente, deja `TRUSTED_PROXIES` vacío. Si hay proxy, CDN o túnel, configura solo las IP/CIDR de los saltos que realmente controlas. No uses `*` salvo que la aplicación sea inaccesible desde cualquier origen que pueda falsificar cabeceras.
+- Activa `SESSION_SECURE_COOKIE=true` solo cuando todo el tráfico público use HTTPS y el proxy esté configurado correctamente.
+- Conserva el mismo `APP_KEY` entre despliegues. Cambiarla invalida sesiones y datos cifrados existentes.
+- No uses `QUEUE_CONNECTION=sync` en producción. Debe existir un worker supervisado y reiniciable.
+- Configura Zelle, remitente de correo, base de datos y credenciales de almacenamiento con valores reales; no reutilices datos de pruebas.
+
+## Despliegue reproducible
+
+Desde el directorio de la versión que se va a publicar:
+
+1. Instalar dependencias de producción: `composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader`.
+2. Instalar dependencias frontend y compilar: `npm ci && npm run build`.
+3. Confirmar que el archivo `.env`/secretos corresponden al entorno y que los directorios `storage` y `bootstrap/cache` son escribibles por el usuario del proceso PHP.
+4. Ejecutar migraciones: `php artisan migrate --force`.
+5. Crear el enlace público si aún no existe: `php artisan storage:link`. Los comprobantes de pago permanecen en el disco privado.
+6. Generar cachés: `php artisan optimize`.
+7. Reiniciar los workers de cola: `php artisan queue:restart`.
+8. Ejecutar las comprobaciones de humo descritas abajo antes de retirar el modo mantenimiento.
+
+No ejecutar `db:seed` en cada despliegue como rutina. Los seeders operativos deben ejecutarse deliberadamente y revisarse antes de tocar datos reales.
+
+## Procesos persistentes
+
+- Mantener al menos un worker de cola activo con Supervisor, systemd o el mecanismo equivalente del proveedor. Supervisar reinicios, memoria, jobs fallidos y antigüedad de la cola.
+- Mantener el scheduler de Laravel activo mediante cron o el programador del proveedor si se incorporan tareas programadas.
+- Configurar rotación y retención de logs. No registrar contraseñas, tokens de pedido, comprobantes ni secretos.
+- El endpoint `/up` confirma que Laravel responde; no sustituye una comprobación externa de base de datos, cola, SMTP o almacenamiento.
+
+## Copias de seguridad y recuperación
+
+Antes del lanzamiento debe existir una política automatizada que cubra:
+- Base de datos completa y consistente.
+- `storage/app/private`, incluidos comprobantes de pago y archivos privados.
+- `storage/app/public` y cualquier otro archivo subido que no pueda reconstruirse.
+- Configuración y secretos respaldados de forma cifrada y con acceso separado del repositorio.
+
+Definir frecuencia, retención, cifrado, ubicación externa y responsables. Como mínimo, realizar una copia antes de cada despliegue con migraciones. Probar una restauración completa en un entorno aislado y documentar tiempo de recuperación y pérdida máxima de datos aceptables. Una copia creada pero nunca restaurada no se considera verificada.
+
+## Monitoreo y respuesta a incidentes
+
+Configurar alertas externas para:
+- Disponibilidad HTTP y errores 5xx.
+- Fallos de conexión a base de datos y almacenamiento.
+- Jobs fallidos y cola acumulada.
+- Espacio libre en disco y crecimiento de logs.
+- Fallos de envío SMTP y retrasos de notificaciones.
+- Actividad administrativa anómala y múltiples intentos de autenticación.
+
+Documentar quién recibe las alertas, cómo deshabilitar temporalmente el checkout, cómo rotar credenciales y cómo preservar logs/evidencias. Establecer una política de retención y eliminación de comprobantes conforme a las necesidades operativas y legales.
+
+## Comprobaciones de humo tras desplegar
+
+- [ ] La web responde mediante HTTPS y redirige HTTP a HTTPS en el proxy/servidor.
+- [ ] La respuesta HTTPS incluye HSTS; una petición HTTP no debe emitir HSTS.
+- [ ] `APP_DEBUG=false` y los errores no revelan trazas ni configuración.
+- [ ] Un administrador puede acceder a `/admin`; una cuenta de cliente no.
+- [ ] Registro, login, recuperación y cierre de sesión funcionan.
+- [ ] Catálogo, carrito y checkout funcionan en las monedas y métodos habilitados.
+- [ ] Un comprobante Zelle se guarda en almacenamiento privado y solo un administrador autorizado puede descargarlo.
+- [ ] Las notificaciones se procesan con SMTP real y worker activo.
+- [ ] Los pedidos y sus enlaces privados no se almacenan en cachés públicas.
+- [ ] La copia de seguridad reciente existe y la restauración se ha probado.
+
+## Rollback
+
+Mantener disponible la versión anterior del código y sus assets. Si falla una comprobación de humo, detener el tráfico de compra o activar mantenimiento, volver a la versión anterior, reconstruir cachés y reiniciar workers. No revertir migraciones destructivas ni restaurar una base de datos antigua automáticamente: primero evaluar si ya se escribieron pedidos o pagos nuevos. Las migraciones deben diseñarse de forma compatible con la versión anterior siempre que sea posible.
+
+## Pendientes que requieren operación externa
+
+El repositorio no puede verificar por sí solo el dominio, certificado, reglas del proxy, credenciales SMTP, supervisión de workers, backups reales, restauración, monitoreo ni políticas legales. Estos puntos deben marcarse como completados solo después de probarlos en el entorno de despliegue.

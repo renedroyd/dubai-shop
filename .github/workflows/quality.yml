@@ -41,6 +41,8 @@ jobs:
         run: composer validate --no-check-publish
       - name: Install PHP dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
+      - name: Audit PHP dependencies
+        run: composer audit --locked --no-interaction
       - name: Prepare environment
         run: |
           cp .env.example .env
@@ -71,11 +73,15 @@ jobs:
           tools: composer:v2
       - name: Install PHP dependencies for Filament theme
         run: composer install --prefer-dist --no-interaction --no-progress
+      - name: Audit PHP dependencies
+        run: composer audit --locked --no-interaction
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
       - name: Install Node dependencies
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
+      - name: Audit Node dependencies
+        run: npm audit --audit-level=high
       - name: Build assets
         run: npm run build

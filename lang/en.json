@@ -533,5 +533,7 @@
   "Errores: :count": "Errors: :count",
   "Importación completada con observaciones": "Import completed with warnings",
   "Importación completada": "Import completed",
-  "No se pudo completar la importación": "The import could not be completed"
+  "No se pudo completar la importación": "The import could not be completed",
+  "Pedidos recientes": "Recent orders",
+  "Inventario que requiere atención": "Inventory requiring attention"
 }

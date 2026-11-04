@@ -1,9 +1,9 @@
 <?php
 
-namespace App\\Http\\Middleware;
+namespace App\Http\Middleware;
 
-use Illuminate\\Http\\Request;
-use Illuminate\\Http\\Middleware\\TrustProxies as Middleware;
+use Illuminate\Http\Request;
+use Illuminate\Http\Middleware\TrustProxies as Middleware;
 
 class TrustConfiguredProxies extends Middleware
 {
@@ -20,7 +20,7 @@ class TrustConfiguredProxies extends Middleware
         }
 
         if (in_array('*', $trustedIps, true) || in_array('**', $trustedIps, true)) {
-            throw new \\InvalidArgumentException('TRUSTED_PROXIES must list explicit proxy IP addresses or CIDRs.');
+            throw new \InvalidArgumentException('TRUSTED_PROXIES must list explicit proxy IP addresses or CIDRs.');
         }
 
         $this->setTrustedProxyIpAddressesToSpecificIps($request, $trustedIps);

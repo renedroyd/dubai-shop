@@ -37,8 +37,8 @@ class ProductionReadinessCommandTest extends TestCase
         DB::shouldReceive('connection')->once()->andReturn($connection);
 
         $this->artisan('app:production-readiness')
-            ->assertSuccessful()
-            ->expectsOutputToContain('passed the production readiness checks');
+            ->expectsOutputToContain('passed the production readiness checks')
+            ->assertSuccessful();
     }
 
     public function test_production_readiness_command_fails_for_insecure_or_non_persistent_configuration(): void
@@ -63,7 +63,7 @@ class ProductionReadinessCommandTest extends TestCase
         DB::shouldReceive('connection')->once()->andThrow(new RuntimeException('Database unavailable'));
 
         $this->artisan('app:production-readiness')
-            ->assertFailed()
-            ->expectsOutputToContain('found');
+            ->expectsOutputToContain('found')
+            ->assertFailed();
     }
 }

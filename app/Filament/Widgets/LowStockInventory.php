@@ -9,7 +9,10 @@ use Filament\Widgets\TableWidget;
 
 class LowStockInventory extends TableWidget
 {
-    protected static ?string $heading = 'Inventario que requiere atención';
+    public function getHeading(): ?string
+    {
+        return __('Inventario que requiere atención');
+    }
 
     protected int | string | array $columnSpan = [
         'default' => 1,

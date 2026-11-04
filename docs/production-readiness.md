@@ -53,6 +53,20 @@ Notas:
 - No uses `QUEUE_CONNECTION=sync` en producción. Debe existir un worker supervisado y reiniciable.
 - Configura Zelle, remitente de correo, base de datos y credenciales de almacenamiento con valores reales; no reutilices datos de pruebas.
 
+## Verificación previa automatizada
+
+Antes de poner la aplicación en producción, ejecuta:
+
+```bash
+php artisan app:production-readiness
+```
+
+El comando comprueba `APP_ENV`, modo debug, URL HTTPS, clave de aplicación, atributos de cookies/sesión, drivers persistentes de sesión/cache/cola, transporte y remitente de correo, configuración explícita de proxies, conexión a base de datos y permisos de los directorios de almacenamiento privado y público. Devuelve un código de salida distinto de cero si detecta una configuración insegura o incompleta; corrige los puntos indicados y vuelve a ejecutarlo.
+
+La configuración `TRUSTED_PROXIES` ahora se carga desde `config/app.php`, de modo que queda incluida en `php artisan config:cache`; no se lee directamente desde `env()` durante el registro del middleware. Si no existe un proxy inverso, deja la variable vacía.
+
+Este preflight valida configuración y conectividad básica a la base de datos, pero no puede confirmar que haya un worker activo, que SMTP entregue mensajes, que el certificado HTTPS sea válido desde Internet, ni que existan backups restaurables. Esas verificaciones siguen siendo operativas y externas.
+
 ## Despliegue reproducible
 
 Desde el directorio de la versión que se va a publicar:

@@ -6,6 +6,7 @@ use App\Filament\Resources\Categories\Pages\CreateCategory;
 use App\Filament\Resources\Categories\Pages\EditCategory;
 use App\Filament\Resources\Categories\Pages\ListCategories;
 use App\Models\Category;
+use App\Filament\Actions\CatalogImportActions;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -54,7 +55,7 @@ class CategoryResource extends Resource
             TextColumn::make('sort_order')->label(__('Orden'))->sortable(),
         ])->defaultSort('sort_order')
           ->recordActions([EditAction::make(), DeleteAction::make()])
-          ->headerActions([CreateAction::make()->label(__('Nueva categoría'))]);
+          ->headerActions([...CatalogImportActions::make('categories'), CreateAction::make()->label(__('Nueva categoría'))]);
     }
 
     public static function getPages(): array

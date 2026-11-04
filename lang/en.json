@@ -520,5 +520,18 @@
   "contenido de la tienda": "store content",
   "Usa puntos para agrupar claves, por ejemplo home.hero_title.": "Use dots to group keys, for example home.hero_title.",
   "SEO": "SEO",
-  "Nuevo contenido": "New content"
+  "Nuevo contenido": "New content",
+  "Importar desde Excel": "Import from Excel",
+  "Importar registros del catálogo": "Import catalog records",
+  "Sube un archivo XLSX o CSV. Las columnas deben coincidir con la plantilla descargable.": "Upload an XLSX or CSV file. Columns must match the downloadable template.",
+  "Archivo Excel o CSV": "Excel or CSV file",
+  "Si el registro ya existe": "If the record already exists",
+  "Actualizar el registro existente": "Update the existing record",
+  "Omitir el registro existente": "Skip the existing record",
+  "Descargar plantilla": "Download template",
+  "Creados: :created · Actualizados: :updated · Omitidos: :skipped": "Created: :created · Updated: :updated · Skipped: :skipped",
+  "Errores: :count": "Errors: :count",
+  "Importación completada con observaciones": "Import completed with warnings",
+  "Importación completada": "Import completed",
+  "No se pudo completar la importación": "The import could not be completed"
 }

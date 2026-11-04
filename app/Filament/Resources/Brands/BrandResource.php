@@ -6,6 +6,7 @@ use App\Filament\Resources\Brands\Pages\CreateBrand;
 use App\Filament\Resources\Brands\Pages\EditBrand;
 use App\Filament\Resources\Brands\Pages\ListBrands;
 use App\Models\Brand;
+use App\Filament\Actions\CatalogImportActions;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
@@ -48,7 +49,7 @@ class BrandResource extends Resource
             TextColumn::make('products_count')->counts('products')->label(__('Productos')),
             IconColumn::make('is_active')->label(__('Activa'))->boolean(),
         ])->recordActions([EditAction::make(), DeleteAction::make()])
-          ->headerActions([CreateAction::make()->label(__('Nueva marca'))]);
+          ->headerActions([...CatalogImportActions::make('brands'), CreateAction::make()->label(__('Nueva marca'))]);
     }
 
     public static function getPages(): array

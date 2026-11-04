@@ -505,3 +505,119 @@ button, input { font: inherit; }
 .store-product-card__stock--empty { color:#d58c82; }
 .store-product-card__stock--empty .store-product-card__stock-label { color:#d58c82; }
 @media (max-width:650px) { .store-product-card__stock { margin-inline:10px; font-size:8px; } .store-product-card__stock-quantity { font-size:13px; } }
+
+
+/* Premium campaign banners: image as a full-bleed background layer */
+.campaign-banners {
+    display: grid;
+    gap: 20px;
+    padding-block: 24px 38px;
+}
+
+.campaign-banner {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    min-height: clamp(320px, 36vw, 460px);
+    align-items: center;
+    overflow: hidden;
+    border: 1px solid rgba(229, 199, 107, .3);
+    background: #11110f;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .24);
+}
+
+.campaign-banner__image {
+    position: absolute;
+    z-index: -2;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: transform .8s cubic-bezier(.2, .65, .3, 1);
+}
+
+.campaign-banner:hover .campaign-banner__image {
+    transform: scale(1.035);
+}
+
+.campaign-banner__overlay {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background:
+        linear-gradient(90deg, rgba(7, 7, 7, .96) 0%, rgba(7, 7, 7, .86) 34%, rgba(7, 7, 7, .48) 66%, rgba(7, 7, 7, .12) 100%),
+        linear-gradient(0deg, rgba(7, 7, 7, .24), transparent 55%);
+}
+
+.campaign-banner__content {
+    width: min(680px, 72%);
+    padding: clamp(28px, 5.5vw, 76px);
+}
+
+.campaign-banner__content h2 {
+    margin: 18px 0 14px;
+    color: var(--ivory);
+    font: 500 clamp(38px, 5.2vw, 68px)/.98 'Cormorant Garamond', serif;
+    letter-spacing: -.025em;
+    text-wrap: balance;
+}
+
+.campaign-banner__content p {
+    max-width: 500px;
+    margin: 0 0 25px;
+    color: rgba(245, 242, 234, .82);
+    font-size: 13px;
+    line-height: 1.85;
+}
+
+.campaign-banner__content .button {
+    margin-top: 8px;
+}
+
+@media (max-width: 650px) {
+    .campaign-banners {
+        gap: 14px;
+        padding-block: 16px 28px;
+    }
+
+    .campaign-banner {
+        min-height: 390px;
+        align-items: flex-end;
+    }
+
+    .campaign-banner__image {
+        object-position: center;
+    }
+
+    .campaign-banner__overlay {
+        background:
+            linear-gradient(0deg, rgba(7, 7, 7, .96) 0%, rgba(7, 7, 7, .78) 42%, rgba(7, 7, 7, .16) 100%),
+            linear-gradient(90deg, rgba(7, 7, 7, .18), transparent);
+    }
+
+    .campaign-banner__content {
+        width: 100%;
+        padding: 28px 22px;
+    }
+
+    .campaign-banner__content h2 {
+        margin-block: 13px 10px;
+        font-size: clamp(36px, 10vw, 48px);
+    }
+
+    .campaign-banner__content p {
+        margin-bottom: 18px;
+        font-size: 12px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .campaign-banner__image {
+        transition: none;
+    }
+
+    .campaign-banner:hover .campaign-banner__image {
+        transform: none;
+    }
+}

@@ -36,6 +36,10 @@ class StorefrontContentTest extends TestCase
 
         $this->get(route('home'))
             ->assertOk()
+            ->assertSee('campaign-banner')
+            ->assertSee('campaign-banner__image')
+            ->assertSee('campaign-banner__overlay')
+            ->assertSee('campaign-banner__content')
             ->assertSee('Campaña de temporada')
             ->assertSee('EDICIÓN ESPECIAL')
             ->assertSee('Comprar ahora');

@@ -3,18 +3,31 @@
     :description="$settings['seo.home_description'] ?? 'Descubre Clásico Dubai.'"
 >
     @if ($banners->isNotEmpty())
-        <section class="page-container" aria-label="{{ __('Campañas destacadas') }}" style="display:grid;gap:1rem;padding-top:1.5rem">
+        <section class="page-container campaign-banners" aria-label="{{ __('Campañas destacadas') }}">
             @foreach ($banners as $banner)
-                <article style="position:relative;overflow:hidden;border:1px solid rgba(198,161,91,.3);background:#111">
-                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($banner->image_path) }}" alt="{{ $banner->image_alt ?: $banner->title }}" style="display:block;width:100%;max-height:420px;object-fit:cover">
-                    @if ($banner->eyebrow || $banner->description || $banner->link_url)
-                        <div style="padding:1.25rem 1.5rem">
-                            @if ($banner->eyebrow)<span class="eyebrow">{{ $banner->eyebrow }}</span>@endif
-                            <h2>{{ $banner->title }}</h2>
-                            @if ($banner->description)<p>{{ $banner->description }}</p>@endif
-                            @if ($banner->link_url)<a class="button button--gold" href="{{ $banner->link_url }}">{{ $banner->link_label ?: __('Descubrir') }} <x-storefront.icon name="arrow-up-right" :size="16" /></a>@endif
-                        </div>
-                    @endif
+                <article class="campaign-banner">
+                    <img
+                        class="campaign-banner__image"
+                        src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($banner->image_path) }}"
+                        alt="{{ $banner->image_alt ?: $banner->title }}"
+                        loading="{{ $loop->first ? 'eager' : 'lazy' }}"
+                    >
+                    <div class="campaign-banner__overlay" aria-hidden="true"></div>
+                    <div class="campaign-banner__content">
+                        @if ($banner->eyebrow)
+                            <span class="eyebrow eyebrow--light"><span></span>{{ $banner->eyebrow }}</span>
+                        @endif
+                        <h2>{{ $banner->title }}</h2>
+                        @if ($banner->description)
+                            <p>{{ $banner->description }}</p>
+                        @endif
+                        @if ($banner->link_url)
+                            <a class="button button--gold" href="{{ $banner->link_url }}">
+                                {{ $banner->link_label ?: __('Descubrir') }}
+                                <x-storefront.icon name="arrow-up-right" :size="16" />
+                            </a>
+                        @endif
+                    </div>
                 </article>
             @endforeach
         </section>

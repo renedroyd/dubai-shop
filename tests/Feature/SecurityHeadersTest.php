@@ -23,8 +23,7 @@ class SecurityHeadersTest extends TestCase
 
     public function test_hsts_is_sent_only_for_secure_requests(): void
     {
-        $this->withServerVariables(['HTTPS' => 'on'])
-            ->get(route('robots'))
+        $this->get('https://localhost/robots.txt')
             ->assertOk()
             ->assertHeader('Strict-Transport-Security', 'max-age=31536000');
     }

@@ -7,7 +7,7 @@ Esta guía complementa las pruebas automatizadas. Un CI verde no significa que l
 - Filament valida el acceso mediante `User::canAccessPanel()` y exige `is_admin=true`. Las cuentas de clientes no deben recibir permisos administrativos.
 - Los comprobantes Zelle se guardan en el disco privado local (`storage/app/private`) y se descargan desde una acción protegida del panel. No cambiar el disco a `public` ni exponer rutas directas.
 - El enlace público de pedido requiere un token aleatorio cuya huella SHA-256 se almacena en la base de datos. La respuesta se marca `private, no-store` y `no-referrer`.
-- Las rutas de registro, login, recuperación, restablecimiento y checkout tienen límites de solicitudes. Las operaciones de carrito y el cambio de idioma también deben mantenerse limitados.
+- Las rutas de registro, login, recuperación, restablecimiento y checkout tienen límites de solicitudes. Las operaciones de carrito y el cambio de idioma también están limitados.
 - Se aplican cabeceras contra MIME sniffing, framing, filtración de referencias y permisos del navegador. HSTS se emite únicamente en solicitudes HTTPS.
 - Los proxies inversos no se consideran confiables por defecto. `TRUSTED_PROXIES` acepta una lista explícita separada por comas.
 
@@ -36,10 +36,10 @@ CACHE_STORE=database
 
 MAIL_MAILER=smtp
 MAIL_HOST=<servidor-smtp>
-MAIL_PORT=<puerto>
+MAIL_PORT=587
 MAIL_USERNAME=<usuario>
 MAIL_PASSWORD=<secreto>
-MAIL_ENCRYPTION=tls
+MAIL_SCHEME=tls
 MAIL_FROM_ADDRESS=<correo-del-dominio>
 MAIL_FROM_NAME="${APP_NAME}"
 ```
@@ -47,7 +47,7 @@ MAIL_FROM_NAME="${APP_NAME}"
 Notas:
 - Si el servidor recibe tráfico directamente, deja `TRUSTED_PROXIES` vacío. Si hay proxy, CDN o túnel, configura solo las IP/CIDR de los saltos que realmente controlas. No uses `*` salvo que la aplicación sea inaccesible desde cualquier origen que pueda falsificar cabeceras.
 - Activa `SESSION_SECURE_COOKIE=true` solo cuando todo el tráfico público use HTTPS y el proxy esté configurado correctamente.
-- Conserva el mismo `APP_KEY) entre despliegues. Cambiarla invalida sesiones y datos cifrados existentes.
+- Conserva el mismo `APP_KEY` entre despliegues. Cambiarla invalida sesiones y datos cifrados existentes.
 - No uses `QUEUE_CONNECTION=sync` en producción. Debe existir un worker supervisado y reiniciable.
 - Configura Zelle, remitente de correo, base de datos y credenciales de almacenamiento con valores reales; no reutilices datos de pruebas.
 
@@ -59,7 +59,7 @@ Desde el directorio de la versión que se va a publicar:
 2. Instalar dependencias frontend y compilar: `npm ci && npm run build`.
 3. Confirmar que el archivo `.env`/secretos corresponden al entorno y que los directorios `storage` y `bootstrap/cache` son escribibles por el usuario del proceso PHP.
 4. Ejecutar migraciones: `php artisan migrate --force`.
-5. Crear el enlace público si aún no existe: `php artisan storage:link). Los comprobantes de pago permanecen en el disco privado.
+5. Crear el enlace público si aún no existe: `php artisan storage:link`. Los comprobantes de pago permanecen en el disco privado.
 6. Generar cachés: `php artisan optimize`.
 7. Reiniciar los workers de cola: `php artisan queue:restart`.
 8. Ejecutar las comprobaciones de humo descritas abajo antes de retirar el modo mantenimiento.

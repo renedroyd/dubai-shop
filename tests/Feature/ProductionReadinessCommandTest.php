@@ -60,7 +60,7 @@ class ProductionReadinessCommandTest extends TestCase
             'mail.from.address' => 'hello@example.com',
         ]);
 
-        DB::shouldReceive('connection')->once()->andThrow(new RuntimeException('Database unavailable'));
+        DB::shouldReceive('connection')->once()->andThrow(new \\RuntimeException('Database unavailable'));
 
         $this->artisan('app:production-readiness')
             ->expectsOutputToContain('found')

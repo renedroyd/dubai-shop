@@ -10,7 +10,7 @@ Esta guía complementa las pruebas automatizadas. Un CI verde no significa que l
 - El enlace público de pedido requiere un token aleatorio cuya huella SHA-256 se almacena en la base de datos. La respuesta se marca `private, no-store` y `no-referrer`.
 - Las rutas de registro, login, recuperación, restablecimiento y checkout tienen límites de solicitudes. Las operaciones de carrito y el cambio de idioma también están limitados.
 - Se aplican cabeceras contra MIME sniffing, framing, filtración de referencias y permisos del navegador. HSTS se emite únicamente en solicitudes HTTPS.
-- Los proxies inversos no se consideran confiables por defecto. `TRUSTED_PROXIES` acepta una lista explícita separada por comas.
+- Los proxies inversos no se consideran confiables por defecto. `TRUSTED_PROXIES` acepta una lista explícita separada por comas. La excepción `TRUSTED_PROXIES=*` solo se admite, por sí sola, cuando `APP_ENV=local`; en cualquier otro entorno se rechaza.
 - CI ejecuta `composer audit` y `npm audit --audit-level=high` además de las pruebas y el build; la revisión de esta fase no reporta avisos Composer y la auditoría npm pasó.
 
 La política CSP no se activa en esta entrega: antes debe definirse y probarse una estrategia compatible con los scripts de Filament/Livewire y los recursos reales del storefront; una política improvisada podría romper el panel o debilitarse mediante excepciones amplias.
@@ -63,7 +63,7 @@ php artisan app:production-readiness
 
 El comando comprueba `APP_ENV`, modo debug, URL HTTPS, clave de aplicación, atributos de cookies/sesión, drivers persistentes de sesión/cache/cola, transporte y remitente de correo, configuración explícita de proxies, conexión a base de datos y permisos de los directorios de almacenamiento privado y público. Devuelve un código de salida distinto de cero si detecta una configuración insegura o incompleta; corrige los puntos indicados y vuelve a ejecutarlo.
 
-La configuración `TRUSTED_PROXIES` ahora se carga desde `config/app.php`, de modo que queda incluida en `php artisan config:cache`; no se lee directamente desde `env()` durante el registro del middleware. Si no existe un proxy inverso, deja la variable vacía.
+La configuración `TRUSTED_PROXIES` ahora se carga desde `config/app.php`, de modo que queda incluida en `php artisan config:cache`; no se lee directamente desde `env()` durante el registro del middleware. Si no existe un proxy inverso, deja la variable vacía. El comodín `*` se permite únicamente en `APP_ENV=local` y no puede combinarse con IP/CIDR explícitas; `**` se rechaza siempre.
 
 Este preflight valida configuración y conectividad básica a la base de datos, pero no puede confirmar que haya un worker activo, que SMTP entregue mensajes, que el certificado HTTPS sea válido desde Internet, ni que existan backups restaurables. Esas verificaciones siguen siendo operativas y externas.
 

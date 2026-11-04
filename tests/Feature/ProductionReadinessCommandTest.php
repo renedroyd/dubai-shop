@@ -1,12 +1,12 @@
 <?php
 
-namespace Tests\\Feature;
+namespace Tests\Feature;
 
-use Illuminate\\Support\\Facades\\DB;
-use Illuminate\\Support\\Facades\\File;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Mockery;
 use PDO;
-use Tests\\TestCase;
+use Tests\TestCase;
 
 class ProductionReadinessCommandTest extends TestCase
 {

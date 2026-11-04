@@ -1,36 +1,39 @@
 <?php
 
-namespace App\\Filament\\Resources\\StorefrontBanners;
+namespace App\Filament\Resources\StorefrontBanners;
 
-use App\\Models\\StorefrontBanner;
-use App\\Support\\Storefront\\BannerPromptGenerator;
-use Filament\\Actions\\Action;
-use Filament\\Forms\\Components\\DateTimePicker;
-use Filament\\Forms\\Components\\FileUpload;
-use Filament\\Forms\\Components\\Select;
-use Filament\\Forms\\Components\\TextInput;
-use Filament\\Forms\\Components\\Textarea;
-use Filament\\Forms\\Components\\Toggle;
-use Filament\\Notifications\\Actions\\Action as NotificationAction;
-use Filament\\Notifications\\Notification;
-use Filament\\Schemas\\Components\\Section;
-use Filament\\Schemas\\Schema;
-use Filament\\Resources\\Resource;
-use Filament\\Tables\\Columns\\IconColumn;
-use Filament\\Tables\\Columns\\ImageColumn;
-use Filament\\Tables\\Columns\\TextColumn;
-use Filament\\Tables\\Filters\\SelectFilter;
-use Filament\\Tables\\Table;\nuse Filament\\Actions\\CreateAction;\nuse Filament\\Actions\\EditAction;\nuse Filament\\Actions\\DeleteAction;
-use Illuminate\\Support\\Js;
+use App\Models\StorefrontBanner;
+use App\Support\Storefront\BannerPromptGenerator;
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Actions\Action as NotificationAction;
+use Filament\Notifications\Notification;
+use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+use Illuminate\Support\Js;
 
 class StorefrontBannerResource extends Resource
 {
     protected static ?string $model = StorefrontBanner::class;
-    public static function getNavigationGroup(): string|\\UnitEnum|null { return __('Tienda'); }
+    public static function getNavigationGroup(): string|\UnitEnum|null { return __('Tienda'); }
     public static function getNavigationLabel(): string { return __('Banners y campañas'); }
     public static function getModelLabel(): string { return __('banner'); }
     public static function getPluralModelLabel(): string { return __('banners'); }
-    protected static string | \\BackedEnum | null $navigationIcon = 'heroicon-o-photo';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-photo';
     protected static ?int $navigationSort = 2;
 
     public static function form(Schema $schema): Schema
@@ -109,14 +112,14 @@ class StorefrontBannerResource extends Resource
             Section::make(__('Contenido del banner'))
                 ->description(__('La imagen se utiliza como fondo y el contenido se muestra superpuesto.'))
                 ->columns(2)->schema([
-                TextInput::make('title')->label(__('Título interno'))->required()->maxLength(255),
-                TextInput::make('eyebrow')->label(__('Texto superior'))->maxLength(255),
-                Textarea::make('description')->label(__('Descripción'))->rows(3)->columnSpanFull(),
-                FileUpload::make('image_path')->label(__('Imagen de fondo'))->image()->maxSize(5120)->disk('public')->directory('storefront/banners')->helperText(__('Sube aquí la imagen descargada de ChatGPT. Se mostrará detrás del título, la descripción y el botón.'))->required(),
-                TextInput::make('image_alt')->label(__('Texto alternativo'))->maxLength(255),
-                TextInput::make('link_url')->label(__('Enlace'))->url()->maxLength(2048),
-                TextInput::make('link_label')->label(__('Texto del botón'))->maxLength(80),
-            ]),
+                    TextInput::make('title')->label(__('Título interno'))->required()->maxLength(255),
+                    TextInput::make('eyebrow')->label(__('Texto superior'))->maxLength(255),
+                    Textarea::make('description')->label(__('Descripción'))->rows(3)->columnSpanFull(),
+                    FileUpload::make('image_path')->label(__('Imagen de fondo'))->image()->maxSize(5120)->disk('public')->directory('storefront/banners')->helperText(__('Sube aquí la imagen descargada de ChatGPT. Se mostrará detrás del título, la descripción y el botón.'))->required(),
+                    TextInput::make('image_alt')->label(__('Texto alternativo'))->maxLength(255),
+                    TextInput::make('link_url')->label(__('Enlace'))->url()->maxLength(2048),
+                    TextInput::make('link_label')->label(__('Texto del botón'))->maxLength(80),
+                ]),
             Section::make(__('Publicación'))->columns(2)->schema([
                 Select::make('placement')->label(__('Ubicación'))->options(['home' => __('Página de inicio'), 'campaign' => __('Campaña')])->helperText(__('Define en qué espacio de la tienda se publicará el banner.'))->required()->default('home'),
                 Toggle::make('is_active')->label(__('Activo'))->default(false),
@@ -144,9 +147,9 @@ class StorefrontBannerResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\\ListStorefrontBanners::route('/'),
-            'create' => Pages\\CreateStorefrontBanner::route('/create'),
-            'edit' => Pages\\EditStorefrontBanner::route('/{record}/edit'),
+            'index' => Pages\ListStorefrontBanners::route('/'),
+            'create' => Pages\CreateStorefrontBanner::route('/create'),
+            'edit' => Pages\EditStorefrontBanner::route('/{record}/edit'),
         ];
     }
 }

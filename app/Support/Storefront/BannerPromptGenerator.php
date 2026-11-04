@@ -1,13 +1,11 @@
 <?php
 
-namespace App\\Support\\Storefront;
+namespace App\Support\Storefront;
 
 class BannerPromptGenerator
 {
     /**
-     * Build a ready-to-use prompt for ChatGPT's free image-generation experience.
-     *
-     * @param  array{campaign_type?: string, visual_style?: string, format?: string, brief?: string}  $data
+     * @param array{campaign_type?: string, visual_style?: string, format?: string, brief?: string} $data
      */
     public function generate(array $data): string
     {

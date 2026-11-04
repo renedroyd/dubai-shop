@@ -1,9 +1,9 @@
 <?php
 
-namespace Tests\\Unit;
+namespace Tests\Unit;
 
-use App\\Support\\Storefront\\BannerPromptGenerator;
-use Tests\\TestCase;
+use App\Support\Storefront\BannerPromptGenerator;
+use Tests\TestCase;
 
 class BannerPromptGeneratorTest extends TestCase
 {

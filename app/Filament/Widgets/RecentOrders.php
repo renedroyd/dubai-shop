@@ -9,7 +9,10 @@ use Filament\Widgets\TableWidget;
 
 class RecentOrders extends TableWidget
 {
-    protected static ?string $heading = 'Pedidos recientes';
+    public function getHeading(): ?string
+    {
+        return __('Pedidos recientes');
+    }
 
     protected int | string | array $columnSpan = 'full';
 

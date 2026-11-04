@@ -64,7 +64,7 @@ class ProductResource extends Resource
             ]),
             Section::make(__('Imágenes'))->description(__('La primera imagen marcada como principal se utilizará como imagen destacada del producto.'))->schema([
                 Repeater::make('images')->relationship()->label(__('Galería'))->schema([
-                    FileUpload::make('path')->label(__('Imagen'))->image()->disk('public')->directory('products')->required(),
+                    FileUpload::make('path')->label(__('Imagen'))->image()->maxSize(5120)->disk('public')->directory('products')->required(),
                     TextInput::make('alt_text')->label(__('Texto alternativo'))->maxLength(255),
                     TextInput::make('sort_order')->label(__('Orden'))->numeric()->integer()->default(0),
                     Toggle::make('is_primary')->label(__('Imagen principal'))->default(false),

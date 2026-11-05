@@ -36,8 +36,8 @@ class CategoryResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            SlugField::name(label: __('Nombre')), 
-            SlugField::slug(label: __('Slug')), 
+            SlugField::name(label: __('Nombre')),
+            SlugField::slug(label: __('Slug')),
             Select::make('parent_id')->label(__('Categoría superior'))->relationship('parent', 'name')->searchable()->preload()->nullable(),
             Textarea::make('description')->label(__('Descripción'))->rows(3),
             FileUpload::make('image_path')->label(__('Imagen'))->image()->maxSize(5120)->disk('public')->directory('categories'),

@@ -43,8 +43,8 @@ class ProductResource extends Resource
     {
         return $schema->components([
             Section::make(__('Información del producto'))->columns(2)->schema([
-                SlugField::name(label: __('Nombre')), 
-                SlugField::slug(label: __('Slug')), 
+                SlugField::name(label: __('Nombre')),
+                SlugField::slug(label: __('Slug')),
                 TextInput::make('sku')->label(__('SKU'))->required()->maxLength(100)->unique(ignoreRecord: true),
                 Select::make('category_id')->label(__('Categoría'))->relationship('category', 'name')->searchable()->preload(),
                 Select::make('brand_id')->label(__('Marca'))->relationship('brand', 'name')->searchable()->preload(),

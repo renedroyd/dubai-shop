@@ -6,6 +6,7 @@ use App\Filament\Resources\Brands\Pages\CreateBrand;
 use App\Filament\Resources\Brands\Pages\EditBrand;
 use App\Filament\Resources\Brands\Pages\ListBrands;
 use App\Models\Brand;
+use App\Filament\Support\SlugField;
 use App\Filament\Actions\CatalogImportActions;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\TextInput;
@@ -34,8 +35,8 @@ class BrandResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            TextInput::make('name')->label(__('Nombre'))->required()->maxLength(255),
-            TextInput::make('slug')->label(__('Slug'))->required()->maxLength(255)->unique(ignoreRecord: true),
+            SlugField::name(label: __('Nombre')), 
+            SlugField::slug(label: __('Slug')), 
             Textarea::make('description')->label(__('Descripción'))->rows(3),
             FileUpload::make('logo_path')->label(__('Logo'))->image()->disk('public')->directory('brands'),
             Toggle::make('is_active')->label(__('Activa'))->default(true),

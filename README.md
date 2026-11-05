@@ -1,52 +1,94 @@
-# Dubai Shop
+# Dubai Shop — Clásico Dubai
 
-Tienda online premium construida con Laravel, Livewire y FilamentPHP.
+Tienda online premium construida con Laravel 13 y Filament 5, con escaparate público Blade y una identidad visual negro obsidiana y dorado champagne.
 
-## Stack
-- PHP 8.4.1+
-- Laravel 13
-- Filament 5
-- Livewire utilizado por Filament 5; la tienda pública actual utiliza Blade y controladores Laravel
-- Tailwind CSS 4
-- Vite 8
+## Estado actual
 
-## Estado del proyecto
-El proyecto cuenta con catálogo, carrito, checkout, pedidos, inventario, pagos manuales, tarifas de envío, CMS y marca Clásico Dubai. Las Fases 1–13 están integradas. La Fase 14 (operación logística y seguimiento de entregas) está en desarrollo en una rama independiente. Consulta el [estado del proyecto](docs/project-status.md) y la [guía de notificaciones](docs/transactional-notifications.md).
+**Corte documental: 5 de noviembre de 2026.** Las Fases 1–16 están integradas en `main`. Las mejoras posteriores de importación de catálogo, experiencia de compra, panel administrativo, banners y asistencia de IA también están integradas. No hay pull requests abiertas en el momento de esta revisión.
 
-Consulta:
+El último cambio integrado es el [PR #35 — Asistente gratuito de IA para crear banners](https://github.com/renedroyd/dubai-shop/pull/35). El flujo genera prompts para usar manualmente en ChatGPT; no utiliza la API de OpenAI ni requiere claves o facturación de API.
+
+Consulta primero:
+- [Estado actual del proyecto](docs/project-status.md)
+- [Hoja de ruta](ROADMAP.md)
 - [Arquitectura técnica](docs/architecture.md)
 - [Modelo de dominio](docs/domain-model.md)
+- [Preparación para producción](docs/production-readiness.md)
 - [Operación logística y seguimiento](docs/logistics-and-tracking.md)
+- [Notificaciones transaccionales](docs/transactional-notifications.md)
+- [Asistente de IA para banners](docs/ai-banner-workflow.md)
+
+## Stack
+
+- PHP 8.4+ (CI valida PHP 8.4 y 8.5).
+- Laravel 13.
+- Filament 5 para administración.
+- Blade y controladores Laravel para el escaparate público.
+- Livewire como parte de Filament 5; no describir el storefront como una aplicación Livewire.
+- Tailwind CSS 4 y Vite 8.
+- Eloquent y migraciones Laravel.
+- GitHub Actions para pruebas, auditorías y compilación frontend.
+
+## Funcionalidades principales
+
+- Catálogo con categorías, marcas, productos, variantes, imágenes, búsqueda, filtros y disponibilidad.
+- Importación de categorías, marcas y productos desde Excel/CSV.
+- Carrito y checkout de invitado, pedidos, inventario y reservas.
+- Pagos manuales Zelle (USD) y efectivo contra entrega (según configuración).
+- Tarifas de envío configurables; operación inicial restringida a Guantánamo y compromiso de 24 horas.
+- Cuentas de clientes, historial de pedidos y direcciones guardadas, manteniendo la compra como invitado.
+- Notificaciones transaccionales editables desde Filament y procesadas mediante colas.
+- Gestión logística, repartidores, seguimiento privado e intentos de entrega.
+- CMS de banners, páginas y menús.
+- Diseño público y panel administrativo con identidad premium negro/dorado.
+- Español e inglés, con posibilidad de incorporar idiomas mediante el registro de locales y sus traducciones.
+- Asistente para generar prompts de imágenes de banners con una cuenta gratuita de ChatGPT.
 
 ## Requisitos
-PHP 8.4.1+, Composer 2, Node.js 22+ y npm.
+
+PHP 8.4+, Composer 2, Node.js 22+ y npm. La versión de base de datos debe ser compatible con Laravel 13 y con los drivers configurados en el proyecto.
 
 ## Instalación local
+
 ```bash
 composer install
 cp .env.example .env
 php artisan key:generate
-# Configura la conexión de base de datos en .env
+# Configura la base de datos y demás variables en .env
 php artisan migrate
-npm install
+npm ci
 npm run build
 php artisan serve
 ```
 
-Panel administrativo: /admin.
+Panel administrativo: `/admin`.
 
-## Desarrollo
+Para desarrollo:
 ```bash
 npm run dev
 php artisan test
 ```
 
-## Calidad continua
-GitHub Actions ejecuta validación de Composer, pruebas PHP y compilación frontend en pushes a ramas de trabajo y pull requests hacia main.
+## Comprobaciones de preparación para producción
 
-## Guía de contribución
-- No trabajar directamente sobre main.
+Antes de publicar, revisa [docs/production-readiness.md](docs/production-readiness.md) y ejecuta:
+
+```bash
+php artisan app:production-readiness
+composer audit
+npm audit --audit-level=high
+php artisan test
+npm run build
+```
+
+El preflight valida configuración y conectividad básica; no sustituye la prueba real de HTTPS, SMTP, workers, backups/restauración, monitoreo ni aceptación funcional. No uses `php artisan serve` como servidor de producción.
+
+## Contribución y flujo de trabajo
+
+- No trabajar directamente sobre `main`.
 - Crear una rama por fase o cambio.
+- Revisar estado del repositorio y CI antes de implementar.
 - Mantener reglas comerciales fuera de componentes de interfaz.
-- Añadir pruebas para cada regla de negocio nueva.
-- No integrar cambios sin revisión y aprobación explícita.
+- Añadir pruebas para reglas de negocio y regresiones.
+- Ejecutar pruebas, auditorías y build antes de abrir PR.
+- No integrar cambios en `main` sin aprobación explícita.

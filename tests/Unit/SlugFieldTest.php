@@ -1,10 +1,10 @@
 <?php
 
-namespace Tests\\Unit;
+namespace Tests\Unit;
 
-use App\\Filament\\Support\\SlugField;
-use PHPUnit\\Framework\\Attributes\\DataProvider;
-use PHPUnit\\Framework\\TestCase;
+use App\Filament\Support\SlugField;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
 
 class SlugFieldTest extends TestCase
 {

@@ -33,6 +33,8 @@ final class SlugField
             ->required()
             ->maxLength(255)
             ->unique(ignoreRecord: true)
+            ->live(onBlur: true)
+            ->afterStateUpdated(fn (?string $state, Set $set) => $set($field, self::from($state)))
             ->dehydrateStateUsing(fn (?string $state): string => self::from($state))
             ->helperText(__('Se genera automáticamente desde el nombre. Puedes personalizarlo; se normalizará al guardar.'));
     }
@@ -44,6 +46,6 @@ final class SlugField
 
     public static function shouldSync(?string $currentSlug, ?string $previousName): bool
     {
-        return blank($currentSlug) || $currentSlug === self::from($previousName);
+        return trim($currentSlug ?? '') === '' || $currentSlug === self::from($previousName);
     }
 }

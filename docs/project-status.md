@@ -1,220 +1,179 @@
-# Dubai Shop — Estado del proyecto y hoja de ruta
+# Dubai Shop — Estado del proyecto
 
-**Corte:** 2 de noviembre de 2026  
+**Corte:** 5 de noviembre de 2026  
 **Rama de referencia:** `main`  
-**Última integración:** Fase 13 — cuentas de clientes y comunicación transaccional (PR #20); Fase 14 en desarrollo en `feature/fase-14-operacion-logistica`  
-**Commit de integración:** `1d730d0df874aacfa00087d2fc9171c8fa494e41`  
-**PR integrada:** [#20 — Fase 13](https://github.com/renedroyd/dubai-shop/pull/20)
+**Último commit integrado:** `6f205d2dc49fea3cbc70c3f01b520054f67c0822`  
+**Última integración:** [PR #35 — Asistente gratuito de IA para crear banners](https://github.com/renedroyd/dubai-shop/pull/35)  
+**Estado de PRs:** no se encontraron PR abiertas durante esta revisión.
 
-Este documento separa lo que está implementado y probado en el repositorio de la configuración comercial que aún debe cargarse, y de las capacidades que siguen en la hoja de ruta. La integración de una fase no significa que la tienda esté lista para producción.
+> Este documento distingue implementación integrada, validación automatizada y aceptación operativa. Que una funcionalidad esté integrada o que CI pase no significa que esté configurada ni aceptada en el entorno real.
 
 ## 1. Resumen ejecutivo
 
-Dubai Shop tiene implementado el núcleo de una tienda online: catálogo público, búsqueda y filtros, carrito de invitado, checkout, pedidos, reservas de inventario, pagos manuales auditados, administración con Filament y tarifas de envío configurables. La Fase 10 restringió la operación inicial a Guantánamo, estableció el compromiso de entrega dentro de 24 horas, reforzó el tratamiento de importes de envío y formalizó el uso de varias monedas sin mezclarlas.
+Dubai Shop cuenta con el núcleo funcional de una tienda online y su administración: catálogo, importación, carrito, checkout, pedidos, inventario, pagos manuales, tarifas de envío, cuentas de clientes, comunicaciones transaccionales, operación logística, CMS, internacionalización y una interfaz premium negro/dorado.
 
-**Estado actual:** fases 1–13 integradas; Fase 14 en desarrollo. La Fase 13 incluye cuentas de clientes y comunicación transaccional. La validación operativa de SMTP y worker de colas sigue pendiente. Falta verificar la configuración real del negocio, ejecutar pruebas de aceptación y cerrar requisitos de producción.
+Las Fases 1–16 se encuentran integradas en `main`. Posteriormente se incorporaron mejoras de importación de catálogo, dashboard y tema Filament, experiencia de compra, banners y asistencia de IA. La última entrega añade un generador de prompts que permite utilizar ChatGPT gratuito para crear imágenes sin integrar la API.
 
-La tienda no debe considerarse lista para producción solo porque CI esté verde. Aún es necesario cargar tarifas, configurar el destinatario Zelle en la administración, verificar los métodos activos y realizar pruebas de aceptación en un entorno real.
+**Situación general:** desarrollo funcional avanzado; falta completar aceptación operativa y cerrar la preparación real para producción. No declarar el sistema listo para producción hasta ejecutar las verificaciones externas de dominio/HTTPS, proxy, correo, colas, backups/restauración, monitoreo y compra de extremo a extremo.
 
 ## 2. Plataforma y arquitectura
 
 | Área | Estado |
 |---|---|
 | Backend | Laravel 13 |
-| PHP | 8.4.1 o superior |
+| Runtime CI | PHP 8.4 y 8.5 |
 | Administración | Filament 5 |
-| Vistas públicas | Blade |
-| Estilos | Tailwind CSS 4 |
-| Assets | Vite 8 |
-| Persistencia | Eloquent y migraciones Laravel |
-| Calidad continua | GitHub Actions: pruebas PHP 8.4/8.5 y build frontend |
+| Tienda pública | Blade + controladores Laravel |
+| Reactividad | Livewire en Filament; no es el framework de vistas del storefront |
+| Frontend | Tailwind CSS 4, Vite 8 |
+| Persistencia | Eloquent y migraciones |
+| CI | GitHub Actions: pruebas PHP, auditorías y build frontend |
 
-Las rutas públicas inspeccionadas utilizan controladores y vistas Blade. Livewire forma parte de Filament, pero no está declarado como dependencia directa del proyecto ni se ha verificado una integración directa en el storefront. No describir el frontend público como una aplicación Livewire hasta que esa fase se implemente y valide.
+## 3. Funcionalidades integradas
 
-## 3. Funcionalidades implementadas
+### Catálogo y contenido comercial
+- Categorías, marcas, productos, variantes e imágenes.
+- Listado, detalle, búsqueda, filtros, ordenamiento y paginación.
+- Disponibilidad de inventario en tarjetas; distinción entre agotado y producto sin control de stock.
+- Compra rápida para productos sin variantes y selección de opciones para productos con variantes.
+- Importación de categorías, marcas y productos desde Excel/XLSX y CSV; no incluye importación de imágenes ni variantes.
+- CMS de banners, páginas y menús configurables.
+- Banners con imagen de fondo, degradado de legibilidad, composición responsive y animación reducida cuando el usuario lo solicita.
 
-### 3.1 Catálogo y tienda pública
-- Página de inicio.
-- Listado, detalle y búsqueda de productos.
-- Filtros por categoría y marca, ordenamiento y paginación.
-- Imágenes, variantes y productos relacionados.
-- Estado y visibilidad de productos.
-- Precios y moneda asociados al producto.
+### Carrito, checkout, pedidos e inventario
+- Carrito para visitantes y clientes autenticados.
+- Checkout como invitado; no obliga a crear cuenta.
+- Validación de precios y disponibilidad en servidor.
+- Pedidos con líneas históricas y snapshots.
+- Reservas, liberación y cumplimiento de inventario con operaciones transaccionales.
+- Consulta privada de pedido mediante token.
 
-### 3.2 Carrito y checkout
-- Carrito para visitantes asociado a sesión.
-- Gestión de artículos, variantes y cantidades.
-- Checkout de invitado.
-- Validación de precios, disponibilidad y cantidades en servidor.
-- Creación transaccional de pedido y líneas históricas.
-- Consulta de pedido mediante identificador/token público.
-- Reserva de inventario al comprar, liberación al cancelar y actualización al completar la operación, conforme a los servicios existentes.
+### Pagos y envíos
+- Driver de pago manual Zelle con comprobante y validación administrativa.
+- Efectivo contra entrega.
+- Auditoría de eventos y transiciones de pago.
+- Comprobantes en almacenamiento privado, con acceso protegido.
+- Tarifas de envío configurables por provincia, municipio y localidad.
+- Monedas del modelo actual: USD, CUP y EUR; no hay conversión automática ni mezcla de monedas dentro de un pedido.
+- Zelle restringido a USD.
+- Cobertura logística inicial limitada a Guantánamo y compromiso de entrega de 24 horas.
+- La habilitación real de métodos, destinatario, tarifas y zonas debe comprobarse en el entorno desplegado.
 
-### 3.3 Pedidos e inventario
-- Panel Filament para pedidos, inventario y movimientos.
-- Estados operativos del pedido.
-- Registro de datos históricos del producto y del envío en el pedido.
-- Fases de reserva, cancelación y cumplimiento de inventario.
+### Cuentas de clientes y comunicación
+- Registro, inicio/cierre de sesión y recuperación de contraseña.
+- Separación de permisos entre clientes y administradores.
+- Historial de pedidos y direcciones guardadas.
+- Compra como invitado preservada.
+- Notificaciones de pedido recibido, pagos y cambios de estado.
+- Plantillas editables/activables en Filament, registro de envíos y reintentos.
+- La entrega real de correo requiere SMTP válido y un worker de cola activo.
 
-### 3.4 Pagos
-- Driver Zelle manual con comprobante y revisión administrativa.
-- Efectivo contra entrega con confirmación administrativa.
-- Registro dinámico de drivers.
-- Auditoría de eventos y transiciones de estado del pago.
-- Comprobantes almacenados en área privada.
-- No hay pasarela bancaria externa ni webhooks de proveedores.
+### Operación logística
+- Envío asociado al pedido y código de seguimiento.
+- Asignación de repartidor y teléfono desde Filament.
+- Despacho controlado.
+- Registro auditable de intentos, incidencias y recepción.
+- Reintento de despacho.
+- Seguimiento privado para el cliente.
+- La confirmación de entrega exige pago aprobado y procesa inventario de forma idempotente.
+- Se mantiene el alcance comercial de Guantánamo y el compromiso configurado de 24 horas.
 
-Regla comercial de Fase 10: Zelle solo debe utilizarse para pedidos en USD. CUP y EUR no deben enviarse a Zelle; se utiliza efectivo contra entrega mientras no se integre otro método compatible.
+### Diseño e internacionalización
+- Identidad de Clásico Dubai: negro/obsidiana y dorado champagne.
+- Rediseño premium del escaparate público; el tema de Filament también fue refinado sin alterar sus flujos de negocio.
+- Idiomas iniciales español e inglés; registro preparado para incorporar más idiomas.
+- Preferencias de idioma de tienda y administración independientes.
+- El contenido de productos y otros textos comerciales no se traduce automáticamente.
 
-### 3.5 Envíos — Fases 9 y 10
-- Tarifas configurables por provincia, municipio y localidad.
-- Precedencia de coincidencia: localidad > municipio > provincia.
-- Cotización de envío y revalidación en servidor al confirmar pedido.
-- El pedido conserva una instantánea del importe y zona aplicada.
-- Cobertura inicial restringida a la provincia de Guantánamo.
-- Compromiso de entrega de 24 horas guardado en el pedido y mostrado al cliente y al administrador.
-- No se aceptan pedidos si no existe una tarifa activa coincidente.
-- Impuestos en cero.
+### Administración
+- Recursos Filament para catálogo, inventario, pedidos, pagos, envíos, clientes, contenido y configuración.
+- Dashboard con métricas, gráficos y centro de atención.
+- Importación de catálogo desde Excel/CSV.
+- Tema administrativo premium negro/dorado.
 
-### 3.6 Monedas
-- Monedas admitidas por el modelo actual: USD, CUP y EUR.
-- Un carrito y un pedido conservan una sola moneda.
-- No se mezclan monedas ni se hace conversión automática.
-- El coste de envío debe coincidir con la moneda del carrito.
-- La disponibilidad de Zelle se restringe a USD.
+### Asistencia de IA para banners — PR #35
+- Asistente en Filament para tipo de campaña, estilo, formato y descripción.
+- Genera un prompt en español alineado con la marca, con espacio para texto superpuesto y sin texto/logos/watermarks dentro de la imagen.
+- Permite copiar el prompt y abrir ChatGPT.
+- El usuario genera y descarga la imagen desde su cuenta gratuita y luego la carga en el formulario del banner.
+- **No existe llamada desde Laravel a OpenAI API, no se guardan claves y no hay coste de API.** La generación de imagen y la carga final son pasos manuales.
 
-## 4. Decisiones comerciales vigentes
+## 4. Historial de fases e integraciones
 
-| Decisión | Definición |
-|---|---|
-| Nombre comercial solicitado | Clásico Dubai |
-| Cobertura inicial | Provincia de Guantánamo |
-| Plazo de entrega anunciado | Dentro de 24 horas |
-| Tarifas | Estructura mixta: provincia, municipio y localidad |
-| Tarifa temporal solicitada | 500 CUP para todos los destinos cubiertos; pendiente de carga y verificación administrativa |
-| Monedas | USD, CUP y EUR, sin mezcla ni conversión automática |
-| Pagos | Zelle manual (solo USD) y efectivo contra entrega |
-| Datos de destinatario Zelle | El responsable ya proporcionó los datos; falta aplicarlos y verificarlos en la configuración real |
-| Impuestos | No se aplican; total = subtotal + envío |
+| Entrega | Resultado | Estado |
+|---|---|---|
+| Fases 1–7 | Base, identidad, catálogo, carrito/checkout, administración, contenido y SEO inicial | Integradas |
+| Fases 8, 8A y 8B | Seguridad inicial, drivers de pago extensibles y auditoría de pagos | Integradas |
+| Fases 9–10 | Envíos para Cuba, Guantánamo, multimoneda y plazo de 24 horas | Integradas |
+| Fase 11 | Identidad y configuración operativa de Clásico Dubai | Integrada; verificación de entorno pendiente |
+| Fase 12 | CMS de banners, páginas y menús | Integrada |
+| Fase 13 | Cuentas de clientes y comunicación transaccional | Integrada; SMTP/worker por aceptar |
+| Fase 14 | Operación logística y seguimiento | Integrada; aceptación manual de punta a punta pendiente |
+| Fase 15 | Experiencia del escaparate | Integrada; auditoría visual y accesibilidad completa pendiente |
+| Fase 16 | Seguridad y preparación de producción | Integrada; operación externa pendiente |
+| PR #29 | Importación de categorías, marcas y productos | Integrada |
+| PR #30 | Refinamiento visual del panel Filament | Integrada |
+| PR #31–33 | Seguridad, preflight de producción y comodín de proxy solo local | Integradas |
+| PR #34 | Banners/campañas con imagen de fondo premium | Integrada |
+| PR #35 | Asistente de prompts de IA para banners | Integrada |
 
-Los datos del destinatario Zelle y la imagen de marca fueron facilitados por el responsable, pero no se consideran configurados en el sistema hasta que se verifiquen en el entorno de la tienda. Por privacidad, no se copian datos personales de pago en esta documentación pública.
+## 5. Seguridad y CI
 
-## 5. Estado de CI e integración
+La base integrada incluye:
+- Acceso administrativo protegido y separación de cuentas de clientes.
+- Validación de imágenes y límites de tamaño; comprobantes de pago con validación y almacenamiento privado.
+- Tokens aleatorios para consulta pública de pedidos y respuestas privadas/no-store.
+- Rate limits en operaciones sensibles.
+- Cabeceras de seguridad y HSTS solo sobre HTTPS.
+- Proxies inversos explícitos. `TRUSTED_PROXIES=*` se permite exclusivamente en `APP_ENV=local`, como único valor; no se admite en producción.
+- `composer audit` y `npm audit --audit-level=high` en CI.
+- Comando `php artisan app:production-readiness` para comprobar configuración, conexión a base de datos y permisos de almacenamiento.
 
-- [PR #17 — Fase 11](https://github.com/renedroyd/dubai-shop/pull/17): integrada.
-- [PR #18 — Normalización de municipios](https://github.com/renedroyd/dubai-shop/pull/18): integrada.
-- [PR #19 — Fase 12, CMS](https://github.com/renedroyd/dubai-shop/pull/19): integrada mediante squash.
-- Commit base de Fase 13: `7bb812d685848234f60d808af7ced9e16ea089ca`.
-- [PR #20 — Fase 13](https://github.com/renedroyd/dubai-shop/pull/20): integrada mediante squash el 2 de noviembre de 2026 (commit `1d730d0df874aacfa00087d2fc9171c8fa494e41`).
-- CI de la revisión `cc71e487c25feec902014a3ba00d942a44353382`, ejecución [41449500599](https://github.com/renedroyd/dubai-shop/actions/runs/41449500599): **success**.
-- Validaciones: 62 pruebas y 271 assertions correctas; PHP 8.4, PHP 8.5, compilación frontend y cachés de producción.
+La matriz de CI ejecuta PHP 8.4/8.5, pruebas, compilación frontend y comprobaciones de dependencias/cachés según el workflow. Para PR #35, las comprobaciones previas a la integración fueron satisfactorias. En esta revisión no se obtuvo una ejecución posterior al merge asociada al commit final; no se afirma un CI post-merge adicional.
 
-La CI valida pruebas automatizadas y compilación, pero no sustituye las pruebas de aceptación con SMTP real ni la verificación de la configuración comercial en el entorno de despliegue.
+El preflight no puede probar desde GitHub el certificado público, entrega SMTP, worker activo, backups restaurables ni monitoreo real. CSP permanece aplazada para evitar romper scripts de Filament/Livewire antes de definir una política compatible.
 
-## 6. Trabajo pendiente organizado por fases
+## 6. Aceptación operativa pendiente
 
-### Fase 11 — Identidad de marca y configuración operativa
-**Estado: integrada en PR #17 · validación operativa pendiente**
+Antes de recibir tráfico y pedidos reales, completar y registrar:
 
-**Implementado e integrado:**
-- Seeder idempotente para configurar el nombre público Clásico Dubai.
-- Efectivo contra entrega habilitado.
-- Tarifas temporales activas de 500 CUP para los diez municipios de Guantánamo.
-- Zelle habilitado por el seeder únicamente cuando el nombre y correo del destinatario se configuran mediante variables privadas válidas.
-- Logotipo vectorial horizontal y favicon SVG integrados en el storefront y en Filament.
-- Pruebas automatizadas de la configuración inicial y las diez tarifas.
+1. **Dominio y HTTPS:** confirmar `APP_URL` con el dominio público definitivo, redirección HTTP→HTTPS y certificado válido.
+2. **Cloudflare/proxy:** configurar solo los proxies/IP/CIDR reales en `TRUSTED_PROXIES`; comprobar que las URLs de Storage se generan con HTTPS y dominio público, no con `localhost`.
+3. **Servidor de aplicación:** sustituir `php artisan serve` por un servidor/proceso PHP adecuado para producción, con reinicio, supervisión y manejo de concurrencia.
+4. **Base de datos y almacenamiento:** verificar persistencia, permisos, enlace público de archivos y privacidad de comprobantes.
+5. **Correo y colas:** configurar SMTP real, worker supervisado, reintentos y prueba de entrega.
+6. **Backups:** respaldar base de datos y archivos privados/públicos; probar restauración en entorno aislado.
+7. **Monitoreo:** alertas de HTTP/5xx, disco, base de datos, cola, SMTP y jobs fallidos.
+8. **Pruebas comerciales:** completar pedidos de prueba por moneda/método, validación de comprobantes, cancelación, reserva/liberación de stock, despacho e intento de entrega.
+9. **Configuración del negocio:** verificar tarifas activas, destinatario Zelle, métodos habilitados, datos de contacto y políticas.
+10. **QA visual:** revisar móvil, tablet y escritorio; accesibilidad de teclado/contraste; pantallas de login, formularios y tablas del panel.
 
-**Pendiente de validación operativa:** comprobar el logo en Filament (incluida la pantalla de login), verificar datos Zelle en el entorno desplegado y probar checkout real por moneda/método. El SVG es una reconstrucción vectorial, no una optimización píxel a píxel del archivo original.
+Se informó que el entorno actual utiliza Cloudflare Tunnel y `php artisan serve`. Esa combinación puede servir para pruebas o acceso temporal, pero no debe considerarse una arquitectura de producción adecuada para una tienda que reciba tráfico y pedidos reales.
 
-- Revisar el logotipo y sustituirlo por la versión maestra optimizada si se facilita el archivo fuente.
-- Verificar las diez tarifas, los destinos reales y el compromiso de entrega de 24 horas.
-- Revisar teléfono, correo, moneda, textos legales y políticas.
-- Ejecutar compras de prueba con Zelle USD y efectivo contra entrega CUP/EUR.
+## 7. Funcionalidades no implementadas o condicionadas
 
-**Criterio de salida operativa:** identidad visible, tarifas confirmadas, pagos verificados y compra de extremo a extremo aceptada.
+- Cupones y descuentos automáticos: requieren definir reglas comerciales, límites, acumulación y vigencia.
+- Pasarela de pago externa: requiere seleccionar proveedor y definir contrato, conciliación, webhooks y reembolsos.
+- Conversión de divisas: no existe; USD, CUP y EUR se manejan por separado.
+- Importación de imágenes y variantes desde Excel: fuera del alcance de la importación actual.
+- Reseñas/valoraciones de clientes: no presentar las estrellas visuales vacías como reseñas reales.
+- CSP: aplazada hasta una implementación compatible y probada.
+- Más idiomas: la infraestructura permite agregarlos, pero cada catálogo de traducción debe prepararse.
+- Automatización de generación de imágenes mediante API: no implementada ni necesaria para el flujo gratuito actual.
 
-### Fase 12 — Administración comercial y CMS
-**Estado: integrada en PR #19**
+## 8. Criterio de finalización
 
-- Banners administrables con imagen, texto, enlace, orden y vigencia.
-- Páginas administrables con borrador/publicación y metadatos SEO.
-- Menús configurables para cabecera y pie de página.
-- El contenido se escapa y los enlaces se validan; no se admite HTML arbitrario.
-- Cupones y descuentos automáticos quedan pendientes hasta definir reglas comerciales.
+El proyecto puede considerarse listo para lanzamiento solo cuando:
+- [ ] `app:production-readiness` finaliza sin errores en el entorno de producción.
+- [ ] HTTPS, dominio, proxy y URLs de Storage están comprobados externamente.
+- [ ] No se utiliza `php artisan serve` como servidor de producción.
+- [ ] SMTP y worker entregan notificaciones reales.
+- [ ] Backups y restauración se han probado.
+- [ ] Monitoreo y procedimiento de rollback están activos.
+- [ ] Checkout, pagos, stock y logística se han aceptado de extremo a extremo.
+- [ ] Se verificaron tarifas, zonas, métodos y datos comerciales.
+- [ ] QA responsive, accesibilidad y panel administrativo fue completado.
 
-### Fase 13 — Clientes y comunicación
-**Estado: integrada mediante PR #20 · CI verde · aceptación SMTP pendiente**
+## 9. Reglas de trabajo
 
-- Registro, inicio y cierre de sesión de clientes; recuperación y restablecimiento de contraseña mediante el broker de Laravel.
-- Las cuentas de clientes no acceden al panel Filament y las cuentas administrativas no reciben enlaces de recuperación desde el storefront.
-- Historial de pedidos y gestión de direcciones guardadas, incluida edición y selección predeterminada.
-- El checkout mantiene la compra como invitado y permite a clientes autenticados precargar/guardar direcciones.
-- Notificaciones de pedido recibido, pago aprobado/rechazado y cambios de estado hasta la entrega/cancelación.
-- Plantillas de correo editables y activables desde Filament.
-- Envíos mediante colas Laravel con tres intentos y backoff.
-- Registro de destinatarios, eventos, estados, intentos y errores; reintento manual desde Filament.
-- CI verde: 62 pruebas y 271 assertions, PHP 8.4/8.5, frontend y cachés de producción.
-- Pendiente operativo: configurar SMTP y worker activo en el entorno de despliegue, y ejecutar una prueba de aceptación de correo real.
-
-### Fase 14 — Operación logística
-**Estado: en desarrollo en `feature/fase-14-operacion-logistica` · PR #21 abierta como borrador**
-- Envío único por pedido con código de seguimiento.
-- Asignación de repartidor y contacto desde Filament; despacho controlado.
-- Registro auditable de intentos, incidencias y recepción confirmada.
-- Reintento de despacho tras un intento fallido.
-- Seguimiento privado para el cliente y notificación cuando no se completa una entrega.
-- La cobertura sigue limitada a Guantánamo y se conserva el compromiso de 24 horas; no se amplían zonas sin autorización y tarifas reales.
-
-### Fase 15 — Experiencia de compra y frontend
-**Prioridad: media**
-- Decidir el alcance de Livewire en la tienda pública e incorporarlo explícitamente si sigue siendo requisito.
-- Mejorar interacciones del catálogo, filtros, carrito y checkout.
-- Auditoría responsive en móviles/tablets/escritorio.
-- Accesibilidad: teclado, etiquetas, contraste y lectores de pantalla.
-- SEO técnico: metadatos, canonical, datos estructurados, sitemap y páginas indexables.
-- Optimización de imágenes y Core Web Vitals.
-
-### Fase 16 — Seguridad y preparación de producción
-**Prioridad: crítica antes del lanzamiento**
-- Auditoría de autenticación, autorización y roles de Filament.
-- Verificar acceso privado a comprobantes y documentos.
-- Revisar validación de archivos, límites de solicitudes, sesiones, CSRF y cabeceras.
-- Configurar HTTPS, secretos, correo, colas y cachés de producción.
-- Backups automáticos y prueba documentada de restauración.
-- Logs, monitoreo, alertas y procedimiento de respuesta a incidentes.
-- Pruebas de carga razonables y revisión de dependencias/vulnerabilidades.
-- Guía reproducible de despliegue y rollback.
-
-### Fase 17 — Integraciones externas
-**Prioridad: condicionada a decisiones comerciales**
-- Seleccionar proveedor de pagos antes de implementar una pasarela.
-- Webhooks firmados, idempotencia, reintentos y auditoría.
-- Conciliación de pagos.
-- Integraciones logísticas o de mensajería si se contratan.
-- No implementar integraciones basadas en proveedores no elegidos.
-
-## 7. Riesgos y decisiones que requieren confirmación
-
-1. **Monedas:** confirmar si USD, CUP y EUR deben estar disponibles simultáneamente en catálogo o si se seleccionará una moneda de operación por tienda. La implementación actual no convierte monedas.
-2. **Tarifa temporal:** 500 CUP es un valor provisional solicitado; debe aplicarse a cada zona real de Guantánamo y revisarse antes de aceptar pedidos.
-3. **Entrega 24 horas:** definir horario de corte, días laborables, fines de semana y tratamiento de pedidos recibidos fuera de horario. El plazo almacenado actualmente es un compromiso de 24 horas desde la creación del pedido, no un calendario comercial inteligente.
-4. **Zelle:** los datos ya fueron entregados, pero falta verificar que estén guardados correctamente y que el driver esté configurado.
-5. **Marca:** el logotipo adjunto no figura todavía como asset versionado en el repositorio inspeccionado; su optimización e integración son trabajo pendiente de la Fase 11.
-
-## 8. Criterio de preparación para producción
-
-No declarar la tienda lista hasta cumplir:
-- [ ] Configuración de marca y contacto verificada.
-- [ ] Tarifas reales o temporales autorizadas cargadas para cada zona activa.
-- [ ] Datos Zelle verificados y método habilitado conscientemente.
-- [ ] Compra completa probada para cada método/moneda activa.
-- [ ] Cancelación, reservas, liberación y entrega verificadas.
-- [ ] Autorización del panel y privacidad de comprobantes revisadas.
-- [ ] HTTPS, secretos, backups y restauración probados.
-- [ ] Responsive, accesibilidad y navegadores objetivo revisados.
-- [ ] Políticas publicadas y canal de soporte operativo definido.
-- [ ] Monitoreo y procedimiento de recuperación disponibles.
-
-## 9. Regla de trabajo del repositorio
-
-Cada fase se trabaja en una rama independiente. Antes de implementar se revisa el estado del repositorio y CI; después se ejecutan pruebas y se abre PR. No se integra a `main` sin aprobación explícita del responsable.
+Cada nueva fase se desarrolla en una rama independiente. Antes de implementar, revisar `main`, CI y documentación; después ejecutar pruebas, auditorías y build. Abrir PR con alcance, riesgos y resultados. **No integrar en `main` sin aprobación explícita.**

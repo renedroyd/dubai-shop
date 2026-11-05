@@ -1,6 +1,23 @@
-# Dubai Shop — Modelo de dominio propuesto
+# Dubai Shop — Modelo de dominio y estado de implementación
 
-Este documento define el mapa lógico de la aplicación. El catálogo base (categorías, marcas, productos, imágenes y variantes) ya cuenta con migraciones y modelos en la Fase 3. Los demás contextos se implementarán junto con sus casos de uso para evitar esquemas especulativos difíciles de evolucionar.
+Este documento describe el modelo lógico de referencia y distingue entidades existentes de capacidades conceptuales o futuras. No debe interpretarse cada tabla o relación propuesta como una migración ya creada. El catálogo (categorías, marcas, productos, imágenes y variantes), pedidos, inventario, pagos, clientes, direcciones, envíos, contenido y notificaciones tienen implementación funcional integrada. Las reglas de promociones/cupones y reseñas permanecen pendientes; los detalles exactos deben confirmarse en migraciones y modelos antes de modificar el esquema.
+
+## Estado por contexto
+
+| Contexto | Estado actual |
+|---|---|
+| Catálogo | Implementado; incluye categorías, marcas, productos, variantes e imágenes. Importación XLSX/CSV de categorías, marcas y productos; no importa imágenes ni variantes. |
+| Inventario | Implementado con disponibilidad, reservas, movimientos y cumplimiento transaccional. |
+| Clientes/direcciones | Implementado; mantiene checkout de invitado. |
+| Carrito/checkout/pedidos | Implementado para invitado y cliente, con snapshots históricos. |
+| Pagos | Drivers manuales Zelle y efectivo; auditoría de transiciones y comprobantes privados. No hay pasarela externa. |
+| Envíos/logística | Tarifas y operación de tracking, repartidores e intentos de entrega integrados. |
+| CMS/configuración | Banners, páginas, menús y configuración administrable integrados. |
+| Notificaciones | Plantillas, eventos, colas, registro y reintentos integrados; SMTP/worker requieren configuración operativa. |
+| Promociones/cupones | No implementados como motor de descuentos; requieren definición comercial. |
+| Reseñas | No implementadas como sistema de valoraciones; no mostrar ratings ficticios. |
+
+Las secciones siguientes sirven como mapa de datos y reglas para evolución. Antes de crear o alterar tablas, inspeccionar migraciones, modelos, factories y pruebas vigentes para evitar duplicar estructuras existentes.
 
 ## Catálogo
 - **categories:** nombre, slug único, descripción, imagen, categoría padre nullable, estado y orden.

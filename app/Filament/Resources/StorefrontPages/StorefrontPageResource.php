@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\StorefrontPages;
 
 use App\Models\StorefrontPage;
+use App\Filament\Support\SlugField;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -32,8 +33,8 @@ class StorefrontPageResource extends Resource
     {
         return $schema->components([
             Section::make(__('Página'))->columns(2)->schema([
-                TextInput::make('title')->label(__('Título'))->required()->maxLength(255),
-                TextInput::make('slug')->label(__('URL (slug)'))->required()->unique(ignoreRecord: true)->alphaDash()->maxLength(255),
+                SlugField::name(field: 'title', slugField: 'slug', label: __('Título')),
+                SlugField::slug(label: __('URL (slug)')),
                 Textarea::make('content')->label(__('Contenido'))->rows(16)->required()->columnSpanFull()
                     ->helperText(__('Se muestra como texto plano con saltos de línea; no se permite HTML arbitrario.')),
             ]),

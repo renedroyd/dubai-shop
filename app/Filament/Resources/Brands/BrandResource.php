@@ -35,8 +35,8 @@ class BrandResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            SlugField::name(label: __('Nombre')), 
-            SlugField::slug(label: __('Slug')), 
+            SlugField::name(label: __('Nombre')),
+            SlugField::slug(label: __('Slug')),
             Textarea::make('description')->label(__('Descripción'))->rows(3),
             FileUpload::make('logo_path')->label(__('Logo'))->image()->disk('public')->directory('brands'),
             Toggle::make('is_active')->label(__('Activa'))->default(true),

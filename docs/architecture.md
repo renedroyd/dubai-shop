@@ -1,77 +1,107 @@
 # Dubai Shop — Arquitectura técnica
 
-## Objetivo
-Construir una tienda online monolítica modular sobre Laravel 13, Livewire y Filament 5. La tienda pública y el panel administrativo comparten modelos y casos de uso, pero mantienen capas de presentación independientes.
+## Objetivo y estado
+
+Aplicación de comercio electrónico monolítica modular sobre Laravel 13. La tienda pública utiliza Blade y controladores Laravel; Filament 5 proporciona el panel administrativo y utiliza Livewire internamente. Tailwind CSS 4 y Vite 8 gestionan los assets.
+
+La arquitectura debe evolucionar por dominios y casos de uso reales. No introducir microservicios ni capas vacías sin una necesidad concreta.
 
 ## Principios
-1. **Una sola fuente de verdad:** los datos comerciales se persisten en modelos Eloquent y se administran desde Filament.
-2. **Monolito modular:** separar dominios por responsabilidad sin introducir microservicios prematuramente.
-3. **Lógica fuera de la interfaz:** componentes Livewire y recursos Filament representan y validan; acciones y servicios ejecutan reglas de negocio.
-4. **Dinero exacto:** importes persistidos como enteros en unidades menores y código ISO de moneda; nunca usar float para cálculos monetarios.
-5. **Pedidos históricos inmutables:** cada línea conserva nombre, SKU, precio, cantidad e impuestos al momento de compra.
-6. **Seguridad por defecto:** Policies, validación en servidor, CSRF y secretos únicamente en entorno.
-7. **Configuración administrable:** contenido, navegación, identidad visual y opciones comerciales editables desde Filament, con valores por defecto versionados.
-8. **Pruebas por dominio:** cubrir reglas críticas con pruebas unitarias y flujos HTTP/Livewire con pruebas de integración.
 
-## Capas
-- app/Domain/<Context>/: reglas, enums, value objects y contratos cuando la complejidad lo justifique.
-- app/Actions/<Context>/: operaciones de negocio explícitas.
-- app/Services/<Context>/: coordinadores e integraciones entre componentes.
-- app/Models/: persistencia Eloquent y relaciones.
-- app/Policies/: autorización.
-- app/Livewire/: interfaz pública reactiva.
-- app/Filament/: administración.
-- resources/views/: layouts, componentes Blade y vistas.
-- config/: configuración técnica; las opciones editables de tienda viven en base de datos.
+1. **Una sola fuente de verdad:** datos comerciales en Eloquent y administrados desde Filament o flujos públicos autorizados.
+2. **Monolito modular:** separar responsabilidades por dominio sin complejidad distribuida prematura.
+3. **Lógica fuera de la interfaz:** controladores, vistas y recursos Filament coordinan; acciones/servicios aplican reglas de negocio.
+4. **Dinero exacto:** importes en unidades menores (enteros) y moneda ISO; no usar `float` para cálculos monetarios.
+5. **Pedidos históricos:** conservar snapshots de nombre, SKU, precio, cantidad, moneda, dirección y datos relevantes al momento de compra.
+6. **Seguridad por defecto:** autorización en servidor, validación, CSRF, sesiones seguras y secretos fuera del repositorio.
+7. **Configuración administrable:** contenido y opciones comerciales configurables desde Filament, con valores por defecto versionados.
+8. **Pruebas por dominio:** pruebas unitarias para reglas y pruebas de integración para HTTP, autenticación, Filament y checkout.
+9. **Idempotencia y auditoría:** pagos, inventario, notificaciones y operaciones logísticas deben tolerar reintentos sin duplicar efectos.
 
-No crear carpetas vacías como arquitectura ornamental: incorporar cada módulo al implementar su primer caso de uso.
+## Stack verificado
+
+| Componente | Tecnología |
+|---|---|
+| Runtime | PHP 8.4+; CI en PHP 8.4 y 8.5 |
+| Framework | Laravel 13 |
+| Administración | Filament 5 |
+| Escaparate | Blade + controladores Laravel |
+| Reactividad del panel | Livewire integrado en Filament |
+| CSS | Tailwind CSS 4 |
+| Build | Vite 8 |
+| Persistencia | Eloquent + migraciones |
+| Calidad | GitHub Actions, PHPUnit/Pest según configuración, Composer Audit y npm audit |
+
+No asumir que Livewire es una dependencia directa del escaparate. La tienda pública se implementa actualmente con Blade, controladores y JavaScript progresivo.
+
+## Capas y responsabilidades
+
+- `app/Models/`: persistencia Eloquent, relaciones y casts.
+- `app/Actions/` y `app/Services/`: operaciones de negocio y coordinación entre dominios, cuando la complejidad lo justifica.
+- `app/Policies/` y autorización de panel: permisos y acceso.
+- `app/Filament/`: recursos, páginas, widgets y acciones administrativas.
+- `app/Http/`: rutas, middleware, controladores y validación HTTP.
+- `resources/views/`: layouts, componentes Blade y vistas públicas.
+- `resources/css/` y `resources/js/`: estilos y comportamiento progresivo.
+- `config/`: configuración técnica versionada; secretos y valores de entorno no deben codificarse.
+- `database/migrations`, `seeders` y `factories`: evolución y datos reproducibles.
+
+No crear carpetas vacías como arquitectura ornamental: introducir cada módulo al implementar su primer caso de uso.
 
 ## Contextos funcionales
 
-| Contexto | Responsabilidad |
-| --- | --- |
-| Catalog | Productos, categorías, marcas, variantes, imágenes y atributos |
-| Inventory | Existencias, almacenes opcionales y movimientos auditables |
-| Customers | Perfil, direcciones y datos de contacto |
-| Cart | Carrito persistente para invitado y cliente autenticado |
-| Checkout | Validación de disponibilidad, dirección, envío, impuestos y creación transaccional del pedido |
-| Orders | Ciclo de vida, estados, líneas históricas y cancelaciones |
-| Payments | Intentos, transacciones, referencias externas y conciliación |
-| Shipping | Métodos, tarifas, etiquetas y seguimiento |
-| Promotions | Cupones, reglas de descuento y vigencia |
-| Content | Banners, páginas, menús y bloques de inicio |
-| StoreSettings | Identidad, moneda, contacto, redes, SEO y opciones de visualización |
-| Reviews | Valoraciones moderadas asociadas a productos y clientes |
+| Contexto | Responsabilidad y estado |
+|---|---|
+| Catalog | Categorías, marcas, productos, variantes, imágenes, importación XLSX/CSV |
+| Inventory | Existencias, reservas, movimientos y disponibilidad |
+| Customers | Cuentas, perfiles y direcciones guardadas |
+| Cart | Carrito de invitado y cliente |
+| Checkout | Validación de precios, stock, envío y creación del pedido |
+| Orders | Estados, snapshots, cancelación y consulta privada |
+| Payments | Drivers manuales, comprobantes privados, auditoría de transiciones |
+| Shipping | Tarifas, zonas, envíos y tracking |
+| Promotions | Banners y campañas CMS; cupones/descuentos automáticos aún no definidos |
+| Content | Banners, páginas y menús |
+| StoreSettings | Identidad, idioma, moneda, contacto y opciones de tienda |
+| Notifications | Plantillas, eventos, colas, registro y reintentos |
+| Localization | Español e inglés iniciales; registro extensible de locales |
 
-## Dependencias
-- PHP ^8.3
-- Laravel ^13.17
-- Filament ^5.0
-- Livewire: incorporar como dependencia directa al iniciar la interfaz reactiva; comprobar versión compatible con Laravel 13 antes de fijarla.
-- Tailwind CSS ^4 y Vite ^8 ya forman parte de la base frontend.
+El modelo de reseñas/valoraciones y las promociones con cupones no deben presentarse como funcionalidades terminadas hasta que exista implementación y aceptación específica.
 
 ## Reglas transversales
-- Checkout y actualización de inventario deben ejecutarse en transacciones.
-- Prevenir sobreventa mediante bloqueos de fila o actualizaciones condicionales atómicas.
-- Nunca confiar en precios, descuentos, totales ni permisos enviados por el navegador.
-- Las pasarelas se integrarán detrás de contratos/adaptadores; no acoplar el pedido a un proveedor.
-- Los webhooks deben verificar firma, ser idempotentes y registrar identificadores externos.
-- Los cambios de estado de pedido y pago deben quedar auditables.
-- Las imágenes deben almacenarse mediante Laravel Filesystem.
 
-## Convenciones
-- Clases y métodos en inglés siguiendo convenciones Laravel.
-- Etiquetas y textos de interfaz en español, preparados para traducción.
-- Migraciones pequeñas y reversibles.
-- Enums PHP para estados cerrados; tablas para catálogos administrables.
-- Evitar paquetes adicionales si Laravel, Livewire o Filament ya resuelven la necesidad.
+- Checkout, reserva/liberación de inventario y transiciones críticas deben usar transacciones y bloqueo/actualización atómica cuando corresponda.
+- Nunca confiar en precios, descuentos, totales, stock o permisos enviados por el navegador.
+- Las líneas de pedido conservan snapshots y no dependen de que el producto siga existiendo.
+- Los pagos deben registrar transiciones auditables; integraciones futuras deben verificar firma, ser idempotentes y no almacenar datos de tarjeta.
+- Los comprobantes de pago permanecen en almacenamiento privado y detrás de autorización.
+- Las notificaciones se despachan después del commit y se procesan mediante una cola supervisada.
+- Las imágenes se almacenan mediante Laravel Filesystem; el disco público no debe utilizarse para archivos privados.
+- Las operaciones logísticas y de inventario deben ser idempotentes ante reintentos.
+- Los proxies inversos solo se consideran confiables cuando están configurados explícitamente. El comodín `TRUSTED_PROXIES=*` se reserva exclusivamente al entorno local.
 
-## Entrega por fases
-1. Arquitectura, documentación, CI y modelo de dominio acordado.
-2. Sistema visual, layout público y componentes base.
-3. Catálogo y administración de productos.
-4. Carrito, checkout, pedidos, pagos, envíos e inventario.
-5. Administración, métricas, permisos y operaciones.
-6. Editor de contenido y personalización de la tienda.
-7. SEO, notificaciones e integraciones.
-8. Pruebas integrales, accesibilidad, rendimiento y preparación de producción.
+## Decisiones comerciales actualmente reflejadas
+
+- Identidad pública: Clásico Dubai.
+- Monedas admitidas por el modelo actual: USD, CUP y EUR; no se convierten ni se mezclan dentro de un pedido.
+- Zelle manual restringido a USD.
+- Efectivo contra entrega sujeto a configuración operativa.
+- Cobertura logística inicial: provincia de Guantánamo.
+- Compromiso de entrega configurado: 24 horas.
+- No ampliar zonas, tarifas o métodos de pago sin decisión comercial y validación.
+
+Los importes, destinatarios, tarifas, credenciales y contactos reales deben verificarse en el entorno; no incluir datos personales ni secretos en esta documentación.
+
+## Seguridad y producción
+
+La configuración de proxies, cabeceras, HSTS condicional a HTTPS, rate limits, validación de archivos, auditorías de dependencias y el comando `php artisan app:production-readiness` forman parte de la base integrada. La política CSP permanece aplazada hasta definir una configuración compatible con Filament/Livewire y probarla.
+
+La documentación operativa vigente es [Preparación para producción](production-readiness.md). CI no verifica la configuración real del dominio, certificado, SMTP, workers, backups, restauración ni monitoreo.
+
+## Internacionalización
+
+Español e inglés son los idiomas iniciales. El registro de locales permite añadir idiomas posteriores mediante configuración y catálogos de traducción. El contenido comercial escrito por administradores (nombres/descripciones de productos, páginas y banners) no se traduce automáticamente.
+
+## Proceso de entrega
+
+Cada cambio se desarrolla en una rama independiente. Revisar `main`, CI y documentación antes de implementar; añadir pruebas; ejecutar suite, auditorías y build; abrir PR. No integrar a `main` sin aprobación explícita.

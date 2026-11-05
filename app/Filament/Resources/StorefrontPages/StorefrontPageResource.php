@@ -33,8 +33,8 @@ class StorefrontPageResource extends Resource
     {
         return $schema->components([
             Section::make(__('Página'))->columns(2)->schema([
-                SlugField::name(field: 'title', slugField: 'slug', label: __('Título')), 
-                SlugField::slug(label: __('URL (slug)')), 
+                SlugField::name(field: 'title', slugField: 'slug', label: __('Título')),
+                SlugField::slug(label: __('URL (slug)')),
                 Textarea::make('content')->label(__('Contenido'))->rows(16)->required()->columnSpanFull()
                     ->helperText(__('Se muestra como texto plano con saltos de línea; no se permite HTML arbitrario.')),
             ]),

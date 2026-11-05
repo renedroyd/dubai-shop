@@ -6,6 +6,7 @@ use App\Filament\Resources\Products\Pages\CreateProduct;
 use App\Filament\Resources\Products\Pages\EditProduct;
 use App\Filament\Resources\Products\Pages\ListProducts;
 use App\Models\Product;
+use App\Filament\Support\SlugField;
 use App\Filament\Actions\CatalogImportActions;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -42,8 +43,8 @@ class ProductResource extends Resource
     {
         return $schema->components([
             Section::make(__('Información del producto'))->columns(2)->schema([
-                TextInput::make('name')->label(__('Nombre'))->required()->maxLength(255),
-                TextInput::make('slug')->label(__('Slug'))->required()->maxLength(255)->unique(ignoreRecord: true),
+                SlugField::name(label: __('Nombre')),
+                SlugField::slug(label: __('Slug')),
                 TextInput::make('sku')->label(__('SKU'))->required()->maxLength(100)->unique(ignoreRecord: true),
                 Select::make('category_id')->label(__('Categoría'))->relationship('category', 'name')->searchable()->preload(),
                 Select::make('brand_id')->label(__('Marca'))->relationship('brand', 'name')->searchable()->preload(),

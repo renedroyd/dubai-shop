@@ -6,6 +6,7 @@ use App\Filament\Resources\Categories\Pages\CreateCategory;
 use App\Filament\Resources\Categories\Pages\EditCategory;
 use App\Filament\Resources\Categories\Pages\ListCategories;
 use App\Models\Category;
+use App\Filament\Support\SlugField;
 use App\Filament\Actions\CatalogImportActions;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -35,8 +36,8 @@ class CategoryResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            TextInput::make('name')->label(__('Nombre'))->required()->maxLength(255),
-            TextInput::make('slug')->label(__('Slug'))->required()->maxLength(255)->unique(ignoreRecord: true),
+            SlugField::name(label: __('Nombre')),
+            SlugField::slug(label: __('Slug')),
             Select::make('parent_id')->label(__('Categoría superior'))->relationship('parent', 'name')->searchable()->preload()->nullable(),
             Textarea::make('description')->label(__('Descripción'))->rows(3),
             FileUpload::make('image_path')->label(__('Imagen'))->image()->maxSize(5120)->disk('public')->directory('categories'),

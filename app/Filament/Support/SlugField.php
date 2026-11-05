@@ -1,11 +1,11 @@
 <?php
 
-namespace App\\Filament\\Support;
+namespace App\Filament\Support;
 
-use Filament\\Forms\\Components\\TextInput;
-use Filament\\Schemas\\Components\\Utilities\\Get;
-use Filament\\Schemas\\Components\\Utilities\\Set;
-use Illuminate\\Support\\Str;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+use Illuminate\Support\Str;
 
 final class SlugField
 {
@@ -20,9 +20,7 @@ final class SlugField
             ->maxLength(255)
             ->live(debounce: 500)
             ->afterStateUpdated(function (?string $state, ?string $old, Get $get, Set $set) use ($slugField): void {
-                $currentSlug = $get($slugField);
-
-                if (blank($currentSlug) || $currentSlug === self::from($old)) {
+                if (self::shouldSync($get($slugField), $old)) {
                     $set($slugField, self::from($state));
                 }
             });

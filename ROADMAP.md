@@ -142,7 +142,7 @@ Objetivo: implementar promociones reales sin introducir ambigüedades contables.
 
 ## POS y multi almacén — entregas independientes
 
-<badge color="success">POS-1 y POS-2 integrados</badge> <badge color="info">POS-3 en desarrollo</badge>
+<badge color="success">POS-1, POS-2 y POS-3 integrados</badge> <badge color="info">POS-4 en desarrollo</badge>
 
 El POS funcionará siempre conectado al servidor. No se desarrollará modo offline. Decisiones aprobadas: ubicaciones internas flexibles (área/pasillo/estantería/posición), existencias independientes por almacén y aprobación configurable de transferencias.
 

@@ -24,7 +24,10 @@ class AdminDashboardTest extends TestCase
     {
         $this->withoutVite();
 
-        $this->actingAs(User::factory()->create(['is_admin' => true]))
+        $admin = User::factory()->create(['is_admin' => true, 'admin_access_enabled' => true]);
+        $admin->roles()->attach(AdminRole::query()->where('slug', 'superadmin')->firstOrFail());
+
+        $this->actingAs($admin)
             ->get('/admin')
             ->assertOk();
 

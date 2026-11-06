@@ -53,6 +53,34 @@ class AdminAccessTest extends TestCase
     }
 
 
+
+    public function test_panel_user_without_product_permission_cannot_open_product_resource(): void
+    {
+        $user = User::factory()->create(['admin_access_enabled' => true]);
+        $role = AdminRole::query()->create([
+            'name' => 'Solo panel',
+            'slug' => 'panel-only',
+            'permissions' => ['panel.access'],
+        ]);
+        $user->roles()->attach($role);
+
+        $this->actingAs($user)->get('/admin/products')->assertForbidden();
+    }
+
+    public function test_product_read_permission_does_not_grant_create_access(): void
+    {
+        $user = User::factory()->create(['admin_access_enabled' => true]);
+        $role = AdminRole::query()->create([
+            'name' => 'Consulta de productos',
+            'slug' => 'product-read-only',
+            'permissions' => ['panel.access', 'products.view'],
+        ]);
+        $user->roles()->attach($role);
+
+        $this->actingAs($user)->get('/admin/products')->assertOk();
+        $this->actingAs($user)->get('/admin/products/create')->assertForbidden();
+    }
+
     public function test_superadministrator_cannot_modify_the_emergency_role_or_account(): void
     {
         $admin = User::factory()->create(['admin_access_enabled' => true]);

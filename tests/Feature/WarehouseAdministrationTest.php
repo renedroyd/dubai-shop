@@ -12,7 +12,7 @@ class WarehouseAdministrationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_default_warehouse_is_protected_from_deactivation_and_deletion_by_resource_configuration(): void
+    public function test_primary_warehouse_is_seeded_as_active(): void
     {
         $warehouse = Warehouse::primary();
 

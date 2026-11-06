@@ -80,7 +80,7 @@ class InventoryLocationService
 
         DB::transaction(function () use ($inventory, $from, $to, $quantity, $userId, $reason): void {
             $inventory = Inventory::query()->whereKey($inventory->id)->lockForUpdate()->firstOrFail();
-            $this->assertLocationBelongsToInventory($from, $inventory);
+            $this->assertLocationBelongsToInventory($from, $inventory, allowUnassigned: true);
             $this->assertLocationBelongsToInventory($to, $inventory);
 
             $source = $this->balanceFor($inventory, $from);
@@ -128,7 +128,7 @@ class InventoryLocationService
         ];
     }
 
-    private function assertLocationBelongsToInventory(WarehouseLocation $location, Inventory $inventory): void
+    private function assertLocationBelongsToInventory(WarehouseLocation $location, Inventory $inventory, bool $allowUnassigned = false): void
     {
         if ((int) $location->warehouse_id !== (int) $inventory->warehouse_id) {
             throw ValidationException::withMessages([
@@ -136,7 +136,7 @@ class InventoryLocationService
             ]);
         }
 
-        if (! $location->is_active || $location->type === WarehouseLocation::TYPE_UNASSIGNED) {
+        if (! $location->is_active || (! $allowUnassigned && $location->type === WarehouseLocation::TYPE_UNASSIGNED)) {
             throw ValidationException::withMessages([
                 'warehouse_location_id' => __('Selecciona una ubicación física activa.'),
             ]);

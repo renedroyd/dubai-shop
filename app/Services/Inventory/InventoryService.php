@@ -4,9 +4,11 @@ namespace App\Services\Inventory;
 
 use App\Models\Inventory;
 use App\Models\InventoryMovement;
+use App\Models\InventoryLocationBalance;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Warehouse;
+use App\Models\WarehouseLocation;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 

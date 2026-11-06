@@ -8,10 +8,10 @@ El panel Filament usa control de acceso basado en roles (RBAC). Una cuenta de cl
 
 En `/admin`, el Superadministrador dispone del grupo **Seguridad**:
 
-- **Acceso de usuarios:** habilitar o revocar el acceso al panel y asignar uno o varios roles a cada cuenta existente.
+- **Acceso de usuarios:** habilitar o revocar el acceso al panel, asignar uno o varios roles y definir permisos individuales para cada cuenta.
 - **Roles y permisos:** crear roles, describirlos y seleccionar los permisos que conceden.
 
-Los permisos se combinan entre los roles asignados. No hay permisos individuales que puedan contradecir silenciosamente un rol; para una excepción puntual, crea un rol específico y asígnalo al usuario.
+Los permisos se combinan entre los roles asignados. Además, el Superadministrador puede agregar excepciones individuales para conceder o denegar permisos concretos; una excepción individual prevalece sobre los roles. La cuenta Superadministrador conserva siempre sus privilegios de emergencia.
 
 La gestión de usuarios y roles está reservada al Superadministrador. Las cuentas Superadministrador y el rol de emergencia no se pueden editar ni eliminar desde la interfaz. La cuenta Superadministrador tampoco puede deshabilitarse desde el formulario de gestión.
 

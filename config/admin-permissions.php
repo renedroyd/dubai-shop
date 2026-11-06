@@ -4,6 +4,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Inventory;
 use App\Models\InventoryMovement;
+use App\Models\InventoryLocationBalance;
 use App\Models\NotificationLog;
 use App\Models\NotificationTemplate;
 use App\Models\Order;

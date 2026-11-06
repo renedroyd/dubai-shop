@@ -40,6 +40,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->roles()->where('slug', 'superadmin')->exists();
     }
 
+    public function canManageAdminAccess(): bool
+    {
+        return (bool) $this->admin_access_enabled && $this->isSuperAdmin();
+    }
+
     public function hasAdminPermission(string $permission): bool
     {
         if (! $this->admin_access_enabled) {

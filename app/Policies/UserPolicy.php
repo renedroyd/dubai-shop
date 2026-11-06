@@ -8,22 +8,22 @@ class UserPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->isSuperAdmin();
+        return $user->canManageAdminAccess();
     }
 
     public function view(User $user, User $record): bool
     {
-        return $user->isSuperAdmin();
+        return $user->canManageAdminAccess();
     }
 
     public function create(User $user): bool
     {
-        return $user->isSuperAdmin();
+        return $user->canManageAdminAccess();
     }
 
     public function update(User $user, User $record): bool
     {
-        return $user->isSuperAdmin() && ! $record->isSuperAdmin();
+        return $user->canManageAdminAccess() && ! $record->isSuperAdmin();
     }
 
     public function delete(User $user, User $record): bool

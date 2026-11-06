@@ -52,6 +52,18 @@ class AdminAccessTest extends TestCase
         $this->assertFalse(Gate::forUser($user)->allows('update', Product::class));
     }
 
+
+    public function test_superadministrator_cannot_modify_the_emergency_role_or_account(): void
+    {
+        $admin = User::factory()->create(['admin_access_enabled' => true]);
+        $superadminRole = AdminRole::query()->where('slug', 'superadmin')->firstOrFail();
+        $admin->roles()->attach($superadminRole);
+
+        $this->assertFalse(Gate::forUser($admin)->allows('update', $superadminRole));
+        $this->assertFalse(Gate::forUser($admin)->allows('update', $admin));
+        $this->assertFalse(Gate::forUser($admin)->allows('delete', $admin));
+    }
+
     public function test_user_without_panel_access_permission_is_denied(): void
     {
         $user = User::factory()->create(['admin_access_enabled' => true]);

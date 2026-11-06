@@ -1,6 +1,6 @@
 # Multi almacén y POS — arquitectura y alcance
 
-**Estado:** POS-1 en implementación. Este documento describe decisiones aprobadas y separa explícitamente lo integrado de lo planificado.
+**Estado:** POS-1 integrado; POS-2 en implementación. Este documento describe decisiones aprobadas y separa explícitamente lo integrado de lo planificado.
 
 ## Decisiones aprobadas
 
@@ -27,7 +27,6 @@
 
 ### No incluido todavía
 
-- Administración visual de almacenes y ubicaciones en Filament.
 - Saldos por ubicación física y asignación de unidades a posiciones.
 - Transferencias, aprobaciones, despacho, tránsito y recepción.
 - Reglas de abastecimiento de tienda online.
@@ -60,7 +59,7 @@ La tienda pública conserva temporalmente el comportamiento anterior: carrito, c
 
 ## Secuencia posterior
 
-1. POS-2: administración de almacenes y árbol de ubicaciones.
+1. POS-2: administración de almacenes y árbol de ubicaciones en Filament (en implementación).
 2. POS-3: saldos por ubicación, ajustes, movimientos y conciliación.
 3. POS-4: transferencias y reglas configurables de aprobación.
 4. POS-5: abastecimiento de tienda online.

@@ -44,6 +44,7 @@ class AdminRoleResource extends Resource
                 ->columns(2)
                 ->searchable()
                 ->bulkToggleable()
+                ->default([])
                 ->columnSpanFull(),
         ]);
     }

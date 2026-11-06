@@ -28,7 +28,7 @@ class AdminUserResource extends Resource
 
     public static function canViewAny(): bool { return auth()->user()?->canManageAdminAccess() ?? false; }
     public static function canCreate(): bool { return auth()->user()?->canManageAdminAccess() ?? false; }
-    public static function canEdit(Model $record): bool { return (auth()->user()?->canManageAdminAccess() ?? false) && ! $record->canManageAdminAccess(); }
+    public static function canEdit(Model $record): bool { return (auth()->user()?->canManageAdminAccess() ?? false) && ! $record->isSuperAdmin(); }
     public static function canDelete(Model $record): bool { return false; }
 
     public static function form(Schema $schema): Schema
@@ -40,7 +40,7 @@ class AdminUserResource extends Resource
             Toggle::make('admin_access_enabled')
                 ->label(__('Puede acceder al panel administrativo'))
                 ->default(false)
-                ->disabled(fn (?User $record): bool => $record?->canManageAdminAccess() ?? false),
+                ->disabled(fn (?User $record): bool => $record?->isSuperAdmin() ?? false),
             Select::make('roles')
                 ->label(__('Roles'))
                 ->relationship('roles', 'name')

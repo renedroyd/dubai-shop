@@ -37,6 +37,8 @@ return [
         StorefrontSetting::class => 'store_settings',
         User::class => 'admin_users',
         AdminRole::class => 'admin_roles',
+        Warehouse::class => 'warehouses',
+        WarehouseLocation::class => 'warehouse_locations',
     ],
 
     'permissions' => [
@@ -65,6 +67,14 @@ return [
         'inventories.view' => 'Consultar existencias',
         'inventories.update' => 'Ajustar existencias',
         'inventory_movements.view' => 'Consultar movimientos de inventario',
+        'warehouses.view' => 'Consultar almacenes',
+        'warehouses.create' => 'Crear almacenes',
+        'warehouses.update' => 'Modificar almacenes',
+        'warehouses.delete' => 'Eliminar almacenes',
+        'warehouse_locations.view' => 'Consultar ubicaciones de almacén',
+        'warehouse_locations.create' => 'Crear ubicaciones',
+        'warehouse_locations.update' => 'Modificar ubicaciones',
+        'warehouse_locations.delete' => 'Eliminar ubicaciones',
         'orders.view' => 'Consultar pedidos',
         'orders.update' => 'Gestionar pedidos y entregas',
         'payments.view' => 'Consultar pagos y comprobantes',

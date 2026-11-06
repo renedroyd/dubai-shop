@@ -23,7 +23,7 @@ class ProductVariant extends Model
 
     public function inventory(): HasOne
     {
-        return $this->hasOne(Inventory::class, 'product_variant_id');
+        return $this->hasOne(Inventory::class, 'product_variant_id')->whereHas('warehouse', fn ($query) => $query->where('is_primary', true));
     }
 
     public function inventories(): HasMany

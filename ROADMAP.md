@@ -15,7 +15,7 @@ La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente
 | Experiencia pública y panel premium | Integrados; QA visual final pendiente | Media |
 | Importación Excel/CSV | Integrada; imágenes/variantes excluidas | Media |
 | Seguridad, RBAC y preflight | Integrados en esta entrega; configuración externa pendiente | Crítica |
-| POS y multi almacén | POS-1 integrado; POS-2 en desarrollo; sin ventas POS habilitadas | Alta |
+| POS y multi almacén | POS-1 y POS-2 integrados; POS-3 en desarrollo; sin ventas POS habilitadas | Alta |
 | Asistente de prompts IA para banners | Integrado, flujo manual gratuito | Media |
 | Lanzamiento de producción | No aceptado aún | Crítica |
 
@@ -142,7 +142,7 @@ Objetivo: implementar promociones reales sin introducir ambigüedades contables.
 
 ## POS y multi almacén — entregas independientes
 
-<badge color="success">POS-1 integrado</badge> <badge color="info">POS-2 en desarrollo</badge>
+<badge color="success">POS-1 y POS-2 integrados</badge> <badge color="info">POS-3 en desarrollo</badge>
 
 El POS funcionará siempre conectado al servidor. No se desarrollará modo offline. Decisiones aprobadas: ubicaciones internas flexibles (área/pasillo/estantería/posición), existencias independientes por almacén y aprobación configurable de transferencias.
 

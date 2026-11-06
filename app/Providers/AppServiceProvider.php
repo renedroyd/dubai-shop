@@ -84,7 +84,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(StorefrontSetting::class, StorefrontSettingPolicy::class);
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Warehouse::class, WarehousePolicy::class);
-        Gate::policy(WarehouseLocation::class, WarehouseLocationPolicy::class);
+        Gate::policy(WarehouseLocation::class, WarehouseLocationPolicy::class);\n        Gate::policy(WarehouseTransfer::class, WarehouseTransferPolicy::class);\n        Gate::policy(WarehouseTransferRule::class, WarehouseTransferRulePolicy::class);
 
         Gate::before(function (?User $user, string $ability, array $arguments): ?bool {
             if (! $user || ! $user->admin_access_enabled) {

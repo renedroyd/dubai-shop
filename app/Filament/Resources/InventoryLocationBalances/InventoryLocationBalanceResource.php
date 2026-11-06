@@ -62,6 +62,7 @@ class InventoryLocationBalanceResource extends Resource
         ])->defaultSort('updated_at', 'desc')->recordActions([
             Action::make('adjust')->label(__('Ajustar en ubicación'))->icon('heroicon-o-adjustments-horizontal')
                 ->authorize('update')
+                ->visible(fn (InventoryLocationBalance $record): bool => $record->location->type !== WarehouseLocation::TYPE_UNASSIGNED)
                 ->schema([
                     TextInput::make('quantity')->label(__('Nueva existencia en esta ubicación'))->numeric()->integer()->minValue(0)->required(),
                     Textarea::make('reason')->label(__('Motivo'))->required()->maxLength(500),

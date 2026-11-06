@@ -22,6 +22,16 @@ class InventoryMovement extends Model
         return $this->belongsTo(Inventory::class);
     }
 
+    public function fromLocation(): BelongsTo
+    {
+        return $this->belongsTo(WarehouseLocation::class, 'from_location_id');
+    }
+
+    public function toLocation(): BelongsTo
+    {
+        return $this->belongsTo(WarehouseLocation::class, 'to_location_id');
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

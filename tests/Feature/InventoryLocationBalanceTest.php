@@ -65,7 +65,7 @@ class InventoryLocationBalanceTest extends TestCase
         $unassigned = $warehouse->locations()->where('type', WarehouseLocation::TYPE_UNASSIGNED)->firstOrFail();
         $bin = $this->physicalLocation($warehouse, 'A-01');
 
-        app(InventoryLocationService::class)->transfer($inventory, $unassigned, $bin, 9, 1, 'Ubicación física inicial');
+        app(InventoryLocationService::class)->transfer($inventory, $unassigned, $bin, 9, null, 'Ubicación física inicial');
 
         $this->assertSame(14, $inventory->fresh()->quantity_on_hand);
         $this->assertSame(5, $unassigned->inventoryBalances()->where('inventory_id', $inventory->id)->value('quantity_on_hand'));
@@ -87,9 +87,9 @@ class InventoryLocationBalanceTest extends TestCase
         $warehouse = Warehouse::query()->findOrFail($inventory->warehouse_id);
         $unassigned = $warehouse->locations()->where('type', WarehouseLocation::TYPE_UNASSIGNED)->firstOrFail();
         $bin = $this->physicalLocation($warehouse, 'B-01');
-        app(InventoryLocationService::class)->transfer($inventory, $unassigned, $bin, 10, 1, 'Asignación física');
+        app(InventoryLocationService::class)->transfer($inventory, $unassigned, $bin, 10, null, 'Asignación física');
 
-        app(InventoryLocationService::class)->adjust($inventory, $bin, 12, 1, 'Conteo físico');
+        app(InventoryLocationService::class)->adjust($inventory, $bin, 12, null, 'Conteo físico');
 
         $this->assertSame(12, $inventory->fresh()->quantity_on_hand);
         $this->assertSame(12, $bin->inventoryBalances()->where('inventory_id', $inventory->id)->value('quantity_on_hand'));
@@ -110,11 +110,11 @@ class InventoryLocationBalanceTest extends TestCase
         $warehouse = Warehouse::query()->findOrFail($inventory->warehouse_id);
         $unassigned = $warehouse->locations()->where('type', WarehouseLocation::TYPE_UNASSIGNED)->firstOrFail();
         $bin = $this->physicalLocation($warehouse, 'C-01');
-        app(InventoryLocationService::class)->transfer($inventory, $unassigned, $bin, 10, 1, 'Asignación física');
+        app(InventoryLocationService::class)->transfer($inventory, $unassigned, $bin, 10, null, 'Asignación física');
 
         $this->expectException(ValidationException::class);
 
-        app(InventoryLocationService::class)->adjust($inventory, $bin, 5, 1, 'Intento inválido');
+        app(InventoryLocationService::class)->adjust($inventory, $bin, 5, null, 'Intento inválido');
     }
 
     public function test_transfer_rejects_destination_from_another_warehouse(): void
@@ -134,6 +134,6 @@ class InventoryLocationBalanceTest extends TestCase
 
         $this->expectException(ValidationException::class);
 
-        app(InventoryLocationService::class)->transfer($inventory, $unassigned, $foreignBin, 1, 1, 'No debe cruzar almacenes');
+        app(InventoryLocationService::class)->transfer($inventory, $unassigned, $foreignBin, 1, null, 'No debe cruzar almacenes');
     }
 }

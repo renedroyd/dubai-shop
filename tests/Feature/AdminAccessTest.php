@@ -69,6 +69,8 @@ class AdminAccessTest extends TestCase
 
     public function test_product_read_permission_does_not_grant_create_access(): void
     {
+        $this->withoutVite();
+
         $user = User::factory()->create(['admin_access_enabled' => true]);
         $role = AdminRole::query()->create([
             'name' => 'Consulta de productos',

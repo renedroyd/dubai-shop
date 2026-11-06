@@ -29,6 +29,7 @@ class InventoryMovementResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
+            TextColumn::make('inventory.warehouse.name')->label(__('Almacén'))->sortable(),
             TextColumn::make('inventory.product.name')->label(__('Producto'))->searchable(),
             TextColumn::make('inventory.variant.name')->label(__('Variante'))->placeholder(__('General')),
             TextColumn::make('type')->label(__('Tipo'))->badge(),

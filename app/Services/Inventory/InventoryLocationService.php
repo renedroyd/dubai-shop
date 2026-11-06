@@ -67,7 +67,7 @@ class InventoryLocationService
         WarehouseLocation $from,
         WarehouseLocation $to,
         int $quantity,
-        int $userId,
+        ?int $userId,
         string $reason,
     ): void {
         if ($quantity <= 0) {

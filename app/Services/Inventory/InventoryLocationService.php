@@ -15,7 +15,7 @@ class InventoryLocationService
         Inventory $inventory,
         WarehouseLocation $location,
         int $quantity,
-        int $userId,
+        ?int $userId,
         string $reason,
     ): InventoryLocationBalance {
         if ($quantity < 0) {

@@ -83,6 +83,36 @@ class AdminAccessTest extends TestCase
         $this->actingAs($user)->get('/admin/products/create')->assertForbidden();
     }
 
+
+    public function test_individual_permission_can_grant_an_exception_beyond_assigned_roles(): void
+    {
+        $user = User::factory()->create(['admin_access_enabled' => true]);
+        $role = AdminRole::query()->create([
+            'name' => 'Acceso básico',
+            'slug' => 'basic-access',
+            'permissions' => ['panel.access'],
+        ]);
+        $user->roles()->attach($role);
+        $user->directPermissions()->create(['permission' => 'products.view', 'allowed' => true]);
+
+        $this->assertTrue(Gate::forUser($user)->allows('viewAny', Product::class));
+    }
+
+    public function test_individual_denial_overrides_a_permission_granted_by_role(): void
+    {
+        $user = User::factory()->create(['admin_access_enabled' => true]);
+        $role = AdminRole::query()->create([
+            'name' => 'Gestor de productos',
+            'slug' => 'product-manager',
+            'permissions' => ['panel.access', 'products.view', 'products.create'],
+        ]);
+        $user->roles()->attach($role);
+        $user->directPermissions()->create(['permission' => 'products.create', 'allowed' => false]);
+
+        $this->assertTrue(Gate::forUser($user)->allows('viewAny', Product::class));
+        $this->assertFalse(Gate::forUser($user)->allows('create', Product::class));
+    }
+
     public function test_superadministrator_cannot_modify_the_emergency_role_or_account(): void
     {
         $admin = User::factory()->create(['admin_access_enabled' => true]);

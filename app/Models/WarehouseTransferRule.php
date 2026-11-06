@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class WarehouseTransferRule extends Model
 {
     protected $fillable = [
-        'name', 'source_warehouse_id', 'destination_warehouse_id',
+        'name', 'source_warehouse_id', 'destination_warehouse_id', 'transfer_type', 'requester_role_slugs', 'approver_role_slugs',
         'min_quantity', 'max_quantity', 'required_approvals',
         'auto_approve', 'requester_can_approve', 'priority', 'is_active',
     ];
@@ -16,6 +16,8 @@ class WarehouseTransferRule extends Model
     protected function casts(): array
     {
         return [
+            'requester_role_slugs' => 'array',
+            'approver_role_slugs' => 'array',
             'min_quantity' => 'integer',
             'max_quantity' => 'integer',
             'required_approvals' => 'integer',

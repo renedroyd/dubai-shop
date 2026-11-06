@@ -42,6 +42,7 @@ class InventoryResource extends Resource
             TextColumn::make('variant.name')->label(__('Variante'))->placeholder(__('Producto general')),
             TextColumn::make('quantity_on_hand')->label(__('Existencia'))->sortable(),
             TextColumn::make('quantity_reserved')->label(__('Reservado'))->sortable(),
+            TextColumn::make('quantity_blocked')->label(__('Bloqueado'))->sortable(),
             TextColumn::make('available_quantity')->label(__('Disponible'))->state(fn (Inventory $record): int => $record->available_quantity)->badge()
                 ->color(fn (int $state): string => $state === 0 ? 'danger' : ($state <= 5 ? 'warning' : 'success')),
             TextColumn::make('updated_at')->label(__('Actualizado'))->dateTime()->sortable(),

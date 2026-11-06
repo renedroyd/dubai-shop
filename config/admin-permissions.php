@@ -18,6 +18,9 @@ use App\Models\StorefrontSetting;
 use App\Models\User;
 use App\Models\AdminRole;
 
+use App\Models\Warehouse;
+use App\Models\WarehouseLocation;
+
 return [
     'model_resources' => [
         Category::class => 'categories',

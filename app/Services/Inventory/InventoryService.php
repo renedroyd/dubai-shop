@@ -1,13 +1,13 @@
 <?php
 
-namespace App\\Services\\Inventory;
+namespace App\Services\Inventory;
 
-use App\\Models\\Inventory;
-use App\\Models\\InventoryMovement;
-use App\\Models\\Product;
-use App\\Models\\ProductVariant;
-use App\\Models\\Warehouse;
-use Illuminate\\Support\\Facades\\DB;
+use App\Models\Inventory;
+use App\Models\InventoryMovement;
+use App\Models\Product;
+use App\Models\ProductVariant;
+use App\Models\Warehouse;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 class InventoryService

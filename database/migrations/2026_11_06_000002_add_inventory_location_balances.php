@@ -26,6 +26,20 @@ return new class extends Migration
                 ->constrained('warehouse_locations')->nullOnDelete();
         });
 
+        DB::table('warehouses')->orderBy('id')->get()->each(function ($warehouse) use ($now): void {
+            DB::table('warehouse_locations')->insertOrIgnore([
+                'warehouse_id' => $warehouse->id,
+                'parent_id' => null,
+                'code' => 'UNASSIGNED',
+                'name' => 'Sin ubicación asignada',
+                'type' => 'unassigned',
+                'sort_order' => 0,
+                'is_active' => true,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        });
+
         $unassignedLocations = DB::table('warehouse_locations')
             ->where('type', 'unassigned')
             ->pluck('id', 'warehouse_id');

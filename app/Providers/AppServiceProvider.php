@@ -33,8 +33,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(AdminRole::class, AdminRolePolicy::class);
         Gate::policy(User::class, UserPolicy::class);
 
-        Gate::before(function (User $user, string $ability, array $arguments): ?bool {
-            if (! $user->admin_access_enabled) {
+        Gate::before(function (?User $user, string $ability, array $arguments): ?bool {
+            if (! $user || ! $user->admin_access_enabled) {
                 return null;
             }
 

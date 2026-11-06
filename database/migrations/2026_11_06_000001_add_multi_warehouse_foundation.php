@@ -70,6 +70,7 @@ return new class extends Migration
         DB::table('inventories')->update(['warehouse_id' => $warehouseId]);
 
         Schema::table('inventories', function (Blueprint $table): void {
+            $table->foreignId('warehouse_id')->nullable(false)->change();
             $table->unsignedBigInteger('quantity_blocked')->default(0)->after('quantity_reserved');
             $table->unique(['warehouse_id', 'stock_key'], 'inventories_warehouse_stock_key_unique');
         });

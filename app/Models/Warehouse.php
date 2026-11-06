@@ -46,6 +46,26 @@ class Warehouse extends Model
         return $this->hasMany(Inventory::class);
     }
 
+    public function outgoingTransfers(): HasMany
+    {
+        return $this->hasMany(WarehouseTransfer::class, 'source_warehouse_id');
+    }
+
+    public function incomingTransfers(): HasMany
+    {
+        return $this->hasMany(WarehouseTransfer::class, 'destination_warehouse_id');
+    }
+
+    public function transferRulesAsSource(): HasMany
+    {
+        return $this->hasMany(WarehouseTransferRule::class, 'source_warehouse_id');
+    }
+
+    public function transferRulesAsDestination(): HasMany
+    {
+        return $this->hasMany(WarehouseTransferRule::class, 'destination_warehouse_id');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

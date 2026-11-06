@@ -37,6 +37,7 @@ class InventoryResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
+            TextColumn::make('warehouse.name')->label(__('Almacén'))->sortable(),
             TextColumn::make('product.name')->label(__('Producto'))->searchable()->sortable(),
             TextColumn::make('variant.name')->label(__('Variante'))->placeholder(__('Producto general')),
             TextColumn::make('quantity_on_hand')->label(__('Existencia'))->sortable(),
@@ -45,7 +46,7 @@ class InventoryResource extends Resource
                 ->color(fn (int $state): string => $state === 0 ? 'danger' : ($state <= 5 ? 'warning' : 'success')),
             TextColumn::make('updated_at')->label(__('Actualizado'))->dateTime()->sortable(),
         ])->filters([
-            Filter::make('low_stock')->label(__('Stock bajo'))->query(fn (Builder $query): Builder => $query->whereRaw('(quantity_on_hand - quantity_reserved) <= 5')),
+            Filter::make('low_stock')->label(__('Stock bajo'))->query(fn (Builder $query): Builder => $query->whereRaw('(quantity_on_hand - quantity_reserved - quantity_blocked) <= 5')),
         ])->defaultSort('updated_at', 'desc')->recordActions([
             Action::make('adjust')->label(__('Ajustar existencia'))->icon('heroicon-o-adjustments-horizontal')
                 ->authorize('update')
@@ -61,6 +62,7 @@ class InventoryResource extends Resource
                         $record->variant,
                         auth()->id(),
                         $data['reason'],
+                        $record->warehouse,
                     );
                 }),
         ])->headerActions([

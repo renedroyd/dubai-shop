@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\AdminRole;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -55,8 +56,10 @@ class LocalizationTest extends TestCase
     {
         $admin = User::factory()->create([
             'is_admin' => true,
+            'admin_access_enabled' => true,
             'admin_locale' => 'en',
         ]);
+        $admin->roles()->attach(AdminRole::query()->where('slug', 'superadmin')->firstOrFail());
 
         $this->actingAs($admin)
             ->get('/admin')

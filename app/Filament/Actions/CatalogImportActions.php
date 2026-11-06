@@ -56,6 +56,7 @@ class CatalogImportActions
                         ->default('update')
                         ->required(),
                 ])
+                ->authorize(fn (): bool => auth()->user()?->hasAdminPermission("{$type}.create") ?? false)
                 ->action(function (array $data) use ($type): void {
                     $path = $data['file'];
 
@@ -82,6 +83,7 @@ class CatalogImportActions
                 ->label(__('Descargar plantilla'))
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('gray')
+                ->authorize(fn (): bool => auth()->user()?->hasAdminPermission("{$type}.view") ?? false)
                 ->action(function () use ($type, $templates) {
                     [$headers, $sample] = $templates[$type];
 

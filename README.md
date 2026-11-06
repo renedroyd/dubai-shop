@@ -4,9 +4,9 @@ Tienda online premium construida con Laravel 13 y Filament 5, con escaparate pú
 
 ## Estado actual
 
-**Corte documental: 5 de noviembre de 2026.** Las Fases 1–16 están integradas en `main`. Las mejoras posteriores de importación de catálogo, experiencia de compra, panel administrativo, banners y asistencia de IA también están integradas. No hay pull requests abiertas en el momento de esta revisión.
+**Corte documental: 6 de noviembre de 2026.** Las Fases 1–16 y las mejoras posteriores PR #29–37 están integradas. Esta entrega incorpora el control de acceso administrativo por roles y permisos (PR #38).
 
-El último cambio integrado es el [PR #35 — Asistente gratuito de IA para crear banners](https://github.com/renedroyd/dubai-shop/pull/35). El flujo genera prompts para usar manualmente en ChatGPT; no utiliza la API de OpenAI ni requiere claves o facturación de API.
+La última entrega de producto añade RBAC al panel Filament. El asistente de banners continúa generando prompts para usar manualmente en ChatGPT; no utiliza la API de OpenAI ni requiere claves o facturación de API.
 
 Consulta primero:
 - [Estado actual del proyecto](docs/project-status.md)
@@ -17,6 +17,7 @@ Consulta primero:
 - [Operación logística y seguimiento](docs/logistics-and-tracking.md)
 - [Notificaciones transaccionales](docs/transactional-notifications.md)
 - [Asistente de IA para banners](docs/ai-banner-workflow.md)
+- [Control de acceso administrativo](docs/admin-access-control.md)
 
 ## Stack
 

@@ -11,6 +11,11 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class OperationalAlerts extends StatsOverviewWidget
 {
+    public static function canView(): bool
+    {
+        return auth()->user()?->hasAdminPermission('dashboard.view') ?? false;
+    }
+
     public function getHeading(): ?string { return __('Centro de atención'); }
 
     public function getDescription(): ?string { return __('Pendientes que requieren seguimiento del equipo'); }

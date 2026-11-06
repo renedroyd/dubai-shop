@@ -69,6 +69,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Product::class, ProductPolicy::class);
         Gate::policy(Inventory::class, InventoryPolicy::class);
         Gate::policy(InventoryMovement::class, InventoryMovementPolicy::class);
+        Gate::policy(InventoryLocationBalance::class, InventoryLocationBalancePolicy::class);
         Gate::policy(Order::class, OrderPolicy::class);
         Gate::policy(Payment::class, PaymentPolicy::class);
         Gate::policy(PaymentMethod::class, PaymentMethodPolicy::class);

@@ -1,6 +1,6 @@
 # Multi almacén y POS — arquitectura y alcance
 
-**Estado:** POS-1 y POS-2 integrados; POS-3 en implementación. Este documento describe decisiones aprobadas y separa explícitamente lo integrado de lo planificado.
+**Estado:** POS-1, POS-2 y POS-3 integrados; POS-4 en implementación. Este documento distingue lo integrado de lo que aún está en desarrollo.
 
 ## Decisiones aprobadas
 
@@ -42,7 +42,42 @@
 - `inventory_location_balances`: saldo físico por inventario y ubicación. La suma de sus cantidades debe coincidir con `inventories.quantity_on_hand`.
 - `inventory_movements` conserva el historial agregado y añade ubicación de origen/destino para ajustes y movimientos internos.
 
-## POS-3 — Saldos por ubicación (en implementación)\n\n- La migración crea un saldo por cada inventario en la ubicación técnica `UNASSIGNED`, preservando cantidades actuales y evitando ajustes de stock durante el despliegue.\n- Cada almacén tiene una ubicación `UNASSIGNED`; las existencias nuevas se registran allí hasta que se ubiquen físicamente.\n- Los movimientos entre ubicaciones son internos: no cambian el total del almacén y se registran con origen y destino.\n- Los ajustes por ubicación actualizan atómicamente el saldo local y el total del inventario; no pueden reducir el total por debajo de reservas y bloqueos.\n- La conciliación compara el saldo agregado del inventario con la suma de saldos de sus ubicaciones.\n\n## Reglas de integridad
+## POS-3 — Saldos por ubicación (integrado)
+
+- La migración crea un saldo por cada inventario en la ubicación técnica `UNASSIGNED`, preservando cantidades existentes.
+- Cada almacén tiene una ubicación `UNASSIGNED`; el stock nuevo se registra allí hasta su ubicación física.
+- Los movimientos entre ubicaciones son internos y no cambian el total del almacén.
+- Los ajustes por ubicación actualizan atómicamente el saldo local y el total del inventario, respetando reservas y bloqueos.
+- La conciliación compara el saldo agregado con la suma de saldos por ubicación.
+- Filament permite consultar saldos, ajustar ubicaciones físicas y mover stock dentro del mismo almacén.
+
+## POS-4 — Transferencias entre almacenes (en implementación)
+
+### Reglas y ciclo de vida
+
+- Las reglas pueden limitar almacén de origen, almacén de destino, tipo de transferencia, cantidad mínima/máxima, roles solicitantes y roles autorizados para aprobar.
+- Las reglas se evalúan por prioridad ascendente. La primera regla aplicable define la aprobación requerida; la aprobación automática es explícita.
+- Se puede exigir una o varias aprobaciones de usuarios distintos. El solicitante no puede aprobar su propia transferencia salvo que la regla lo permita.
+- Crear o aprobar una transferencia no cambia las existencias.
+- El despacho valida stock disponible (físico menos reservado y bloqueado), descuenta del origen y registra la salida al tránsito.
+- La recepción puede registrarse parcialmente. Las unidades buenas ingresan al inventario y ubicación de destino; las dañadas quedan contabilizadas como diferencia y nunca se suman al stock.
+- Los movimientos enlazan la transferencia y se registran eventos de auditoría para creación, decisiones, despacho, daños y recepción.
+- Las operaciones de inventario se ejecutan en transacciones y bloquean los inventarios afectados para reducir riesgos de concurrencia.
+
+### Estados
+
+`pending_approval` → `approved` → `in_transit` → `partially_received` → `received`
+
+También se contemplan `rejected` y `cancelled`. La cancelación de una transferencia despachada requiere un flujo de reversión separado.
+
+### Alcance aún pendiente
+
+- Pruebas de CI y validación de los flujos completos.
+- Reversión controlada de transferencias ya despachadas.
+- Reportes y notificaciones operativas.
+- POS-5: política de abastecimiento multi almacén para la tienda online.
+
+## Reglas de integridad
 
 1. Un almacén principal debe existir y estar activo.
 2. Los códigos de almacén son únicos; los códigos de ubicación son únicos dentro de cada almacén.

@@ -8,6 +8,22 @@ use RuntimeException;
 
 class Warehouse extends Model
 {
+    protected static function booted(): void
+    {
+        static::created(function (self $warehouse): void {
+            $warehouse->locations()->firstOrCreate(
+                ['code' => 'UNASSIGNED'],
+                [
+                    'parent_id' => null,
+                    'name' => 'Sin ubicación asignada',
+                    'type' => WarehouseLocation::TYPE_UNASSIGNED,
+                    'sort_order' => 0,
+                    'is_active' => true,
+                ],
+            );
+        });
+    }
+
     protected $fillable = [
         'code', 'name', 'type', 'address', 'notes', 'is_primary', 'is_active',
     ];

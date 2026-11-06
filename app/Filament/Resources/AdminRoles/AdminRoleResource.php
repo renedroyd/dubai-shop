@@ -27,10 +27,10 @@ class AdminRoleResource extends Resource
     public static function getModelLabel(): string { return __('rol'); }
     public static function getPluralModelLabel(): string { return __('roles'); }
 
-    public static function canViewAny(): bool { return auth()->user()?->isSuperAdmin() ?? false; }
-    public static function canCreate(): bool { return auth()->user()?->isSuperAdmin() ?? false; }
-    public static function canEdit(Model $record): bool { return (auth()->user()?->isSuperAdmin() ?? false) && $record->slug !== 'superadmin'; }
-    public static function canDelete(Model $record): bool { return (auth()->user()?->isSuperAdmin() ?? false) && ! $record->is_system && $record->slug !== 'superadmin'; }
+    public static function canViewAny(): bool { return auth()->user()?->canManageAdminAccess() ?? false; }
+    public static function canCreate(): bool { return auth()->user()?->canManageAdminAccess() ?? false; }
+    public static function canEdit(Model $record): bool { return (auth()->user()?->canManageAdminAccess() ?? false) && $record->slug !== 'superadmin'; }
+    public static function canDelete(Model $record): bool { return (auth()->user()?->canManageAdminAccess() ?? false) && ! $record->is_system && $record->slug !== 'superadmin'; }
 
     public static function form(Schema $schema): Schema
     {

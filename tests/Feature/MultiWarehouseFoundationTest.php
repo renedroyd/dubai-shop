@@ -1,14 +1,14 @@
 <?php
 
-namespace Tests\\Feature;
+namespace Tests\Feature;
 
-use App\\Models\\Product;
-use App\\Models\\Warehouse;
-use App\\Models\\WarehouseLocation;
-use App\\Services\\Inventory\\InventoryService;
-use Illuminate\\Foundation\\Testing\\RefreshDatabase;
+use App\Models\Product;
+use App\Models\Warehouse;
+use App\Models\WarehouseLocation;
+use App\Services\Inventory\InventoryService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use InvalidArgumentException;
-use Tests\\TestCase;
+use Tests\TestCase;
 
 class MultiWarehouseFoundationTest extends TestCase
 {

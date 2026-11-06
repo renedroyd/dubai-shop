@@ -30,6 +30,11 @@ class User extends Authenticatable implements FilamentUser
         ];
     }
 
+    public function directPermissions(): HasMany
+    {
+        return $this->hasMany(AdminUserPermission::class);
+    }
+
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(AdminRole::class, 'admin_role_user');
@@ -53,6 +58,12 @@ class User extends Authenticatable implements FilamentUser
 
         if ($this->isSuperAdmin()) {
             return true;
+        }
+
+        $override = $this->directPermissions()->where('permission', $permission)->value('allowed');
+
+        if ($override !== null) {
+            return (bool) $override;
         }
 
         return $this->roles()

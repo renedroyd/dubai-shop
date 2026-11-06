@@ -32,6 +32,8 @@ class InventoryMovementResource extends Resource
             TextColumn::make('inventory.warehouse.name')->label(__('Almacén'))->sortable(),
             TextColumn::make('inventory.product.name')->label(__('Producto'))->searchable(),
             TextColumn::make('inventory.variant.name')->label(__('Variante'))->placeholder(__('General')),
+            TextColumn::make('fromLocation.code')->label(__('Desde'))->placeholder('—'),
+            TextColumn::make('toLocation.code')->label(__('Hacia'))->placeholder('—'),
             TextColumn::make('type')->label(__('Tipo'))->badge(),
             TextColumn::make('quantity_delta')->label(__('Variación'))->numeric(),
             TextColumn::make('reason')->label(__('Motivo'))->wrap(),
@@ -43,6 +45,8 @@ class InventoryMovementResource extends Resource
                 'reservation' => __('Reserva'),
                 'reservation_release' => __('Liberación de reserva'),
                 'sale' => __('Venta'),
+                'location_adjustment' => __('Ajuste por ubicación'),
+                'location_transfer' => __('Movimiento entre ubicaciones'),
             ]),
         ])->defaultSort('created_at', 'desc');
     }

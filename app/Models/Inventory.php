@@ -37,6 +37,11 @@ class Inventory extends Model
         return $this->belongsTo(ProductVariant::class, 'product_variant_id');
     }
 
+    public function locationBalances(): HasMany
+    {
+        return $this->hasMany(InventoryLocationBalance::class);
+    }
+
     public function movements(): HasMany
     {
         return $this->hasMany(InventoryMovement::class);

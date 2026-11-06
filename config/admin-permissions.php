@@ -4,6 +4,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Inventory;
 use App\Models\InventoryMovement;
+use App\Models\InventoryLocationBalance;
 use App\Models\NotificationLog;
 use App\Models\NotificationTemplate;
 use App\Models\Order;
@@ -28,6 +29,7 @@ return [
         Product::class => 'products',
         Inventory::class => 'inventories',
         InventoryMovement::class => 'inventory_movements',
+        InventoryLocationBalance::class => 'inventory_location_balances',
         Order::class => 'orders',
         Payment::class => 'payments',
         PaymentMethod::class => 'payment_methods',
@@ -70,6 +72,8 @@ return [
         'inventories.view' => 'Consultar existencias',
         'inventories.update' => 'Ajustar existencias',
         'inventory_movements.view' => 'Consultar movimientos de inventario',
+        'inventory_location_balances.view' => 'Consultar existencias por ubicación',
+        'inventory_location_balances.update' => 'Ajustar y mover existencias entre ubicaciones',
         'warehouses.view' => 'Consultar almacenes',
         'warehouses.create' => 'Crear almacenes',
         'warehouses.update' => 'Modificar almacenes',

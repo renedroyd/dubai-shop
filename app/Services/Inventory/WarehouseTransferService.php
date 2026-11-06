@@ -66,7 +66,7 @@ class WarehouseTransferService
                 ? User::query()->find($userId)?->roles()->pluck('slug')->all() ?? []
                 : [];
 
-            $rule = WarehouseTransferRule::query()
+            $candidateRules = WarehouseTransferRule::query()
                 ->where('is_active', true)
                 ->where(fn ($query) => $query->whereNull('source_warehouse_id')->orWhere('source_warehouse_id', $source->id))
                 ->where(fn ($query) => $query->whereNull('destination_warehouse_id')->orWhere('destination_warehouse_id', $destination->id))
@@ -75,11 +75,16 @@ class WarehouseTransferService
                 ->where(fn ($query) => $query->whereNull('max_quantity')->orWhere('max_quantity', '>=', $totalQuantity))
                 ->orderBy('priority')
                 ->orderBy('id')
-                ->get()
-                ->first(fn (WarehouseTransferRule $candidate): bool =>
-                    empty($candidate->requester_role_slugs)
-                    || count(array_intersect($candidate->requester_role_slugs, $requesterRoleSlugs)) > 0
-                );
+                ->get();
+
+            $rule = $candidateRules->first(fn (WarehouseTransferRule $candidate): bool =>
+                empty($candidate->requester_role_slugs)
+                || count(array_intersect($candidate->requester_role_slugs, $requesterRoleSlugs)) > 0
+            );
+
+            if (! $rule && $candidateRules->isNotEmpty()) {
+                throw ValidationException::withMessages(['transfer' => __('Los roles del solicitante no están autorizados por las reglas de transferencia aplicables.')]);
+            }
 
             $requiredApprovals = $rule?->auto_approve ? 0 : max(1, (int) ($rule?->required_approvals ?? 1));
             $status = $requiredApprovals === 0
@@ -195,10 +200,17 @@ class WarehouseTransferService
                 throw ValidationException::withMessages(['transfer' => __('El solicitante no puede decidir sobre su propia transferencia.')]);
             }
 
-            $transfer->approvals()->firstOrCreate(
-                ['user_id' => $userId],
-                ['decision' => 'rejected', 'comments' => $reason, 'decided_at' => now()],
-            );
+            if ($transfer->approvals()->where('user_id', $userId)->exists()) {
+                throw ValidationException::withMessages(['transfer' => __('Este usuario ya registró una decisión para la transferencia.')]);
+            }
+
+            WarehouseTransferApproval::query()->create([
+                'warehouse_transfer_id' => $transfer->id,
+                'user_id' => $userId,
+                'decision' => 'rejected',
+                'comments' => $reason,
+                'decided_at' => now(),
+            ]);
             $from = $transfer->status;
             $transfer->update([
                 'status' => WarehouseTransfer::STATUS_REJECTED,
@@ -237,6 +249,9 @@ class WarehouseTransferService
 
                 $inventory = Inventory::query()->whereKey($item->source_inventory_id)->lockForUpdate()->firstOrFail();
                 $location = WarehouseLocation::query()->whereKey($item->source_location_id)->firstOrFail();
+                if ((int) $location->warehouse_id !== (int) $transfer->source_warehouse_id || ! $location->is_active) {
+                    throw ValidationException::withMessages(['quantities' => __('La ubicación de origen ya no está activa o no pertenece al almacén de origen.')]);
+                }
                 $balance = $this->balanceFor($inventory, $location);
                 $available = $inventory->quantity_on_hand - $inventory->quantity_reserved - $inventory->quantity_blocked;
 
@@ -331,6 +346,9 @@ class WarehouseTransferService
                     );
                     $destinationInventory = Inventory::query()->whereKey($destinationInventory->id)->lockForUpdate()->firstOrFail();
                     $destinationLocation = WarehouseLocation::query()->whereKey($item->destination_location_id)->firstOrFail();
+                    if ((int) $destinationLocation->warehouse_id !== (int) $transfer->destination_warehouse_id || ! $destinationLocation->is_active || $destinationLocation->type === WarehouseLocation::TYPE_UNASSIGNED) {
+                        throw ValidationException::withMessages(['quantities' => __('La ubicación de destino ya no está activa o no pertenece al almacén de destino.')]);
+                    }
                     $destinationBalance = $this->balanceFor($destinationInventory, $destinationLocation);
 
                     $destinationBalance->increment('quantity_on_hand', $received);

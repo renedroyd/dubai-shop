@@ -65,7 +65,7 @@ class InventoryResource extends Resource
                 }),
         ])->headerActions([
             Action::make('registerStock')->label(__('Registrar producto / variante'))->icon('heroicon-o-plus')
-                ->authorize('create')
+                ->authorize(fn (): bool => auth()->user()?->hasAdminPermission('inventories.update') ?? false)
                 ->schema([
                     Select::make('product_id')->label(__('Producto'))->options(fn () => Product::query()->orderBy('name')->pluck('name', 'id'))->searchable()->required(),
                     Select::make('product_variant_id')->label(__('Variante (opcional)'))->options(fn (callable $get) => ProductVariant::query()->where('product_id', $get('product_id'))->where('is_active', true)->orderBy('name')->pluck('name', 'id'))->searchable(),

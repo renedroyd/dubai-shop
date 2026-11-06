@@ -29,11 +29,14 @@ Las secciones siguientes sirven como mapa de datos y reglas para evolución. Ant
 
 Reglas: los productos simples pueden venderse sin variantes; el SKU debe ser único; no almacenar precios como float; controlar redirecciones SEO al cambiar slugs.
 
-## Inventario
-- **inventories:** variante o producto vendible, cantidad disponible y cantidad reservada.
-- **inventory_movements:** artículo, tipo, cantidad con signo, motivo, referencia opcional y usuario responsable.
+## Inventario y almacenes
+- **warehouses:** almacenes con código único, tipo, dirección, estado y designación del almacén principal.
+- **warehouse_locations:** árbol opcional de ubicaciones por almacén (área, pasillo, estantería y posición), con códigos únicos dentro del almacén.
+- **inventories:** saldo agregado por almacén y producto/variante; la clave del artículo es única dentro del almacén.
+- **inventory_movements:** inventario, tipo, cantidad con signo, motivo, referencia opcional y usuario responsable. El almacén se obtiene a través del inventario.
+- **inventory_location_balances (siguiente etapa):** distribución del saldo de almacén entre ubicaciones físicas.
 
-La cantidad disponible para venta se deriva de existencias menos reservas. Todo ajuste manual genera movimiento auditable.
+La cantidad disponible se deriva de existencias físicas menos reservas y unidades bloqueadas. Los registros existentes se migran al almacén principal sin recrear inventarios, preservando referencias históricas de pedidos y movimientos. El carrito y checkout continúan utilizando el almacén principal hasta que se implemente el abastecimiento configurable del canal web. Todo ajuste genera movimiento auditable.
 
 ## Clientes y direcciones
 - **customers:** usuario nullable, nombre, email, teléfono y estado.
@@ -85,8 +88,10 @@ La política de compra verificada se definirá con el flujo de pedidos completad
 ## Relaciones principales
 - Category has many Products; Category may have one parent Category.
 - Brand has many Products.
-- Product has many Variants, Images and Reviews.
-- ProductVariant belongs to Product and has Inventory.
+- Product has many Variants, Images, Reviews and Inventory records por almacén.
+- Warehouse has many WarehouseLocations, Inventories and users asignados (la asignación y permisos se implementarán en etapas posteriores).
+- WarehouseLocation belongs to Warehouse and may have a parent and child locations.
+- ProductVariant belongs to Product and has many Inventory records, uno por almacén.
 - Customer has many Addresses, Carts and Orders.
 - Cart has many CartItems.
 - Order has many OrderItems, Payments and Shipments.

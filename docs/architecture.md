@@ -94,7 +94,7 @@ Los importes, destinatarios, tarifas, credenciales y contactos reales deben veri
 
 ## Seguridad y producción
 
-El panel aplica RBAC mediante roles asociados a usuarios, permisos almacenados por rol y políticas Laravel por recurso. `canAccessPanel()` exige que el acceso esté habilitado y que el usuario tenga `panel.access`; las operaciones CRUD y acciones personalizadas se verifican en servidor. La gestión de usuarios/roles queda reservada al Superadministrador, cuya cuenta y rol de emergencia están protegidos. La migración convierte los administradores existentes (`is_admin = true`) en Superadministradores.
+El panel aplica RBAC mediante roles asociados a usuarios, permisos almacenados por rol, excepciones individuales de usuario y políticas Laravel por recurso. `canAccessPanel()` exige que el acceso esté habilitado y que el usuario tenga `panel.access`; las operaciones CRUD y acciones personalizadas se verifican en servidor. La gestión de usuarios/roles queda reservada al Superadministrador, cuya cuenta y rol de emergencia están protegidos. La migración convierte los administradores existentes (`is_admin = true`) en Superadministradores.
 
 La configuración de proxies, cabeceras, HSTS condicional a HTTPS, rate limits, validación de archivos, auditorías de dependencias y el comando `php artisan app:production-readiness` forman parte de la base integrada. La política CSP permanece aplazada hasta definir una configuración compatible con Filament/Livewire y probarla.
 

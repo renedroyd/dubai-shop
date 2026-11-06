@@ -26,9 +26,9 @@ class AdminUserResource extends Resource
     public static function getModelLabel(): string { return __('usuario'); }
     public static function getPluralModelLabel(): string { return __('usuarios'); }
 
-    public static function canViewAny(): bool { return auth()->user()?->isSuperAdmin() ?? false; }
-    public static function canCreate(): bool { return auth()->user()?->isSuperAdmin() ?? false; }
-    public static function canEdit(Model $record): bool { return (auth()->user()?->isSuperAdmin() ?? false) && ! $record->isSuperAdmin(); }
+    public static function canViewAny(): bool { return auth()->user()?->canManageAdminAccess() ?? false; }
+    public static function canCreate(): bool { return auth()->user()?->canManageAdminAccess() ?? false; }
+    public static function canEdit(Model $record): bool { return (auth()->user()?->canManageAdminAccess() ?? false) && ! $record->canManageAdminAccess(); }
     public static function canDelete(Model $record): bool { return false; }
 
     public static function form(Schema $schema): Schema
@@ -40,14 +40,14 @@ class AdminUserResource extends Resource
             Toggle::make('admin_access_enabled')
                 ->label(__('Puede acceder al panel administrativo'))
                 ->default(false)
-                ->disabled(fn (?User $record): bool => $record?->isSuperAdmin() ?? false),
+                ->disabled(fn (?User $record): bool => $record?->canManageAdminAccess() ?? false),
             Select::make('roles')
                 ->label(__('Roles'))
                 ->relationship('roles', 'name')
                 ->multiple()
                 ->preload()
                 ->searchable()
-                ->disabled(fn (?User $record): bool => $record?->isSuperAdmin() ?? false)
+                ->disabled(fn (?User $record): bool => $record?->canManageAdminAccess() ?? false)
                 ->helperText(__('Un usuario puede tener varios roles. Los permisos se combinan.')),
         ]);
     }

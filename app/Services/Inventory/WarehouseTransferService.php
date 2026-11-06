@@ -12,6 +12,7 @@ use App\Models\WarehouseTransferApproval;
 use App\Models\WarehouseTransferEvent;
 use App\Models\WarehouseTransferItem;
 use App\Models\WarehouseTransferRule;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -23,6 +24,7 @@ class WarehouseTransferService
         array $items,
         ?int $userId,
         ?string $notes = null,
+        string $transferType = 'standard',
     ): WarehouseTransfer {
         if ($source->is($destination) || ! $source->is_active || ! $destination->is_active) {
             throw ValidationException::withMessages([
@@ -34,7 +36,7 @@ class WarehouseTransferService
             throw ValidationException::withMessages(['items' => __('Agrega al menos un producto a la transferencia.')]);
         }
 
-        return DB::transaction(function () use ($source, $destination, $items, $userId, $notes): WarehouseTransfer {
+        return DB::transaction(function () use ($source, $destination, $items, $userId, $notes, $transferType): WarehouseTransfer {
             $normalized = [];
             $totalQuantity = 0;
 
@@ -60,15 +62,24 @@ class WarehouseTransferService
                 $totalQuantity += $quantity;
             }
 
+            $requesterRoleSlugs = $userId
+                ? User::query()->find($userId)?->roles()->pluck('slug')->all() ?? []
+                : [];
+
             $rule = WarehouseTransferRule::query()
                 ->where('is_active', true)
                 ->where(fn ($query) => $query->whereNull('source_warehouse_id')->orWhere('source_warehouse_id', $source->id))
                 ->where(fn ($query) => $query->whereNull('destination_warehouse_id')->orWhere('destination_warehouse_id', $destination->id))
+                ->where(fn ($query) => $query->whereNull('transfer_type')->orWhere('transfer_type', $transferType))
                 ->where(fn ($query) => $query->whereNull('min_quantity')->orWhere('min_quantity', '<=', $totalQuantity))
                 ->where(fn ($query) => $query->whereNull('max_quantity')->orWhere('max_quantity', '>=', $totalQuantity))
                 ->orderBy('priority')
                 ->orderBy('id')
-                ->first();
+                ->get()
+                ->first(fn (WarehouseTransferRule $candidate): bool =>
+                    empty($candidate->requester_role_slugs)
+                    || count(array_intersect($candidate->requester_role_slugs, $requesterRoleSlugs)) > 0
+                );
 
             $requiredApprovals = $rule?->auto_approve ? 0 : max(1, (int) ($rule?->required_approvals ?? 1));
             $status = $requiredApprovals === 0
@@ -80,6 +91,7 @@ class WarehouseTransferService
                 'source_warehouse_id' => $source->id,
                 'destination_warehouse_id' => $destination->id,
                 'requested_by' => $userId,
+                'transfer_type' => $transferType,
                 'status' => $status,
                 'required_approvals' => $requiredApprovals,
                 'requested_at' => now(),
@@ -88,6 +100,7 @@ class WarehouseTransferService
                 'metadata' => [
                     'approval_rule_id' => $rule?->id,
                     'requester_can_approve' => (bool) ($rule?->requester_can_approve ?? false),
+                    'approver_role_slugs' => $rule?->approver_role_slugs ?? [],
                 ],
             ]);
 
@@ -117,6 +130,11 @@ class WarehouseTransferService
 
             if ($transfer->status !== WarehouseTransfer::STATUS_PENDING_APPROVAL) {
                 throw ValidationException::withMessages(['transfer' => __('La transferencia ya no está pendiente de aprobación.')]);
+            }
+
+            $allowedApproverRoles = $transfer->metadata['approver_role_slugs'] ?? [];
+            if ($allowedApproverRoles !== [] && ! User::query()->findOrFail($userId)->roles()->whereIn('slug', $allowedApproverRoles)->exists()) {
+                throw ValidationException::withMessages(['transfer' => __('Tu rol no está autorizado para aprobar esta transferencia.')]);
             }
 
             if ($transfer->approvals()->where('user_id', $userId)->exists()) {
@@ -166,6 +184,11 @@ class WarehouseTransferService
 
             if ($transfer->status !== WarehouseTransfer::STATUS_PENDING_APPROVAL) {
                 throw ValidationException::withMessages(['transfer' => __('Solo se pueden rechazar transferencias pendientes de aprobación.')]);
+            }
+
+            $allowedApproverRoles = $transfer->metadata['approver_role_slugs'] ?? [];
+            if ($allowedApproverRoles !== [] && ! User::query()->findOrFail($userId)->roles()->whereIn('slug', $allowedApproverRoles)->exists()) {
+                throw ValidationException::withMessages(['transfer' => __('Tu rol no está autorizado para rechazar esta transferencia.')]);
             }
 
             if ($transfer->requested_by === $userId && ! ($transfer->metadata['requester_can_approve'] ?? false)) {

@@ -47,7 +47,7 @@ class WarehouseResource extends Resource
             Textarea::make('notes')->label(__('Notas internas'))->rows(3),
             Toggle::make('is_primary')->label(__('Almacén principal'))
                 ->helperText(__('Solo puede existir un almacén principal.'))
-                ->disabled(fn (?Warehouse $record): bool => Warehouse::query()->where('is_primary', true)->when($record, fn ($query) => $query->whereKeyNot($record->getKey()))->exists()),
+                ->disabled(fn (?Warehouse $record): bool => (bool) ($record?->is_primary) || Warehouse::query()->where('is_primary', true)->when($record, fn ($query) => $query->whereKeyNot($record->getKey()))->exists()),
             Toggle::make('is_active')->label(__('Activo'))->default(true)
                 ->disabled(fn (?Warehouse $record): bool => (bool) ($record?->is_primary)),
         ]);

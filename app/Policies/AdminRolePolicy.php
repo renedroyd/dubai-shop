@@ -9,27 +9,27 @@ class AdminRolePolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->isSuperAdmin();
+        return $user->canManageAdminAccess();
     }
 
     public function view(User $user, AdminRole $role): bool
     {
-        return $user->isSuperAdmin();
+        return $user->canManageAdminAccess();
     }
 
     public function create(User $user): bool
     {
-        return $user->isSuperAdmin();
+        return $user->canManageAdminAccess();
     }
 
     public function update(User $user, AdminRole $role): bool
     {
-        return $user->isSuperAdmin() && $role->slug !== 'superadmin';
+        return $user->canManageAdminAccess() && $role->slug !== 'superadmin';
     }
 
     public function delete(User $user, AdminRole $role): bool
     {
-        return $user->isSuperAdmin() && ! $role->is_system && $role->slug !== 'superadmin';
+        return $user->canManageAdminAccess() && ! $role->is_system && $role->slug !== 'superadmin';
     }
 
     public function deleteAny(User $user): bool

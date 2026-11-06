@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\DB;
 
 class PaymentMethodsChart extends ChartWidget
 {
+    public static function canView(): bool
+    {
+        return auth()->user()?->hasAdminPermission('payments.view') ?? false;
+    }
+
     public function getHeading(): ?string { return __('Métodos de pago'); }
 
     public function getDescription(): ?string { return __('Pagos registrados según el método utilizado'); }

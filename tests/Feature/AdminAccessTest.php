@@ -2,8 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\AdminRole;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Gate;
 use Tests\TestCase;
 
 class AdminAccessTest extends TestCase
@@ -17,12 +20,56 @@ class AdminAccessTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_administrator_can_access_filament_dashboard(): void
+    public function test_migrations_create_default_roles_and_superadmin_role_is_protected(): void
+    {
+        $this->assertDatabaseHas('admin_roles', ['slug' => 'superadmin', 'is_system' => true]);
+        $this->assertDatabaseHas('admin_roles', ['slug' => 'catalog-manager', 'is_system' => true]);
+    }
+
+    public function test_superadministrator_can_access_filament_dashboard(): void
     {
         $this->withoutVite();
 
-        $this->actingAs(User::factory()->create(['is_admin' => true]))
-            ->get('/admin')
-            ->assertOk();
+        $user = User::factory()->create(['is_admin' => true, 'admin_access_enabled' => true]);
+        $role = AdminRole::query()->where('slug', 'superadmin')->firstOrFail();
+        $user->roles()->attach($role);
+
+        $this->actingAs($user)->get('/admin')->assertOk();
+    }
+
+    public function test_permissions_are_checked_per_resource_and_action(): void
+    {
+        $user = User::factory()->create(['admin_access_enabled' => true]);
+        $role = AdminRole::query()->create([
+            'name' => 'Solo lectura de productos',
+            'slug' => 'products-reader',
+            'permissions' => ['panel.access', 'products.view'],
+        ]);
+        $user->roles()->attach($role);
+
+        $this->assertTrue(Gate::forUser($user)->allows('viewAny', Product::class));
+        $this->assertFalse(Gate::forUser($user)->allows('create', Product::class));
+        $this->assertFalse(Gate::forUser($user)->allows('update', Product::class));
+    }
+
+    public function test_user_without_panel_access_permission_is_denied(): void
+    {
+        $user = User::factory()->create(['admin_access_enabled' => true]);
+        $role = AdminRole::query()->create([
+            'name' => 'Sin acceso',
+            'slug' => 'no-panel-access',
+            'permissions' => ['products.view'],
+        ]);
+        $user->roles()->attach($role);
+
+        $this->actingAs($user)->get('/admin')->assertForbidden();
+    }
+
+    public function test_access_disabled_user_is_denied_even_with_superadmin_role(): void
+    {
+        $user = User::factory()->create(['admin_access_enabled' => false]);
+        $user->roles()->attach(AdminRole::query()->where('slug', 'superadmin')->firstOrFail());
+
+        $this->actingAs($user)->get('/admin')->assertForbidden();
     }
 }

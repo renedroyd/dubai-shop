@@ -54,9 +54,11 @@ class PaymentResource extends Resource
             ]),
         ])->defaultSort('created_at', 'desc')->recordActions([
             Action::make('downloadProof')->label(__('Ver comprobante'))->icon('heroicon-o-arrow-down-tray')
+                ->authorize('view')
                 ->visible(fn (Payment $record): bool => filled($record->proof_path) && Storage::disk('local')->exists($record->proof_path))
                 ->action(fn (Payment $record) => response()->download(Storage::disk('local')->path($record->proof_path))),
             Action::make('approve')->label(__('Aprobar pago'))->color('success')->requiresConfirmation()
+                ->authorize('update')
                 ->visible(fn (Payment $record): bool => $record->status === Payment::STATUS_AWAITING_REVIEW && $record->order?->status === Order::STATUS_PENDING)
                 ->action(fn (Payment $record) => app(PaymentStatusService::class)->approve(
                     $record,
@@ -64,6 +66,7 @@ class PaymentResource extends Resource
                     'Aprobado manualmente desde Filament.',
                 )),
             Action::make('reject')->label(__('Rechazar'))->color('danger')->requiresConfirmation()
+                ->authorize('update')
                 ->visible(fn (Payment $record): bool => $record->status === Payment::STATUS_AWAITING_REVIEW && $record->order?->status === Order::STATUS_PENDING)
                 ->action(fn (Payment $record) => app(PaymentStatusService::class)->reject(
                     $record,
@@ -71,6 +74,7 @@ class PaymentResource extends Resource
                     'Rechazado manualmente desde Filament.',
                 )),
             Action::make('confirmCollection')->label(__('Confirmar cobro'))->color('success')->requiresConfirmation()
+                ->authorize('update')
                 ->visible(fn (Payment $record): bool => $record->driver === 'cash_on_delivery' && $record->status === Payment::STATUS_PENDING_COLLECTION)
                 ->action(fn (Payment $record) => app(PaymentStatusService::class)->confirmCollection(
                     $record,

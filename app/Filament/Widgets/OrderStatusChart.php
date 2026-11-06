@@ -7,6 +7,11 @@ use Filament\Widgets\ChartWidget;
 
 class OrderStatusChart extends ChartWidget
 {
+    public static function canView(): bool
+    {
+        return auth()->user()?->hasAdminPermission('orders.view') ?? false;
+    }
+
     public function getHeading(): ?string { return __('Pedidos por estado'); }
 
     public function getDescription(): ?string { return __('Distribución de todos los pedidos registrados'); }

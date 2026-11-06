@@ -9,6 +9,11 @@ use Filament\Widgets\TableWidget;
 
 class DeliveryAttention extends TableWidget
 {
+    public static function canView(): bool
+    {
+        return auth()->user()?->hasAdminPermission('orders.view') ?? false;
+    }
+
     public function getHeading(): ?string
     {
         return __('Entregas fuera de plazo');

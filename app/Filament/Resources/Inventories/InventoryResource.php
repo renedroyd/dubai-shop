@@ -48,6 +48,7 @@ class InventoryResource extends Resource
             Filter::make('low_stock')->label(__('Stock bajo'))->query(fn (Builder $query): Builder => $query->whereRaw('(quantity_on_hand - quantity_reserved) <= 5')),
         ])->defaultSort('updated_at', 'desc')->recordActions([
             Action::make('adjust')->label(__('Ajustar existencia'))->icon('heroicon-o-adjustments-horizontal')
+                ->authorize('update')
                 ->schema([
                     TextInput::make('quantity')->label(__('Nueva existencia total'))->numeric()->integer()->minValue(0)->required(),
                     Textarea::make('reason')->label(__('Motivo del ajuste'))->required()->maxLength(500),
@@ -64,6 +65,7 @@ class InventoryResource extends Resource
                 }),
         ])->headerActions([
             Action::make('registerStock')->label(__('Registrar producto / variante'))->icon('heroicon-o-plus')
+                ->authorize('create')
                 ->schema([
                     Select::make('product_id')->label(__('Producto'))->options(fn () => Product::query()->orderBy('name')->pluck('name', 'id'))->searchable()->required(),
                     Select::make('product_variant_id')->label(__('Variante (opcional)'))->options(fn (callable $get) => ProductVariant::query()->where('product_id', $get('product_id'))->where('is_active', true)->orderBy('name')->pluck('name', 'id'))->searchable(),

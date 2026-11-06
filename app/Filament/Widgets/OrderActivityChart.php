@@ -7,6 +7,11 @@ use Filament\Widgets\ChartWidget;
 
 class OrderActivityChart extends ChartWidget
 {
+    public static function canView(): bool
+    {
+        return auth()->user()?->hasAdminPermission('orders.view') ?? false;
+    }
+
     public function getHeading(): ?string { return __('Actividad de pedidos'); }
 
     public function getDescription(): ?string { return __('Pedidos registrados durante los últimos 14 días'); }

@@ -40,7 +40,7 @@ Arquitectura y CI, sistema visual, catálogo, carrito/checkout, pedidos e invent
 - Dashboard administrativo con métricas y centro de atención.
 - Banners con imagen de fondo premium.
 - Asistente de prompts de imagen con ChatGPT gratuito.
-- Control de acceso administrativo por roles, permisos CRUD por recurso y habilitación individual de usuarios.
+- Control de acceso administrativo por roles, permisos CRUD por recurso, excepciones individuales de permitir/denegar y habilitación individual de usuarios.
 - Migración de administradores existentes a Superadministrador y protección de la cuenta/rol de emergencia.
 
 ---

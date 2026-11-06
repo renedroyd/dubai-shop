@@ -5,9 +5,44 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Validation\ValidationException;
 
 class WarehouseLocation extends Model
 {
+    protected static function booted(): void
+    {
+        static::saving(function (self $location): void {
+            if ($location->parent_id === null) {
+                return;
+            }
+
+            if ((int) $location->parent_id === (int) $location->getKey()) {
+                throw ValidationException::withMessages([
+                    'parent_id' => __('Una ubicación no puede ser su propia ubicación superior.'),
+                ]);
+            }
+
+            $parent = self::query()->find($location->parent_id);
+
+            if (! $parent || (int) $parent->warehouse_id !== (int) $location->warehouse_id) {
+                throw ValidationException::withMessages([
+                    'parent_id' => __('La ubicación superior debe pertenecer al mismo almacén.'),
+                ]);
+            }
+
+            $ancestor = $parent;
+
+            while ($ancestor) {
+                if ((int) $ancestor->getKey() === (int) $location->getKey()) {
+                    throw ValidationException::withMessages([
+                        'parent_id' => __('No se puede crear un ciclo en la jerarquía de ubicaciones.'),
+                    ]);
+                }
+
+                $ancestor = $ancestor->parent;
+            }
+        });
+    }
     public const TYPE_AREA = 'area';
     public const TYPE_AISLE = 'aisle';
     public const TYPE_SHELF = 'shelf';

@@ -19,6 +19,10 @@ use App\Models\StorefrontPage;
 use App\Models\StorefrontMenuItem;
 use App\Models\StorefrontSetting;
 use App\Models\User;
+use App\Models\Warehouse;
+use App\Models\WarehouseLocation;
+use App\Policies\WarehousePolicy;
+use App\Policies\WarehouseLocationPolicy;
 use App\Observers\OrderObserver;
 use App\Payments\PaymentDriverManager;
 use App\Policies\AdminRolePolicy;
@@ -76,6 +80,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(StorefrontMenuItem::class, StorefrontMenuItemPolicy::class);
         Gate::policy(StorefrontSetting::class, StorefrontSettingPolicy::class);
         Gate::policy(User::class, UserPolicy::class);
+        Gate::policy(Warehouse::class, WarehousePolicy::class);
+        Gate::policy(WarehouseLocation::class, WarehouseLocationPolicy::class);
 
         Gate::before(function (?User $user, string $ability, array $arguments): ?bool {
             if (! $user || ! $user->admin_access_enabled) {

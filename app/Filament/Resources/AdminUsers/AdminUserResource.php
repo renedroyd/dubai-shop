@@ -35,7 +35,8 @@ class AdminUserResource extends Resource
     {
         return $schema->components([
             TextInput::make('name')->label(__('Nombre'))->required()->maxLength(255),
-            TextInput::make('email')->label(__('Correo electrónico'))->email()->required()->maxLength(255)->unique(ignoreRecord: true),
+            TextInput::make('email')->label(__('Correo electrónico'))->email()->required()->maxLength(255)->unique(ignoreRecord: true)
+                ->helperText(__('Si creas una cuenta nueva, el usuario podrá establecer su contraseña mediante la opción de recuperación de acceso.')),
             Toggle::make('admin_access_enabled')
                 ->label(__('Puede acceder al panel administrativo'))
                 ->default(false)

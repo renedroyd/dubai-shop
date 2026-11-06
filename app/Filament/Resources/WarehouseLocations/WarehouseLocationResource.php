@@ -77,7 +77,7 @@ class WarehouseLocationResource extends Resource
             ]),
         ])->recordActions([
             EditAction::make()->visible(fn (WarehouseLocation $record): bool => $record->type !== WarehouseLocation::TYPE_UNASSIGNED),
-            DeleteAction::make()->requiresConfirmation()->visible(fn (WarehouseLocation $record): bool => $record->type !== WarehouseLocation::TYPE_UNASSIGNED && ! $record->children()->exists()),
+            DeleteAction::make()->requiresConfirmation()->visible(fn (WarehouseLocation $record): bool => $record->type !== WarehouseLocation::TYPE_UNASSIGNED && ! $record->children()->exists() && ! $record->inventoryBalances()->exists()),
         ])->headerActions([CreateAction::make()->label(__('Nueva ubicación'))]);
     }
 

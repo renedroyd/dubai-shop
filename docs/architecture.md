@@ -38,7 +38,7 @@ No asumir que Livewire es una dependencia directa del escaparate. La tienda púb
 
 - `app/Models/`: persistencia Eloquent, relaciones y casts.
 - `app/Actions/` y `app/Services/`: operaciones de negocio y coordinación entre dominios, cuando la complejidad lo justifica.
-- `app/Policies/` y autorización de panel: permisos y acceso.
+- `app/Policies/` y autorización de panel: RBAC por recurso/acción, acceso al panel y protección de las operaciones administrativas.
 - `app/Filament/`: recursos, páginas, widgets y acciones administrativas.
 - `app/Http/`: rutas, middleware, controladores y validación HTTP.
 - `resources/views/`: layouts, componentes Blade y vistas públicas.
@@ -93,6 +93,8 @@ El modelo de reseñas/valoraciones y las promociones con cupones no deben presen
 Los importes, destinatarios, tarifas, credenciales y contactos reales deben verificarse en el entorno; no incluir datos personales ni secretos en esta documentación.
 
 ## Seguridad y producción
+
+El panel aplica RBAC mediante roles asociados a usuarios, permisos almacenados por rol y políticas Laravel por recurso. `canAccessPanel()` exige que el acceso esté habilitado y que el usuario tenga `panel.access`; las operaciones CRUD y acciones personalizadas se verifican en servidor. La gestión de usuarios/roles queda reservada al Superadministrador, cuya cuenta y rol de emergencia están protegidos. La migración convierte los administradores existentes (`is_admin = true`) en Superadministradores.
 
 La configuración de proxies, cabeceras, HSTS condicional a HTTPS, rate limits, validación de archivos, auditorías de dependencias y el comando `php artisan app:production-readiness` forman parte de la base integrada. La política CSP permanece aplazada hasta definir una configuración compatible con Filament/Livewire y probarla.
 

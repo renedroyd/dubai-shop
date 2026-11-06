@@ -50,6 +50,7 @@ class CheckoutService
                 $inventory = Inventory::query()
                     ->when($variant, fn ($query) => $query->where('product_variant_id', $variant->id))
                     ->when(! $variant, fn ($query) => $query->where('product_id', $product->id)->whereNull('product_variant_id'))
+                    ->whereHas('warehouse', fn ($query) => $query->where('is_primary', true))
                     ->lockForUpdate()
                     ->first();
 

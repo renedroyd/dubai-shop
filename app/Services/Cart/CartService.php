@@ -136,6 +136,7 @@ class CartService
         if ($variant) {
             $variantInventory = Inventory::query()
                 ->where('product_variant_id', $variant->id)
+                ->whereHas('warehouse', fn ($query) => $query->where('is_primary', true))
                 ->lockForUpdate()
                 ->first();
 
@@ -147,6 +148,7 @@ class CartService
         return Inventory::query()
             ->where('product_id', $product->id)
             ->whereNull('product_variant_id')
+            ->whereHas('warehouse', fn ($query) => $query->where('is_primary', true))
             ->lockForUpdate()
             ->first();
     }

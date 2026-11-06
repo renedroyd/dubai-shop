@@ -53,7 +53,7 @@ No crear carpetas vacías como arquitectura ornamental: introducir cada módulo 
 | Contexto | Responsabilidad y estado |
 |---|---|
 | Catalog | Categorías, marcas, productos, variantes, imágenes, importación XLSX/CSV |
-| Inventory | Existencias, reservas, movimientos y disponibilidad |
+| Inventory | Existencias, reservas, movimientos y disponibilidad; núcleo multi almacén en POS-1 |
 | Customers | Cuentas, perfiles y direcciones guardadas |
 | Cart | Carrito de invitado y cliente |
 | Checkout | Validación de precios, stock, envío y creación del pedido |
@@ -71,6 +71,8 @@ El modelo de reseñas/valoraciones y las promociones con cupones no deben presen
 ## Reglas transversales
 
 - Checkout, reserva/liberación de inventario y transiciones críticas deben usar transacciones y bloqueo/actualización atómica cuando corresponda.
+- El inventario se identifica por almacén y producto/variante. Hasta completar el abastecimiento multicanal, carrito y checkout consultan explícitamente el almacén principal.
+- El almacén principal recibe en migración los saldos existentes, conservando IDs de inventario y referencias históricas.
 - Nunca confiar en precios, descuentos, totales, stock o permisos enviados por el navegador.
 - Las líneas de pedido conservan snapshots y no dependen de que el producto siga existiendo.
 - Los pagos deben registrar transiciones auditables; integraciones futuras deben verificar firma, ser idempotentes y no almacenar datos de tarjeta.

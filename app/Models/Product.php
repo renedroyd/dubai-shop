@@ -55,7 +55,12 @@ class Product extends Model
 
     public function inventory(): HasOne
     {
-        return $this->hasOne(Inventory::class)->whereNull('product_variant_id');
+        return $this->hasOne(Inventory::class)->whereNull('product_variant_id')->whereHas('warehouse', fn ($query) => $query->where('is_primary', true));
+    }
+
+    public function inventories(): HasMany
+    {
+        return $this->hasMany(Inventory::class)->whereNull('product_variant_id');
     }
 
     public function scopePublished($query)

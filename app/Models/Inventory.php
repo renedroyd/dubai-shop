@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Inventory extends Model
 {
     protected $fillable = [
-        'product_id', 'product_variant_id', 'stock_key',
-        'quantity_on_hand', 'quantity_reserved',
+        'warehouse_id', 'product_id', 'product_variant_id', 'stock_key',
+        'quantity_on_hand', 'quantity_reserved', 'quantity_blocked',
     ];
 
     protected function casts(): array
@@ -18,7 +18,13 @@ class Inventory extends Model
         return [
             'quantity_on_hand' => 'integer',
             'quantity_reserved' => 'integer',
+            'quantity_blocked' => 'integer',
         ];
+    }
+
+    public function warehouse(): BelongsTo
+    {
+        return $this->belongsTo(Warehouse::class);
     }
 
     public function product(): BelongsTo
@@ -38,6 +44,6 @@ class Inventory extends Model
 
     public function getAvailableQuantityAttribute(): int
     {
-        return max(0, $this->quantity_on_hand - $this->quantity_reserved);
+        return max(0, $this->quantity_on_hand - $this->quantity_reserved - $this->quantity_blocked);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\AdminUsers;
 use App\Models\User;
 use Filament\Actions\CreateAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -63,6 +64,23 @@ class AdminUserResource extends Resource
                 ->searchable()
                 ->disabled(fn (?User $record): bool => $record?->canManageAdminAccess() ?? false)
                 ->helperText(__('Un usuario puede tener varios roles. Los permisos se combinan.')),
+            Repeater::make('directPermissions')
+                ->relationship()
+                ->label(__('Permisos individuales'))
+                ->schema([
+                    Select::make('permission')
+                        ->label(__('Permiso'))
+                        ->options(config('admin-permissions.permissions'))
+                        ->searchable()
+                        ->required(),
+                    Toggle::make('allowed')
+                        ->label(__('Conceder permiso'))
+                        ->default(true),
+                ])
+                ->columns(2)
+                ->defaultItems(0)
+                ->addActionLabel(__('Agregar excepción'))
+                ->helperText(__('Una excepción individual prevalece sobre los permisos heredados de los roles.')),
         ]);
     }
 

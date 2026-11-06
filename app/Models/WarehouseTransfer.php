@@ -17,7 +17,7 @@ class WarehouseTransfer extends Model
     public const STATUS_CANCELLED = 'cancelled';
 
     protected $fillable = [
-        'code', 'source_warehouse_id', 'destination_warehouse_id', 'requested_by',
+        'code', 'source_warehouse_id', 'destination_warehouse_id', 'requested_by', 'transfer_type',
         'status', 'required_approvals', 'requested_at', 'approved_at',
         'dispatched_at', 'completed_at', 'rejected_at', 'notes',
         'rejection_reason', 'metadata',

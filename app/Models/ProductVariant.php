@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Models;
+namespace App\\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\\Database\\Eloquent\\Model;
+use Illuminate\\Database\\Eloquent\\Relations\\BelongsTo;
+use Illuminate\\Database\\Eloquent\\Relations\\HasMany;
+use Illuminate\\Database\\Eloquent\\Relations\\HasOne;
 
 class ProductVariant extends Model
 {
@@ -23,5 +24,10 @@ class ProductVariant extends Model
     public function inventory(): HasOne
     {
         return $this->hasOne(Inventory::class, 'product_variant_id');
+    }
+
+    public function inventories(): HasMany
+    {
+        return $this->hasMany(Inventory::class, 'product_variant_id');
     }
 }

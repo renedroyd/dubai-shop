@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\AdminRole;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -38,6 +39,15 @@ class DatabaseSeeder extends Seeder
                     'is_admin' => true,
                 ],
             );
+        }
+
+        $superadmin = AdminRole::query()->where('slug', 'superadmin')->first();
+
+        if ($superadmin) {
+            User::query()->where('is_admin', true)->get()->each(function (User $user) use ($superadmin): void {
+                $user->forceFill(['admin_access_enabled' => true])->save();
+                $user->roles()->syncWithoutDetaching([$superadmin->id]);
+            });
         }
     }
 }

@@ -9,6 +9,11 @@ use Filament\Widgets\TableWidget;
 
 class LowStockInventory extends TableWidget
 {
+    public static function canView(): bool
+    {
+        return auth()->user()?->hasAdminPermission('inventories.view') ?? false;
+    }
+
     public function getHeading(): ?string
     {
         return __('Inventario que requiere atención');

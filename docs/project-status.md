@@ -1,10 +1,8 @@
 # Dubai Shop — Estado del proyecto
 
-**Corte:** 5 de noviembre de 2026  
+**Corte:** 6 de noviembre de 2026  
 **Rama de referencia:** `main`  
-**Último commit integrado:** `6f205d2dc49fea3cbc70c3f01b520054f67c0822`  
-**Última integración:** [PR #35 — Asistente gratuito de IA para crear banners](https://github.com/renedroyd/dubai-shop/pull/35)  
-**Estado de PRs:** no se encontraron PR abiertas durante esta revisión.
+**Última entrega de producto:** PR #38 — Control de acceso administrativo por roles y permisos.
 
 > Este documento distingue implementación integrada, validación automatizada y aceptación operativa. Que una funcionalidad esté integrada o que CI pase no significa que esté configurada ni aceptada en el entorno real.
 
@@ -12,7 +10,7 @@
 
 Dubai Shop cuenta con el núcleo funcional de una tienda online y su administración: catálogo, importación, carrito, checkout, pedidos, inventario, pagos manuales, tarifas de envío, cuentas de clientes, comunicaciones transaccionales, operación logística, CMS, internacionalización y una interfaz premium negro/dorado.
 
-Las Fases 1–16 se encuentran integradas en `main`. Posteriormente se incorporaron mejoras de importación de catálogo, dashboard y tema Filament, experiencia de compra, banners y asistencia de IA. La última entrega añade un generador de prompts que permite utilizar ChatGPT gratuito para crear imágenes sin integrar la API.
+Las Fases 1–16 y las mejoras PR #29–37 están integradas. La entrega PR #38 añade control de acceso por roles y permisos en Filament. El generador de prompts permite utilizar ChatGPT gratuito para crear imágenes sin integrar la API.
 
 **Situación general:** desarrollo funcional avanzado; falta completar aceptación operativa y cerrar la preparación real para producción. No declarar el sistema listo para producción hasta ejecutar las verificaciones externas de dominio/HTTPS, proxy, correo, colas, backups/restauración, monitoreo y compra de extremo a extremo.
 
@@ -91,6 +89,13 @@ Las Fases 1–16 se encuentran integradas en `main`. Posteriormente se incorpora
 - Importación de catálogo desde Excel/CSV.
 - Tema administrativo premium negro/dorado.
 
+### Control de acceso administrativo — PR #38
+- Habilitación/deshabilitación individual del acceso al panel.
+- Roles múltiples por usuario con permisos combinados y excepciones individuales de permitir/denegar.
+- Permisos por recurso y acción, aplicados mediante políticas Laravel y comprobaciones en acciones personalizadas.
+- Gestión de usuarios y roles reservada al Superadministrador; protección de la cuenta y rol de emergencia.
+- Los administradores existentes se migran a Superadministrador; el resto de usuarios permanece sin acceso al panel por defecto.
+
 ### Asistencia de IA para banners — PR #35
 - Asistente en Filament para tipo de campaña, estilo, formato y descripción.
 - Genera un prompt en español alineado con la marca, con espacio para texto superpuesto y sin texto/logos/watermarks dentro de la imagen.
@@ -121,6 +126,7 @@ Las Fases 1–16 se encuentran integradas en `main`. Posteriormente se incorpora
 
 La base integrada incluye:
 - Acceso administrativo protegido y separación de cuentas de clientes.
+- RBAC con roles, permisos por recurso/acción, habilitación individual y políticas Laravel.
 - Validación de imágenes y límites de tamaño; comprobantes de pago con validación y almacenamiento privado.
 - Tokens aleatorios para consulta pública de pedidos y respuestas privadas/no-store.
 - Rate limits en operaciones sensibles.

@@ -10,6 +10,11 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class CommerceOverview extends StatsOverviewWidget
 {
+    public static function canView(): bool
+    {
+        return auth()->user()?->hasAdminPermission('dashboard.view') ?? false;
+    }
+
     protected function getStats(): array
     {
         $salesThisMonth = Order::query()

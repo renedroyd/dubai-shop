@@ -1,0 +1,102 @@
+<?php
+
+use App\Models\Brand;
+use App\Models\Category;
+use App\Models\Inventory;
+use App\Models\InventoryMovement;
+use App\Models\NotificationLog;
+use App\Models\NotificationTemplate;
+use App\Models\Order;
+use App\Models\Payment;
+use App\Models\PaymentMethod;
+use App\Models\Product;
+use App\Models\ShippingZone;
+use App\Models\StorefrontBanner;
+use App\Models\StorefrontMenuItem;
+use App\Models\StorefrontPage;
+use App\Models\StorefrontSetting;
+use App\Models\User;
+use App\Models\AdminRole;
+
+return [
+    'model_resources' => [
+        Category::class => 'categories',
+        Brand::class => 'brands',
+        Product::class => 'products',
+        Inventory::class => 'inventories',
+        InventoryMovement::class => 'inventory_movements',
+        Order::class => 'orders',
+        Payment::class => 'payments',
+        PaymentMethod::class => 'payment_methods',
+        ShippingZone::class => 'shipping_zones',
+        NotificationTemplate::class => 'notification_templates',
+        NotificationLog::class => 'notification_logs',
+        StorefrontBanner::class => 'banners',
+        StorefrontPage::class => 'pages',
+        StorefrontMenuItem::class => 'menu_items',
+        StorefrontSetting::class => 'store_settings',
+        User::class => 'admin_users',
+        AdminRole::class => 'admin_roles',
+    ],
+
+    'permissions' => [
+        'panel.access' => 'Acceder al panel administrativo',
+        'dashboard.view' => 'Consultar el dashboard',
+        'admin_users.view' => 'Consultar usuarios administrativos',
+        'admin_users.create' => 'Crear usuarios administrativos',
+        'admin_users.update' => 'Modificar usuarios y sus accesos',
+        'admin_users.delete' => 'Eliminar usuarios administrativos',
+        'admin_roles.view' => 'Consultar roles',
+        'admin_roles.create' => 'Crear roles',
+        'admin_roles.update' => 'Modificar roles y permisos',
+        'admin_roles.delete' => 'Eliminar roles',
+        'categories.view' => 'Consultar categorías',
+        'categories.create' => 'Crear categorías',
+        'categories.update' => 'Modificar categorías',
+        'categories.delete' => 'Eliminar categorías',
+        'brands.view' => 'Consultar marcas',
+        'brands.create' => 'Crear marcas',
+        'brands.update' => 'Modificar marcas',
+        'brands.delete' => 'Eliminar marcas',
+        'products.view' => 'Consultar productos',
+        'products.create' => 'Crear productos e importar catálogo',
+        'products.update' => 'Modificar productos',
+        'products.delete' => 'Eliminar productos',
+        'inventories.view' => 'Consultar existencias',
+        'inventories.update' => 'Ajustar existencias',
+        'inventory_movements.view' => 'Consultar movimientos de inventario',
+        'orders.view' => 'Consultar pedidos',
+        'orders.update' => 'Gestionar pedidos y entregas',
+        'payments.view' => 'Consultar pagos y comprobantes',
+        'payments.update' => 'Aprobar, rechazar y confirmar pagos',
+        'payment_methods.view' => 'Consultar métodos de pago',
+        'payment_methods.create' => 'Crear métodos de pago',
+        'payment_methods.update' => 'Modificar métodos de pago',
+        'payment_methods.delete' => 'Eliminar métodos de pago',
+        'shipping_zones.view' => 'Consultar zonas y tarifas',
+        'shipping_zones.create' => 'Crear zonas y tarifas',
+        'shipping_zones.update' => 'Modificar zonas y tarifas',
+        'shipping_zones.delete' => 'Eliminar zonas y tarifas',
+        'notification_templates.view' => 'Consultar plantillas de notificación',
+        'notification_templates.create' => 'Crear plantillas',
+        'notification_templates.update' => 'Modificar plantillas',
+        'notification_templates.delete' => 'Eliminar plantillas',
+        'notification_logs.view' => 'Consultar registros de notificaciones',
+        'banners.view' => 'Consultar banners y campañas',
+        'banners.create' => 'Crear banners y campañas',
+        'banners.update' => 'Modificar banners y campañas',
+        'banners.delete' => 'Eliminar banners y campañas',
+        'pages.view' => 'Consultar páginas públicas',
+        'pages.create' => 'Crear páginas públicas',
+        'pages.update' => 'Modificar páginas públicas',
+        'pages.delete' => 'Eliminar páginas públicas',
+        'menu_items.view' => 'Consultar menús',
+        'menu_items.create' => 'Crear elementos de menú',
+        'menu_items.update' => 'Modificar elementos de menú',
+        'menu_items.delete' => 'Eliminar elementos de menú',
+        'store_settings.view' => 'Consultar contenido y textos de tienda',
+        'store_settings.create' => 'Crear contenido de tienda',
+        'store_settings.update' => 'Modificar contenido de tienda',
+        'store_settings.delete' => 'Eliminar contenido de tienda',
+    ],
+];

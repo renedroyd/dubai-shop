@@ -12,6 +12,7 @@ use App\Filament\Widgets\OrderStatusChart;
 use App\Filament\Widgets\PaymentMethodsChart;
 use App\Filament\Widgets\RecentOrders;
 use App\Filament\Widgets\SalesTrendChart;
+use App\Models\AdminRole;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -24,7 +25,10 @@ class AdminDashboardTest extends TestCase
     {
         $this->withoutVite();
 
-        $this->actingAs(User::factory()->create(['is_admin' => true]))
+        $admin = User::factory()->create(['is_admin' => true, 'admin_access_enabled' => true]);
+        $admin->roles()->attach(AdminRole::query()->where('slug', 'superadmin')->firstOrFail());
+
+        $this->actingAs($admin)
             ->get('/admin')
             ->assertOk();
 

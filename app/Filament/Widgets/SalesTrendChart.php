@@ -8,6 +8,11 @@ use Illuminate\Support\Carbon;
 
 class SalesTrendChart extends ChartWidget
 {
+    public static function canView(): bool
+    {
+        return auth()->user()?->hasAdminPermission('orders.view') ?? false;
+    }
+
     public function getHeading(): ?string { return __('Evolución de ventas cobradas'); }
 
     public function getDescription(): ?string { return __('Ingresos diarios de los últimos 30 días, separados por moneda'); }

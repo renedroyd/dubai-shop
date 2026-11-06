@@ -26,6 +26,8 @@ return new class extends Migration
                 ->constrained('warehouse_locations')->nullOnDelete();
         });
 
+        $now = now();
+
         DB::table('warehouses')->orderBy('id')->get()->each(function ($warehouse) use ($now): void {
             DB::table('warehouse_locations')->insertOrIgnore([
                 'warehouse_id' => $warehouse->id,

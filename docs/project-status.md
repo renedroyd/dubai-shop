@@ -91,7 +91,7 @@ Las Fases 1–16 y las mejoras PR #29–37 están integradas. La entrega PR #38 
 
 ### Control de acceso administrativo — PR #38
 - Habilitación/deshabilitación individual del acceso al panel.
-- Roles múltiples por usuario con permisos combinados.
+- Roles múltiples por usuario con permisos combinados y excepciones individuales de permitir/denegar.
 - Permisos por recurso y acción, aplicados mediante políticas Laravel y comprobaciones en acciones personalizadas.
 - Gestión de usuarios y roles reservada al Superadministrador; protección de la cuenta y rol de emergencia.
 - Los administradores existentes se migran a Superadministrador; el resto de usuarios permanece sin acceso al panel por defecto.

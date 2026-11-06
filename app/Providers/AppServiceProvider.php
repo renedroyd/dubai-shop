@@ -18,7 +18,6 @@ use App\Models\StorefrontBanner;
 use App\Models\StorefrontPage;
 use App\Models\StorefrontMenuItem;
 use App\Models\StorefrontSetting;
-use App\Models\Order;
 use App\Models\User;
 use App\Observers\OrderObserver;
 use App\Payments\PaymentDriverManager;

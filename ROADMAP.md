@@ -1,7 +1,7 @@
 # Hoja de ruta — Dubai Shop / Clásico Dubai
 
-**Actualizada:** 5 de noviembre de 2026  
-**Base:** `main`, con Fases 1–16 y PR #29–35 integradas.
+**Actualizada:** 6 de noviembre de 2026  
+**Base:** Fases 1–16 y PR #29–37 integradas; PR #38 incorpora RBAC administrativo.
 
 La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente y nuevas capacidades que requieren decisiones comerciales. La prioridad inmediata es estabilizar y aceptar el despliegue, no añadir integraciones externas sin proveedor o reglas aprobadas.
 
@@ -14,7 +14,7 @@ La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente
 | Envíos y tracking | Integrado; prueba operativa pendiente | Alta |
 | Experiencia pública y panel premium | Integrados; QA visual final pendiente | Media |
 | Importación Excel/CSV | Integrada; imágenes/variantes excluidas | Media |
-| Seguridad y preflight | Integrados; configuración externa pendiente | Crítica |
+| Seguridad, RBAC y preflight | Integrados en esta entrega; configuración externa pendiente | Crítica |
 | Asistente de prompts IA para banners | Integrado, flujo manual gratuito | Media |
 | Lanzamiento de producción | No aceptado aún | Crítica |
 
@@ -34,12 +34,14 @@ Arquitectura y CI, sistema visual, catálogo, carrito/checkout, pedidos e invent
 - Búsqueda, filtros, accesibilidad progresiva, mejoras de tarjetas, idiomas español/inglés y navegación móvil.
 - Endurecimiento de seguridad, auditorías de dependencias, preflight de producción y política de proxies.
 
-### PR #29–35 — Mejoras adicionales integradas
+### PR #29–38 — Mejoras adicionales
 - Importación de categorías, marcas y productos desde Excel/CSV.
 - Refinamiento visual del panel Filament.
 - Dashboard administrativo con métricas y centro de atención.
 - Banners con imagen de fondo premium.
 - Asistente de prompts de imagen con ChatGPT gratuito.
+- Control de acceso administrativo por roles, permisos CRUD por recurso y habilitación individual de usuarios.
+- Migración de administradores existentes a Superadministrador y protección de la cuenta/rol de emergencia.
 
 ---
 

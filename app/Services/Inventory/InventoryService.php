@@ -57,21 +57,22 @@ class InventoryService
                 throw new InvalidArgumentException('La existencia no puede ser inferior a las unidades reservadas o bloqueadas.');
             }
 
+            $unassigned = WarehouseLocation::query()
+                ->where('warehouse_id', $warehouse->id)
+                ->where('type', WarehouseLocation::TYPE_UNASSIGNED)
+                ->firstOrFail();
+
+            $locationBalance = InventoryLocationBalance::query()->firstOrCreate(
+                [
+                    'inventory_id' => $inventory->id,
+                    'warehouse_location_id' => $unassigned->id,
+                ],
+                ['quantity_on_hand' => 0],
+            );
+
             $delta = $quantity - $inventory->quantity_on_hand;
 
             if ($delta !== 0) {
-                $unassigned = WarehouseLocation::query()
-                    ->where('warehouse_id', $warehouse->id)
-                    ->where('type', WarehouseLocation::TYPE_UNASSIGNED)
-                    ->firstOrFail();
-
-                $locationBalance = InventoryLocationBalance::query()->firstOrCreate(
-                    [
-                        'inventory_id' => $inventory->id,
-                        'warehouse_location_id' => $unassigned->id,
-                    ],
-                    ['quantity_on_hand' => 0],
-                );
 
                 if (($locationBalance->quantity_on_hand + $delta) < 0) {
                     throw new InvalidArgumentException(

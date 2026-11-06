@@ -13,6 +13,9 @@ return new class extends Migration
             $table->string('name');
             $table->foreignId('source_warehouse_id')->nullable()->constrained('warehouses')->nullOnDelete();
             $table->foreignId('destination_warehouse_id')->nullable()->constrained('warehouses')->nullOnDelete();
+            $table->string('transfer_type', 40)->nullable();
+            $table->json('requester_role_slugs')->nullable();
+            $table->json('approver_role_slugs')->nullable();
             $table->unsignedBigInteger('min_quantity')->nullable();
             $table->unsignedBigInteger('max_quantity')->nullable();
             $table->unsignedTinyInteger('required_approvals')->default(1);
@@ -30,6 +33,7 @@ return new class extends Migration
             $table->foreignId('source_warehouse_id')->constrained('warehouses')->restrictOnDelete();
             $table->foreignId('destination_warehouse_id')->constrained('warehouses')->restrictOnDelete();
             $table->foreignId('requested_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('transfer_type', 40)->default('standard');
             $table->string('status', 30)->default('pending_approval');
             $table->unsignedTinyInteger('required_approvals')->default(1);
             $table->timestamp('requested_at')->nullable();

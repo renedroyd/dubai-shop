@@ -2,10 +2,13 @@
 
 namespace App\Providers;
 
+use App\Models\AdminRole;
 use App\Models\Order;
 use App\Models\User;
 use App\Observers\OrderObserver;
 use App\Payments\PaymentDriverManager;
+use App\Policies\AdminRolePolicy;
+use App\Policies\UserPolicy;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -26,6 +29,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Order::observe(OrderObserver::class);
+
+        Gate::policy(AdminRole::class, AdminRolePolicy::class);
+        Gate::policy(User::class, UserPolicy::class);
 
         Gate::before(function (User $user, string $ability, array $arguments): ?bool {
             if (! $user->admin_access_enabled) {
@@ -58,6 +64,10 @@ class AppServiceProvider extends ServiceProvider
             $resource = config('admin-permissions.model_resources')[$modelClass] ?? null;
 
             if (! $resource) {
+                return null;
+            }
+
+            if (in_array($resource, ['admin_users', 'admin_roles'], true)) {
                 return null;
             }
 

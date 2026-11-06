@@ -60,6 +60,26 @@ class InventoryService
             $delta = $quantity - $inventory->quantity_on_hand;
 
             if ($delta !== 0) {
+                $unassigned = WarehouseLocation::query()
+                    ->where('warehouse_id', $warehouse->id)
+                    ->where('type', WarehouseLocation::TYPE_UNASSIGNED)
+                    ->firstOrFail();
+
+                $locationBalance = InventoryLocationBalance::query()->firstOrCreate(
+                    [
+                        'inventory_id' => $inventory->id,
+                        'warehouse_location_id' => $unassigned->id,
+                    ],
+                    ['quantity_on_hand' => 0],
+                );
+
+                if (($locationBalance->quantity_on_hand + $delta) < 0) {
+                    throw new InvalidArgumentException(
+                        'No hay suficientes unidades sin ubicación para aplicar este ajuste. Ajusta el stock desde su ubicación física.'
+                    );
+                }
+
+                $locationBalance->increment('quantity_on_hand', $delta);
                 $inventory->update(['quantity_on_hand' => $quantity]);
 
                 InventoryMovement::query()->create([
@@ -67,8 +87,13 @@ class InventoryService
                     'user_id' => $userId,
                     'type' => 'adjustment',
                     'quantity_delta' => $delta,
+                    'from_location_id' => $delta < 0 ? $unassigned->id : null,
+                    'to_location_id' => $delta > 0 ? $unassigned->id : null,
                     'reason' => $reason,
-                    'metadata' => ['warehouse_id' => $warehouse->id],
+                    'metadata' => [
+                        'warehouse_id' => $warehouse->id,
+                        'location_id' => $unassigned->id,
+                    ],
                 ]);
             }
 

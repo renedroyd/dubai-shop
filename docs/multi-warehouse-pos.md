@@ -1,6 +1,6 @@
 # Multi almacén y POS — arquitectura y alcance
 
-**Estado:** POS-1 integrado; POS-2 en implementación. Este documento describe decisiones aprobadas y separa explícitamente lo integrado de lo planificado.
+**Estado:** POS-1 y POS-2 integrados; POS-3 en implementación. Este documento describe decisiones aprobadas y separa explícitamente lo integrado de lo planificado.
 
 ## Decisiones aprobadas
 
@@ -39,9 +39,10 @@
 - `warehouse_locations`: árbol de ubicaciones con `warehouse_id`, `parent_id`, código, tipo y estado.
 - `inventories`: saldo agregado por almacén y producto/variante.
 - `inventory_movements`: libro de movimientos vinculado a `inventories`; la pertenencia al almacén se obtiene desde el inventario.
-- Próxima etapa: `inventory_location_balances` para distribuir el saldo agregado entre ubicaciones; cada movimiento de posición deberá mantener la suma de ubicaciones consistente con el saldo del almacén.
+- `inventory_location_balances`: saldo físico por inventario y ubicación. La suma de sus cantidades debe coincidir con `inventories.quantity_on_hand`.
+- `inventory_movements` conserva el historial agregado y añade ubicación de origen/destino para ajustes y movimientos internos.
 
-## Reglas de integridad
+## POS-3 — Saldos por ubicación (en implementación)\n\n- La migración crea un saldo por cada inventario en la ubicación técnica `UNASSIGNED`, preservando cantidades actuales y evitando ajustes de stock durante el despliegue.\n- Cada almacén tiene una ubicación `UNASSIGNED`; las existencias nuevas se registran allí hasta que se ubiquen físicamente.\n- Los movimientos entre ubicaciones son internos: no cambian el total del almacén y se registran con origen y destino.\n- Los ajustes por ubicación actualizan atómicamente el saldo local y el total del inventario; no pueden reducir el total por debajo de reservas y bloqueos.\n- La conciliación compara el saldo agregado del inventario con la suma de saldos de sus ubicaciones.\n\n## Reglas de integridad
 
 1. Un almacén principal debe existir y estar activo.
 2. Los códigos de almacén son únicos; los códigos de ubicación son únicos dentro de cada almacén.

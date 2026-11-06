@@ -62,7 +62,7 @@ class AdminUserResource extends Resource
                 ->multiple()
                 ->preload()
                 ->searchable()
-                ->disabled(fn (?User $record): bool => $record?->canManageAdminAccess() ?? false)
+                ->disabled(fn (?User $record): bool => $record?->isSuperAdmin() ?? false)
                 ->helperText(__('Un usuario puede tener varios roles. Los permisos se combinan.')),
             Repeater::make('directPermissions')
                 ->relationship()

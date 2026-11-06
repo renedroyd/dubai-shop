@@ -71,6 +71,11 @@ class WarehouseLocation extends Model
         return $this->belongsTo(self::class, 'parent_id');
     }
 
+    public function inventoryBalances(): HasMany
+    {
+        return $this->hasMany(InventoryLocationBalance::class, 'warehouse_location_id');
+    }
+
     public function children(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id')->orderBy('sort_order')->orderBy('code');

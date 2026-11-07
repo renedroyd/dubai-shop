@@ -303,3 +303,34 @@
         transition-duration: .01ms !important;
     }
 }
+
+
+/* Compact Clásico Dubai identity in the collapsed desktop sidebar. */
+.fi-sidebar-collapsed-brand {
+    display: none;
+    width: 100%;
+    min-height: 3.75rem;
+    align-items: center;
+    justify-content: center;
+    padding: .65rem .5rem;
+}
+
+.fi-sidebar-collapsed-brand img {
+    display: block;
+    width: 2.45rem;
+    height: 2.45rem;
+    object-fit: contain;
+}
+
+@media (min-width: 1024px) {
+    .fi-sidebar-collapsed-brand[ x-show ] {
+        display: flex;
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .fi-sidebar,
+    .fi-main-ctn {
+        transition: width .2s ease, margin-inline-start .2s ease;
+    }
+}

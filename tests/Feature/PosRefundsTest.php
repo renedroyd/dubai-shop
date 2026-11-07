@@ -125,13 +125,16 @@ class PosRefundsTest extends TestCase
         $cashier = User::factory()->create();
         [$session, $order] = $this->completedSale($cashier);
         $cashPayment = Payment::query()->where('order_id', $order->id)->firstOrFail();
-        $cashPayment->update(['amount' => 2500]);
+        $cashPayment->update(['amount' => 2500, 'currency' => 'USD']);
+        $order->update(['currency' => 'USD']);
+        $session->update(['currency' => 'USD']);
+        $order->items()->update(['currency' => 'USD']);
         $zellePayment = Payment::query()->create([
             'order_id' => $order->id,
             'driver' => 'zelle_manual',
             'status' => Payment::STATUS_PAID,
             'amount' => 1250,
-            'currency' => 'CUP',
+            'currency' => 'USD',
             'reference' => 'ZELLE-ORIGINAL-REF',
         ]);
         $item = $order->items()->firstOrFail();

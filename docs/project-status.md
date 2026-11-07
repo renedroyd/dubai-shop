@@ -292,14 +292,14 @@ PR #71 integrado en `main`. Dashboard de estados, actividad, incidencias y conte
 - Pruebas automatizadas para venta pagada, exclusión de invitado, idempotencia y aprobación Zelle.
 - El canje, reversión por devoluciones, ajustes autorizados, avisos de vencimiento e interfaz administrativa/cliente quedan para los siguientes subbloques POS-17.
 
-## POS-17B — canje de puntos en el terminal POS (en revisión)
+## POS-17B — canje de puntos en el terminal POS (integrado mediante PR #76)
 
 - Canje vinculado a una cuenta de cliente y al saldo de la moneda de la sesión; nunca convierte ni mezcla CUP, USD y EUR.
 - Valor inicial de canje: 1 punto = 1 CUP, 0.01 USD o 0.01 EUR.
 - Canje mínimo de 100 puntos y descuento máximo del 20 % del subtotal elegible después de promociones.
 - El descuento por puntos se incorpora al total y al descuento de la orden; los importes de pago, efectivo recibido y cambio se calculan sobre el total neto.
 - Los puntos se consumen por lotes conservando su fecha de vencimiento. Si se rechaza el pago Zelle, se restituyen los puntos reservados con su vencimiento original.
-- El canje parcial por devoluciones y la restitución proporcional se implementarán en POS-17C.
+- El siguiente subbloque POS-17C concilia acumulaciones y canjes cuando se procesan devoluciones.
 
 ## POS-17C — conciliación de puntos en devoluciones (en revisión)
 

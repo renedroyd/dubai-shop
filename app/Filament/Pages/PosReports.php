@@ -15,7 +15,7 @@ class PosReports extends Page
 {
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-chart-bar';
     protected static ?int $navigationSort = 80;
-    protected static string $view = 'filament.pages.pos-reports';
+    protected string $view = 'filament.pages.pos-reports';
 
     public static function canAccess(): bool
     {

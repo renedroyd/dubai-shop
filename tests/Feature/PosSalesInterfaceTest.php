@@ -238,4 +238,24 @@ class PosSalesInterfaceTest extends TestCase
             'payment_status' => 'paid',
         ]);
     }
+
+    public function test_cashier_interface_exposes_configured_qz_tray_hardware_controls(): void
+    {
+        $user = $this->cashier();
+        $terminal = $this->terminal();
+        $terminal->update([
+            'printer_name' => 'EPSON TM-T20III',
+            'cash_drawer_enabled' => true,
+            'cash_drawer_pin' => 0,
+        ]);
+        app(PosCashSessionService::class)->open($terminal, $user->id, 'CUP', 5000);
+
+        Livewire::actingAs($user)
+            ->test(PosSales::class)
+            ->assertSee('QZ Tray')
+            ->assertSee('EPSON TM-T20III')
+            ->assertSee('Conectar y probar impresora')
+            ->assertSee('Abrir gaveta (prueba autorizada)');
+    }
+
 }

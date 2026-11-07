@@ -83,6 +83,12 @@ class OrderResource extends Resource
                             ]))
                             ->searchable()->required(),
                         TextInput::make('quantity')->label(__('Cantidad'))->numeric()->integer()->minValue(1)->required(),
+                        Select::make('disposition')->label(__('Estado al recibir'))->options([
+                            'resellable' => __('Apto para volver a la venta'),
+                            'quarantine' => __('Cuarentena / no vendible'),
+                            'discarded' => __('Desechar / baja'),
+                        ])->default('resellable')->required(),
+                        Textarea::make('condition_note')->label(__('Observaciones del estado'))->rows(2)->maxLength(1000),
                     ])->columns(2)->minItems(1)->required(),
                     Select::make('approved_by')->label(__('Autorizado por'))
                         ->options(User::query()->get()->filter(fn (User $user): bool => $user->id !== auth()->id() && $user->hasAdminPermission('pos_refunds.approve'))->pluck('name', 'id')->all())

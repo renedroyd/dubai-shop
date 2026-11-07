@@ -344,7 +344,7 @@
                                     <label class="block text-xs font-medium text-gray-500">{{ __('Efectivo contado al cierre') }}</label>
                                     <input type="number" min="0" step="0.01" wire:model="countedCashAmount" placeholder="0.00" class="fi-input w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950" required>
                                     <input wire:model="closingNote" placeholder="{{ __('Observaciones del cierre') }}" class="fi-input w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
-                                    <button type="submit" wire:confirm="{{ __('¿Cerrar la caja y registrar el arqueo?') }}" class="fi-btn fi-btn-color-danger w-full justify-center">{{ __('Cerrar caja y arquear') }}</button>
+                                    <button type="submit" wire:confirm="{{ $session->terminal->supervised_closing ? __('¿Enviar el cierre a aprobación de un supervisor?') : __('¿Cerrar la caja y registrar el arqueo?') }}" class="fi-btn fi-btn-color-danger w-full justify-center">{{ $session->terminal->supervised_closing ? __('Solicitar cierre supervisado') : __('Cerrar caja y arquear') }}</button>
                                 </form>
                             </div>
                         </div>

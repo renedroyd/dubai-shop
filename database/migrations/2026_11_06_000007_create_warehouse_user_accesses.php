@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -17,6 +18,21 @@ return new class extends Migration
             $table->unique(['user_id', 'warehouse_id']);
             $table->index(['warehouse_id', 'user_id']);
         });
+
+        foreach (['admin', 'inventory-manager'] as $roleSlug) {
+            $role = DB::table('admin_roles')->where('slug', $roleSlug)->first();
+            if (! $role) {
+                continue;
+            }
+
+            $permissions = json_decode($role->permissions, true) ?: [];
+            if (! in_array('pos_reports.view', $permissions, true)) {
+                $permissions[] = 'pos_reports.view';
+                DB::table('admin_roles')->where('id', $role->id)->update([
+                    'permissions' => json_encode($permissions, JSON_THROW_ON_ERROR),
+                ]);
+            }
+        }
     }
 
     public function down(): void

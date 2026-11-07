@@ -30,6 +30,52 @@ class User extends Authenticatable implements FilamentUser
         ];
     }
 
+    public function warehouseAccesses(): HasMany
+    {
+        return $this->hasMany(WarehouseUserAccess::class);
+    }
+
+    public function hasWarehousePermission(Warehouse|int $warehouse, string $permission = 'view'): bool
+    {
+        if (! $this->admin_access_enabled) {
+            return false;
+        }
+
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        $warehouseId = $warehouse instanceof Warehouse ? $warehouse->getKey() : $warehouse;
+        $permissions = $this->warehouseAccesses()
+            ->where('warehouse_id', $warehouseId)
+            ->value('permissions') ?? [];
+
+        if (is_string($permissions)) {
+            $permissions = json_decode($permissions, true) ?: [];
+        }
+
+        return in_array('*', $permissions, true) || in_array($permission, $permissions, true);
+    }
+
+    public function warehouseIdsWithPermission(string $permission = 'view'): array
+    {
+        if (! $this->admin_access_enabled) {
+            return [];
+        }
+
+        if ($this->isSuperAdmin()) {
+            return Warehouse::query()->pluck('id')->all();
+        }
+
+        return $this->warehouseAccesses()
+            ->get()
+            ->filter(fn (WarehouseUserAccess $access): bool => in_array('*', $access->permissions ?? [], true)
+                || in_array($permission, $access->permissions ?? [], true))
+            ->pluck('warehouse_id')
+            ->map(fn ($id): int => (int) $id)
+            ->all();
+    }
+
     public function directPermissions(): HasMany
     {
         return $this->hasMany(AdminUserPermission::class);

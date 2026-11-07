@@ -172,6 +172,8 @@ class AppServiceProvider extends ServiceProvider
                             $actions[$ability] === 'view' ? 'view' : 'warehouse.manage',
                         'warehouse_transfers' =>
                             $actions[$ability] === 'view' ? 'view' : ($actions[$ability] === 'create' ? 'transfers.request' : 'transfers.approve'),
+                        'pos_locations' =>
+                            $actions[$ability] === 'view' ? 'view' : 'warehouse.manage',
                         'pos_terminals' =>
                             $actions[$ability] === 'view' ? 'view' : 'warehouse.manage',
                         'pos_cash_sessions' =>

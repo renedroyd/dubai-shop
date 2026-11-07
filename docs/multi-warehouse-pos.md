@@ -1,6 +1,6 @@
 # Multi almacén y POS — arquitectura y alcance
 
-**Estado:** POS-1 a POS-4 integrados; POS-5 en implementación. Este documento distingue lo integrado de lo que aún está en desarrollo.
+**Estado:** POS-1 a POS-5 integrados; POS-6 en implementación. Este documento distingue lo integrado de lo que aún está en desarrollo.
 
 ## Decisiones aprobadas
 
@@ -76,7 +76,7 @@ También se contemplan `rejected` y `cancelled`. La cancelación de una transfer
 - Reversión controlada de transferencias ya despachadas.
 - Reportes y notificaciones operativas.
 
-## POS-5 — Abastecimiento multi almacén de la tienda online (en implementación)
+## POS-5 — Abastecimiento multi almacén de la tienda online (integrado)
 
 - Cada almacén tiene un indicador explícito para habilitar el abastecimiento web y una prioridad numérica; menor número significa mayor prioridad.
 - La migración habilita el almacén principal existente con prioridad 10. Los demás almacenes quedan deshabilitados hasta que un administrador los active.
@@ -96,6 +96,26 @@ También se contemplan `rejected` y `cancelled`. La cancelación de una transfer
 5. Las reservas y salidas mantienen conciliados los saldos agregados y por ubicación.
 6. El checkout falla de forma segura si el stock cambia o resulta insuficiente antes de reservar.
 
+## POS-6 — Establecimientos, terminales y almacén asignado (en implementación)
+
+- Los establecimientos POS representan puntos físicos de operación y se administran independientemente de los almacenes.
+- Cada establecimiento tiene código único, nombre, dirección, teléfono, notas y estado.
+- Cada terminal pertenece a un establecimiento y tiene código único dentro de ese establecimiento, nombre y estado.
+- Cada terminal tiene un almacén activo asignado; las futuras ventas de ese terminal descontarán del inventario de ese almacén.
+- Un terminal activo no puede operar si su establecimiento o almacén se desactiva. El sistema impide desactivar un establecimiento o almacén que tenga terminales activos; primero deben desactivarse sus terminales.
+- La administración de establecimientos y terminales se realiza en Filament con permisos RBAC independientes.
+- Esta fase no crea todavía ventas, cajas, arqueos, recibos, cobros ni devoluciones; eso corresponde a POS-7.
+- Tampoco implementa todavía restricciones por usuario/cajero o permisos por almacén; se abordarán en POS-8.
+
+### Criterios de aceptación POS-6
+
+1. Crear y administrar establecimientos POS con códigos únicos.
+2. Crear terminales vinculados a un establecimiento y asignarles un almacén activo.
+3. Permitir reutilizar el código de terminal en establecimientos diferentes, pero no dentro del mismo establecimiento.
+4. Impedir asignar terminales activos a establecimientos o almacenes inactivos.
+5. Impedir desactivar establecimientos o almacenes con terminales activos.
+6. Aplicar permisos RBAC separados para consultar, crear, modificar y eliminar establecimientos y terminales.
+
 ## Reglas de integridad
 
 1. Un almacén principal debe existir y estar activo.
@@ -114,10 +134,5 @@ La tienda pública conserva temporalmente el comportamiento anterior: carrito, c
 
 ## Secuencia posterior
 
-1. POS-2: administración de almacenes y árbol de ubicaciones en Filament (en implementación).
-2. POS-3: saldos por ubicación, ajustes, movimientos y conciliación.
-3. POS-4: transferencias y reglas configurables de aprobación.
-4. POS-5: abastecimiento de tienda online.
-5. POS-6: terminales POS y asignación de almacén.
-6. POS-7: ventas, pagos, cajas, recibos y devoluciones.
-7. POS-8: permisos por almacén, informes y pruebas integrales.
+1. POS-7: ventas integradas con pedidos y pagos, cajas, arqueos, recibos y devoluciones.
+2. POS-8: permisos por almacén y usuario, informes y pruebas integrales.

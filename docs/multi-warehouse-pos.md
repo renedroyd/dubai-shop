@@ -142,7 +142,7 @@ También se contemplan `rejected` y `cancelled`. La cancelación de una transfer
 ### Acceso por usuario y almacén
 - Cada usuario administrativo puede recibir asignaciones independientes por almacén.
 - Cada asignación contiene permisos explícitos: consultar, gestionar inventario, solicitar transferencias, aprobar transferencias, operar POS, consultar informes y administrar almacén/ubicaciones.
-- Los permisos globales RBAC por recurso siguen siendo obligatorios; el permiso por almacén actúa como una segunda barrera y no amplía los permisos globales.
+- Los permisos globales RBAC por recurso siguen siendo obligatorios; el permiso por almacén actúa como una segunda barrera y no amplía los permisos globales. Cualquier permiso operativo asignado implica también consulta de ese almacén.
 - El Superadministrador conserva acceso global. Los demás usuarios solo consultan y operan los almacenes asignados.
 - Los listados, widgets, pagos, pedidos POS, existencias, movimientos, ubicaciones, terminales, cajas y transferencias se filtran por los almacenes autorizados.
 - Los servicios de inventario, caja POS, ventas, devoluciones y transferencias verifican permisos dentro del flujo de negocio, evitando depender exclusivamente de la interfaz Filament.

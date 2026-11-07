@@ -143,6 +143,65 @@ class AppServiceProvider extends ServiceProvider
                 return true;
             }
 
+            if (is_object($subject)) {
+                $warehouseIds = match (true) {
+                    $subject instanceof Warehouse => [$subject->id],
+                    $subject instanceof WarehouseLocation => [$subject->warehouse_id],
+                    $subject instanceof Inventory => [$subject->warehouse_id],
+                    $subject instanceof InventoryMovement => [$subject->inventory?->warehouse_id],
+                    $subject instanceof InventoryLocationBalance => [$subject->inventory?->warehouse_id],
+                    $subject instanceof WarehouseTransfer => [$subject->source_warehouse_id, $subject->destination_warehouse_id],
+                    $subject instanceof PosTerminal => [$subject->warehouse_id],
+                    $subject instanceof PosCashSession => [$subject->terminal?->warehouse_id],
+                    $subject instanceof Payment && $subject->order?->channel === 'pos' => [$subject->order->pos_warehouse_id],
+                    $subject instanceof Payment => $subject->order?->items()->with('inventory')->get()->pluck('inventory.warehouse_id')->all(),
+                    $subject instanceof Order && $subject->channel === 'pos' => [$subject->pos_warehouse_id],
+                    $subject instanceof Order => $subject->items()->with('inventory')->get()->pluck('inventory.warehouse_id')->all(),
+                    $subject instanceof WarehouseTransferRule && ($subject->source_warehouse_id === null || $subject->destination_warehouse_id === null) => Warehouse::query()->pluck('id')->all(),
+                    $subject instanceof WarehouseTransferRule => [$subject->source_warehouse_id, $subject->destination_warehouse_id],
+                    $subject instanceof PosLocation => $subject->terminals()->pluck('warehouse_id')->all(),
+                    default => null,
+                };
+
+                if ($warehouseIds !== null) {
+                    $warehouseIds = array_values(array_unique(array_filter(array_map('intval', $warehouseIds))));
+                    if ($warehouseIds === []) {
+                        return false;
+                    }
+
+                    $permission = match ($resource) {
+                        'inventories', 'inventory_movements', 'inventory_location_balances' =>
+                            $actions[$ability] === 'view' ? 'view' : 'inventory.manage',
+                        'warehouses', 'warehouse_locations' =>
+                            $actions[$ability] === 'view' ? 'view' : 'warehouse.manage',
+                        'warehouse_transfers' =>
+                            $actions[$ability] === 'view' ? 'view' : ($actions[$ability] === 'create' ? 'transfers.request' : 'transfers.approve'),
+                        'pos_locations' =>
+                            $actions[$ability] === 'view' ? 'view' : 'warehouse.manage',
+                        'pos_terminals' =>
+                            $actions[$ability] === 'view' ? 'view' : 'warehouse.manage',
+                        'pos_cash_sessions' =>
+                            $actions[$ability] === 'view' ? 'view' : 'pos.operate',
+                        'payments' => $subject->order?->channel === 'pos'
+                            ? ($actions[$ability] === 'view' ? 'view' : 'pos.operate')
+                            : 'view',
+                        'orders' => $subject->channel === 'pos'
+                            ? ($actions[$ability] === 'view' ? 'view' : 'pos.operate')
+                            : 'view',
+                        'warehouse_transfer_rules' => 'warehouse.manage',
+                        default => null,
+                    };
+
+                    if ($permission !== null) {
+                        foreach ($warehouseIds as $warehouseId) {
+                            if (! $user->hasWarehousePermission($warehouseId, $permission)) {
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+
             return $user->hasAdminPermission("{$resource}.{$actions[$ability]}");
         });
 

@@ -9,6 +9,8 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Warehouse;
 use App\Models\WarehouseLocation;
+use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -31,6 +33,10 @@ class InventoryService
         }
 
         $warehouse ??= Warehouse::primary();
+
+        if ($userId !== null && ! User::query()->findOrFail($userId)->hasWarehousePermission($warehouse->id, 'inventory.manage')) {
+            throw new AuthorizationException('No tienes permiso para gestionar inventario en este almacén.');
+        }
 
         if (! $warehouse->is_active) {
             throw new InvalidArgumentException('No se puede modificar el inventario de un almacén inactivo.');

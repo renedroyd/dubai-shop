@@ -29,6 +29,13 @@ class InventoryResource extends Resource
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-archive-box';
     protected static ?int $navigationSort = 1;
 
+    public static function getEloquentQuery(): Builder
+    {
+        $warehouseIds = auth()->user()?->warehouseIdsWithPermission('view') ?? [];
+
+        return parent::getEloquentQuery()->whereIn('warehouse_id', $warehouseIds);
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([]);
@@ -70,6 +77,9 @@ class InventoryResource extends Resource
             Action::make('registerStock')->label(__('Registrar producto / variante'))->icon('heroicon-o-plus')
                 ->authorize(fn (): bool => auth()->user()?->hasAdminPermission('inventories.update') ?? false)
                 ->schema([
+                    Select::make('warehouse_id')->label(__('Almacén'))
+                        ->options(fn () => Warehouse::query()->whereIn('id', auth()->user()?->warehouseIdsWithPermission('inventory.manage') ?? [])->orderBy('name')->pluck('name', 'id'))
+                        ->required(),
                     Select::make('product_id')->label(__('Producto'))->options(fn () => Product::query()->orderBy('name')->pluck('name', 'id'))->searchable()->required(),
                     Select::make('product_variant_id')->label(__('Variante (opcional)'))->options(fn (callable $get) => ProductVariant::query()->where('product_id', $get('product_id'))->where('is_active', true)->orderBy('name')->pluck('name', 'id'))->searchable(),
                     TextInput::make('quantity')->label(__('Existencia inicial'))->numeric()->integer()->minValue(0)->required()->default(0),

@@ -24,7 +24,7 @@ class PaymentMethodsChart extends ChartWidget
 
     protected function getData(): array
     {
-        $methods = Payment::query()
+        $methods = Payment::query()->accessibleTo(auth()->user())
             ->leftJoin('payment_methods', 'payment_methods.id', '=', 'payments.payment_method_id')
             ->selectRaw('COALESCE(payment_methods.name, payments.driver) as method_name, COUNT(payments.id) as total')
             ->groupBy('payment_methods.name', 'payments.driver')

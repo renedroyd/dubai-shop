@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class InventoryMovement extends Model
@@ -15,6 +16,11 @@ class InventoryMovement extends Model
     protected function casts(): array
     {
         return ['quantity_delta' => 'integer', 'metadata' => 'array'];
+    }
+
+    public function scopeAccessibleTo(Builder $query, User $user): Builder
+    {
+        return $query->whereHas('inventory', fn (Builder $inventory) => $inventory->whereIn('warehouse_id', $user->warehouseIdsWithPermission('view')));
     }
 
     public function inventory(): BelongsTo

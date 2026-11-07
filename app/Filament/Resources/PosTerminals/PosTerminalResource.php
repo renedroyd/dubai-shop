@@ -32,6 +32,13 @@ class PosTerminalResource extends Resource
     public static function getModelLabel(): string { return __('terminal'); }
     public static function getPluralModelLabel(): string { return __('terminales'); }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        $warehouseIds = auth()->user()?->warehouseIdsWithPermission('view') ?? [];
+
+        return parent::getEloquentQuery()->whereIn('warehouse_id', $warehouseIds);
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([

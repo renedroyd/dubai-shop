@@ -13,6 +13,8 @@ use App\Models\PosCashMovement;
 use App\Models\PosCashSession;
 use App\Models\PosRefund;
 use App\Models\PosRefundItem;
+use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -35,6 +37,12 @@ class PosRefundService
 
             if ($lockedOrder->channel !== 'pos' || ! in_array($lockedOrder->payment_status, ['paid', Payment::STATUS_PARTIALLY_REFUNDED], true)) {
                 throw ValidationException::withMessages(['order' => 'Solo se pueden devolver ventas POS cobradas o parcialmente reembolsadas.']);
+            }
+
+            $lockedSession->load('terminal');
+
+            if (! User::query()->findOrFail($cashierId)->hasWarehousePermission($lockedSession->terminal->warehouse_id, 'pos.operate')) {
+                throw new AuthorizationException('No tienes permiso para devolver ventas de este almacén.');
             }
 
             if (! $lockedSession->isOpen()

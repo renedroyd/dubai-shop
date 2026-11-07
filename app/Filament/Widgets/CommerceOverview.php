@@ -17,7 +17,7 @@ class CommerceOverview extends StatsOverviewWidget
 
     protected function getStats(): array
     {
-        $salesThisMonth = Order::query()
+        $salesThisMonth = Order::query()->accessibleTo(auth()->user())
             ->where('payment_status', 'paid')
             ->whereBetween('placed_at', [now()->startOfMonth(), now()->endOfMonth()])
             ->selectRaw('currency, SUM(total_amount) as total')
@@ -30,7 +30,7 @@ class CommerceOverview extends StatsOverviewWidget
             Stat::make(__('Pedidos de hoy'), Order::query()->whereDate('placed_at', today())->count())
                 ->description(__('Pedidos registrados hoy'))
                 ->descriptionIcon('heroicon-m-shopping-bag'),
-            Stat::make(__('Pagos por revisar'), Payment::query()->where('status', Payment::STATUS_AWAITING_REVIEW)->count())
+            Stat::make(__('Pagos por revisar'), Payment::query()->accessibleTo(auth()->user())->where('status', Payment::STATUS_AWAITING_REVIEW)->count())
                 ->description(__('Comprobantes pendientes de validación'))
                 ->descriptionIcon('heroicon-m-clock')
                 ->color('warning'),
@@ -38,7 +38,7 @@ class CommerceOverview extends StatsOverviewWidget
                 ->description(__('Suma de pedidos marcados como pagados'))
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color('success'),
-            Stat::make(__('Productos con stock bajo'), Inventory::query()->whereRaw('(quantity_on_hand - quantity_reserved) <= 5')->count())
+            Stat::make(__('Productos con stock bajo'), Inventory::query()->accessibleTo(auth()->user())->whereRaw('(quantity_on_hand - quantity_reserved) <= 5')->count())
                 ->description(__('Existencias disponibles de 5 unidades o menos'))
                 ->descriptionIcon('heroicon-m-exclamation-triangle')
                 ->color('danger'),

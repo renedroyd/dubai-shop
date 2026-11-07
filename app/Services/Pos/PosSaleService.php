@@ -14,6 +14,8 @@ use App\Models\PosCashMovement;
 use App\Models\PosCashSession;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -40,6 +42,10 @@ class PosSaleService
 
             $terminal = $lockedSession->terminal;
             $warehouse = $terminal?->warehouse;
+
+            if (! $warehouse || ! User::query()->findOrFail($cashierId)->hasWarehousePermission($warehouse->id, 'pos.operate')) {
+                throw new AuthorizationException('No tienes permiso para vender desde este almacén.');
+            }
 
             if (! $terminal?->is_active || ! $terminal->location?->is_active || ! $warehouse?->is_active) {
                 throw ValidationException::withMessages(['terminal' => 'El terminal, establecimiento y almacén deben permanecer activos.']);

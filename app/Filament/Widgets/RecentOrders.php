@@ -24,7 +24,7 @@ class RecentOrders extends TableWidget
     public function table(Table $table): Table
     {
         return $table
-            ->query(Order::query()->latest('placed_at'))
+            ->query(Order::query()->accessibleTo(auth()->user())->latest('placed_at'))
             ->columns([
                 TextColumn::make('number')
                     ->label(__('Pedido'))

@@ -19,6 +19,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
 
 class OrderResource extends Resource
@@ -30,6 +31,11 @@ class OrderResource extends Resource
     public static function getPluralModelLabel(): string { return __('pedidos'); }
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-shopping-bag';
     protected static ?int $navigationSort = 1;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->accessibleTo(auth()->user());
+    }
 
     public static function form(Schema $schema): Schema
     {

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Warehouse;
+use App\Models\WarehouseUserAccess;
 use App\Models\WarehouseLocation;
 use App\Models\WarehouseTransfer;
 use App\Models\WarehouseTransferRule;
@@ -42,6 +43,17 @@ class WarehouseTransferTest extends TestCase
         ]);
     }
 
+    private function grantTransferAccess(User $user, Warehouse ...$warehouses): void
+    {
+        $user->update(['admin_access_enabled' => true]);
+        foreach ($warehouses as $warehouse) {
+            $user->warehouseAccesses()->create([
+                'warehouse_id' => $warehouse->id,
+                'permissions' => ['view', 'transfers.request', 'transfers.approve'],
+            ]);
+        }
+    }
+
     private function bin(Warehouse $warehouse, string $code): WarehouseLocation
     {
         return WarehouseLocation::query()->create([
@@ -69,6 +81,9 @@ class WarehouseTransferTest extends TestCase
         $requester = User::factory()->create();
         $approverOne = User::factory()->create();
         $approverTwo = User::factory()->create();
+        foreach ([$requester, $approverOne, $approverTwo] as $actor) {
+            $this->grantTransferAccess($actor, $source, $destination);
+        }
 
         $transfer = app(WarehouseTransferService::class)->create(
             $source,
@@ -127,6 +142,9 @@ class WarehouseTransferTest extends TestCase
         $requester = User::factory()->create();
         $approverOne = User::factory()->create();
         $approverTwo = User::factory()->create();
+        foreach ([$requester, $approverOne, $approverTwo] as $actor) {
+            $this->grantTransferAccess($actor, $source, $destination);
+        }
         $service = app(WarehouseTransferService::class);
 
         $transfer = $service->create($source, $destination, [[

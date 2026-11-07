@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -25,6 +26,11 @@ class Payment extends Model
     protected function casts(): array
     {
         return ['amount' => 'integer', 'reviewed_at' => 'datetime', 'metadata' => 'array'];
+    }
+
+    public function scopeAccessibleTo(Builder $query, User $user): Builder
+    {
+        return $query->whereHas('order', fn (Builder $orders) => $orders->accessibleTo($user));
     }
 
     public function order(): BelongsTo { return $this->belongsTo(Order::class); }

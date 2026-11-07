@@ -7,6 +7,7 @@ use App\Models\PosLocation;
 use App\Models\PosTerminal;
 use App\Models\User;
 use App\Models\Warehouse;
+use App\Models\WarehouseUserAccess;
 use App\Services\Pos\PosCashSessionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
@@ -15,6 +16,15 @@ use Tests\TestCase;
 class PosCashSessionTest extends TestCase
 {
     use RefreshDatabase;
+
+    private function grantWarehouseAccess(User $user): void
+    {
+        $user->update(['admin_access_enabled' => true]);
+        $user->warehouseAccesses()->create([
+            'warehouse_id' => Warehouse::primary()->id,
+            'permissions' => WarehouseUserAccess::PERMISSIONS,
+        ]);
+    }
 
     private function terminal(): PosTerminal
     {
@@ -36,6 +46,7 @@ class PosCashSessionTest extends TestCase
     public function test_cashier_can_open_record_movements_and_close_a_session_with_reconciliation(): void
     {
         $user = User::factory()->create();
+        $this->grantWarehouseAccess($user);
         $service = app(PosCashSessionService::class);
         $session = $service->open($this->terminal(), $user->id, 'CUP', 10000, 'Fondo inicial');
 
@@ -54,6 +65,7 @@ class PosCashSessionTest extends TestCase
     public function test_terminal_cannot_be_deactivated_while_its_cash_session_is_open(): void
     {
         $user = User::factory()->create();
+        $this->grantWarehouseAccess($user);
         $terminal = $this->terminal();
         app(PosCashSessionService::class)->open($terminal, $user->id, 'CUP', 0);
 
@@ -64,6 +76,7 @@ class PosCashSessionTest extends TestCase
     public function test_terminal_cannot_have_two_open_cash_sessions(): void
     {
         $user = User::factory()->create();
+        $this->grantWarehouseAccess($user);
         $terminal = $this->terminal();
         $service = app(PosCashSessionService::class);
         $service->open($terminal, $user->id, 'CUP', 0);
@@ -75,6 +88,7 @@ class PosCashSessionTest extends TestCase
     public function test_cash_withdrawal_cannot_exceed_the_available_register_balance(): void
     {
         $user = User::factory()->create();
+        $this->grantWarehouseAccess($user);
         $service = app(PosCashSessionService::class);
         $session = $service->open($this->terminal(), $user->id, 'CUP', 1000);
 
@@ -85,6 +99,7 @@ class PosCashSessionTest extends TestCase
     public function test_closed_session_rejects_cash_movements_and_cannot_be_closed_twice(): void
     {
         $user = User::factory()->create();
+        $this->grantWarehouseAccess($user);
         $service = app(PosCashSessionService::class);
         $session = $service->open($this->terminal(), $user->id, 'USD', 0);
         $closed = $service->close($session, $user->id, 0);

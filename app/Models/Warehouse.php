@@ -48,6 +48,7 @@ class Warehouse extends Model
         ];
     }
 
+    public function userAccesses(): HasMany { return $this->hasMany(WarehouseUserAccess::class); }
     public function posTerminals(): HasMany { return $this->hasMany(PosTerminal::class); }
     public function locations(): HasMany { return $this->hasMany(WarehouseLocation::class); }
     public function inventories(): HasMany { return $this->hasMany(Inventory::class); }

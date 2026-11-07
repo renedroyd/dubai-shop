@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -20,6 +21,11 @@ class Inventory extends Model
             'quantity_reserved' => 'integer',
             'quantity_blocked' => 'integer',
         ];
+    }
+
+    public function scopeAccessibleTo(Builder $query, User $user): Builder
+    {
+        return $query->whereIn('warehouse_id', $user->warehouseIdsWithPermission('view'));
     }
 
     public function warehouse(): BelongsTo

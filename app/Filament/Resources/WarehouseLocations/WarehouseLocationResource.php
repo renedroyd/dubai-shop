@@ -32,13 +32,21 @@ class WarehouseLocationResource extends Resource
     public static function getModelLabel(): string { return __('ubicación'); }
     public static function getPluralModelLabel(): string { return __('ubicaciones'); }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        $warehouseIds = auth()->user()?->warehouseIdsWithPermission('view') ?? [];
+
+        return parent::getEloquentQuery()->whereIn('warehouse_id', $warehouseIds);
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Select::make('warehouse_id')->label(__('Almacén'))->options(fn () => Warehouse::query()->orderBy('name')->pluck('name', 'id'))->required()->live()->searchable(),
+            Select::make('warehouse_id')->label(__('Almacén'))->options(fn () => Warehouse::query()->whereIn('id', auth()->user()?->warehouseIdsWithPermission('warehouse.manage') ?? [])->orderBy('name')->pluck('name', 'id'))->required()->live()->searchable(),
             Select::make('parent_id')->label(__('Ubicación superior'))
                 ->options(fn (Get $get, ?WarehouseLocation $record) => WarehouseLocation::query()
                     ->where('warehouse_id', $get('warehouse_id'))
+                    ->whereIn('warehouse_id', auth()->user()?->warehouseIdsWithPermission('warehouse.manage') ?? [])
                     ->when($record, fn ($query) => $query->whereKeyNot($record->getKey()))
                     ->where('type', '!=', WarehouseLocation::TYPE_UNASSIGNED)
                     ->orderBy('name')->get()->mapWithKeys(fn ($location) => [

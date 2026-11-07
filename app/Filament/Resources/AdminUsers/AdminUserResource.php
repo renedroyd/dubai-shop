@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\AdminUsers;
 
 use App\Models\User;
+use App\Models\Warehouse;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Actions\CreateAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Repeater;
@@ -64,6 +66,30 @@ class AdminUserResource extends Resource
                 ->searchable()
                 ->disabled(fn (?User $record): bool => $record?->isSuperAdmin() ?? false)
                 ->helperText(__('Un usuario puede tener varios roles. Los permisos se combinan.')),
+            Repeater::make('warehouseAccesses')
+                ->relationship()
+                ->label(__('Acceso por almacén'))
+                ->schema([
+                    Select::make('warehouse_id')
+                        ->label(__('Almacén'))
+                        ->options(fn () => Warehouse::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id'))
+                        ->searchable()->required(),
+                    CheckboxList::make('permissions')
+                        ->label(__('Permisos en este almacén'))
+                        ->options([
+                            'view' => __('Consultar'),
+                            'inventory.manage' => __('Gestionar inventario'),
+                            'transfers.request' => __('Solicitar transferencias'),
+                            'transfers.approve' => __('Aprobar transferencias'),
+                            'pos.operate' => __('Operar cajas POS'),
+                            'reports.view' => __('Consultar informes'),
+                            'warehouse.manage' => __('Administrar almacén y ubicaciones'),
+                        ])
+                        ->columns(2)->required(),
+                ])
+                ->columns(1)->defaultItems(0)
+                ->addActionLabel(__('Asignar almacén'))
+                ->helperText(__('Los permisos se aplican únicamente al almacén asignado. El Superadministrador conserva acceso global.')),
             Repeater::make('directPermissions')
                 ->relationship()
                 ->label(__('Permisos individuales'))
@@ -91,6 +117,7 @@ class AdminUserResource extends Resource
             TextColumn::make('email')->label(__('Correo'))->searchable(),
             IconColumn::make('admin_access_enabled')->label(__('Acceso al panel'))->boolean(),
             TextColumn::make('roles.name')->label(__('Roles'))->badge(),
+            TextColumn::make('warehouseAccesses.warehouse.name')->label(__('Almacenes autorizados'))->badge(),
         ])->recordActions([EditAction::make()])->headerActions([CreateAction::make()->label(__('Registrar usuario'))]);
     }
 

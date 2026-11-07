@@ -28,7 +28,7 @@ class LowStockInventory extends TableWidget
     {
         return $table
             ->query(
-                Inventory::query()
+                Inventory::query()->accessibleTo(auth()->user())
                     ->with(['product', 'variant'])
                     ->whereRaw('(quantity_on_hand - quantity_reserved) <= 5')
                     ->orderByRaw('(quantity_on_hand - quantity_reserved) asc')

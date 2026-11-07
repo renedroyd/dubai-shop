@@ -11,7 +11,9 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\User;
 use App\Models\Warehouse;
+use App\Models\WarehouseUserAccess;
 use App\Services\Inventory\InventoryService;
+use App\Services\Inventory\OnlineWarehouseFulfillmentService;
 use App\Services\Pos\PosCashSessionService;
 use App\Services\Pos\PosSaleService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,6 +26,12 @@ class PosSaleTest extends TestCase
 
     private function openSession(User $user, string $currency = 'CUP'): PosCashSession
     {
+        $user->update(['admin_access_enabled' => true]);
+        $user->warehouseAccesses()->firstOrCreate(
+            ['warehouse_id' => Warehouse::primary()->id],
+            ['permissions' => WarehouseUserAccess::PERMISSIONS],
+        );
+
         $location = PosLocation::query()->create(['code' => 'POS-LOC', 'name' => 'Tienda POS', 'is_active' => true]);
         $terminal = PosTerminal::query()->create([
             'pos_location_id' => $location->id,
@@ -122,6 +130,41 @@ class PosSaleTest extends TestCase
             'product_variant_id' => $variant->id,
             'unit_price_amount' => 1800,
         ]);
+    }
+
+    public function test_pos_sale_cannot_consume_units_reserved_by_online_checkout(): void
+    {
+        $user = User::factory()->create();
+        $session = $this->openSession($user);
+        $product = $this->product();
+        $inventory = app(InventoryService::class)->setOnHand($product, 5, reason: 'Carga inicial');
+        $inventory->update(['quantity_reserved' => 4]);
+
+        $this->expectException(ValidationException::class);
+        app(PosSaleService::class)->sell(
+            $session,
+            $user->id,
+            [['product_id' => $product->id, 'quantity' => 2]],
+            $this->cashMethod()->id,
+        );
+    }
+
+    public function test_online_channel_sees_the_remaining_stock_after_a_pos_sale(): void
+    {
+        $user = User::factory()->create();
+        $session = $this->openSession($user);
+        $product = $this->product();
+        $inventory = app(InventoryService::class)->setOnHand($product, 5, reason: 'Carga inicial');
+
+        app(PosSaleService::class)->sell(
+            $session,
+            $user->id,
+            [['product_id' => $product->id, 'quantity' => 3]],
+            $this->cashMethod()->id,
+        );
+
+        $this->assertSame(2, $inventory->fresh()->quantity_on_hand);
+        $this->assertSame(2, app(OnlineWarehouseFulfillmentService::class)->availableQuantity($product));
     }
 
     public function test_pos_sale_rejects_insufficient_stock_without_partial_writes(): void

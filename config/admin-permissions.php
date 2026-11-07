@@ -109,6 +109,7 @@ return [
         'pos_terminals.update' => 'Modificar terminales y almacén asignado',
         'pos_terminals.delete' => 'Eliminar terminales POS',
         'pos_cash_sessions.view' => 'Consultar sesiones y arqueos de caja',
+        'pos_reports.view' => 'Consultar informes POS y multi almacén',
         'pos_cash_sessions.create' => 'Abrir sesiones de caja y registrar movimientos',
         'pos_cash_sessions.update' => 'Cerrar y conciliar sesiones de caja',
         'orders.view' => 'Consultar pedidos',

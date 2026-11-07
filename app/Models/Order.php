@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -32,6 +33,22 @@ class Order extends Model
             'delivery_commitment_hours' => 'integer', 'delivery_due_at' => 'datetime',
             'placed_at' => 'datetime', 'confirmed_at' => 'datetime', 'cancelled_at' => 'datetime', 'inventory_processed_at' => 'datetime',
         ];
+    }
+
+    public function scopeAccessibleTo(Builder $query, User $user): Builder
+    {
+        $warehouseIds = $user->warehouseIdsWithPermission('view');
+
+        if ($warehouseIds === []) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->where(function (Builder $orders) use ($warehouseIds): void {
+            $orders->where(fn (Builder $pos) => $pos->where('channel', 'pos')->whereIn('pos_warehouse_id', $warehouseIds))
+                ->orWhere(fn (Builder $web) => $web->where('channel', '!=', 'pos')
+                    ->whereHas('items.inventory')
+                    ->whereDoesntHave('items.inventory', fn (Builder $inventory) => $inventory->whereNotIn('warehouse_id', $warehouseIds)));
+        });
     }
 
     public function items(): HasMany { return $this->hasMany(OrderItem::class); }

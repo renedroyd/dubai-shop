@@ -33,6 +33,13 @@ class PosCashSessionResource extends Resource
     public static function getModelLabel(): string { return __('sesión de caja'); }
     public static function getPluralModelLabel(): string { return __('sesiones de caja'); }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        $warehouseIds = auth()->user()?->warehouseIdsWithPermission('view') ?? [];
+
+        return parent::getEloquentQuery()->whereHas('terminal', fn (\Illuminate\Database\Eloquent\Builder $query) => $query->whereIn('warehouse_id', $warehouseIds));
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([]);
@@ -130,7 +137,7 @@ class PosCashSessionResource extends Resource
             Action::make('open')->label(__('Abrir caja'))->icon('heroicon-o-lock-open')->authorize('create')
                 ->form([
                     Select::make('pos_terminal_id')->label(__('Terminal'))
-                        ->options(fn () => PosTerminal::query()->where('is_active', true)->whereHas('location', fn ($q) => $q->where('is_active', true))->whereHas('warehouse', fn ($q) => $q->where('is_active', true))->orderBy('name')->pluck('name', 'id'))
+                        ->options(fn () => PosTerminal::query()->where('is_active', true)->whereHas('location', fn ($q) => $q->where('is_active', true))->whereHas('warehouse', fn ($q) => $q->where('is_active', true))->whereIn('warehouse_id', auth()->user()?->warehouseIdsWithPermission('pos.operate') ?? [])->orderBy('name')->pluck('name', 'id'))
                         ->searchable()->required(),
                     Select::make('currency')->label(__('Moneda'))->options(['CUP' => 'CUP', 'USD' => 'USD', 'EUR' => 'EUR'])->required(),
                     TextInput::make('opening_amount')->label(__('Fondo inicial en centavos'))->numeric()->integer()->minValue(0)->required()->default(0),

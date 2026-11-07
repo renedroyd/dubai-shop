@@ -9,6 +9,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
 
 class InventoryMovementResource extends Resource
@@ -20,6 +21,13 @@ class InventoryMovementResource extends Resource
     public static function getPluralModelLabel(): string { return __('movimientos'); }
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-clipboard-document-list';
     protected static ?int $navigationSort = 2;
+
+    public static function getEloquentQuery(): Builder
+    {
+        $warehouseIds = auth()->user()?->warehouseIdsWithPermission('view') ?? [];
+
+        return parent::getEloquentQuery()->whereHas('inventory', fn (Builder $query) => $query->whereIn('warehouse_id', $warehouseIds));
+    }
 
     public static function form(Schema $schema): Schema
     {

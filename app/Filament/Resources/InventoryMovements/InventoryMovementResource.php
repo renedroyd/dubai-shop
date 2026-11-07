@@ -21,6 +21,13 @@ class InventoryMovementResource extends Resource
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-clipboard-document-list';
     protected static ?int $navigationSort = 2;
 
+    public static function getEloquentQuery(): Builder
+    {
+        $warehouseIds = auth()->user()?->warehouseIdsWithPermission('view') ?? [];
+
+        return parent::getEloquentQuery()->whereHas('inventory', fn (Builder $query) => $query->whereIn('warehouse_id', $warehouseIds));
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([]);

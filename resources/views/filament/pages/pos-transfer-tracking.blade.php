@@ -22,7 +22,7 @@
         </x-filament::section>
         <x-filament::section>
             <p class="text-sm text-gray-500">{{ __('Incidencias registradas') }}</p>
-            <p class="mt-2 text-3xl font-semibold tabular-nums">{{ $incidentEvents->count() }}</p>
+            <p class="mt-2 text-3xl font-semibold tabular-nums">{{ $incidentCount }}</p>
         </x-filament::section>
         <x-filament::section>
             <p class="text-sm text-gray-500">{{ __('Transferencias consultables') }}</p>

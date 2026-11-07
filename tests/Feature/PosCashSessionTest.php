@@ -142,6 +142,31 @@ class PosCashSessionTest extends TestCase
         app(PosCashSessionService::class)->recordCashMovement($session, $user->id, 'cash_in', 1001, 'Entrada que supera límite');
     }
 
+    public function test_cash_limit_is_only_applied_to_its_configured_currency(): void
+    {
+        $user = User::factory()->create();
+        $this->grantWarehouseAccess($user);
+        $terminal = $this->terminal();
+        $terminal->update(['cash_limits' => ['CUP' => 6000]]);
+
+        $session = app(PosCashSessionService::class)->open($terminal, $user->id, 'USD', 10000);
+
+        $this->assertSame('USD', $session->currency);
+        $this->assertSame(6000, $terminal->fresh()->cashLimitFor('CUP'));
+        $this->assertNull($terminal->fresh()->cashLimitFor('USD'));
+    }
+
+    public function test_opening_cash_cannot_exceed_the_limit_for_its_currency(): void
+    {
+        $user = User::factory()->create();
+        $this->grantWarehouseAccess($user);
+        $terminal = $this->terminal();
+        $terminal->update(['cash_limits' => ['CUP' => 6000]]);
+
+        $this->expectException(ValidationException::class);
+        app(PosCashSessionService::class)->open($terminal, $user->id, 'CUP', 6001);
+    }
+
     public function test_supervised_close_requires_a_different_authorized_approver(): void
     {
         $cashier = User::factory()->create();

@@ -1,6 +1,6 @@
 # Deployment process templates
 
-These examples are starting points, not ready-to-install production configuration.
+These examples are starting points, not ready-to-install production configuration. The production database engine, operating-system account, PHP binary, process manager and backup destination must be confirmed on the target host before applying them.
 
 ## Queue worker
 

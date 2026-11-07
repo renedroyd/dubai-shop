@@ -80,6 +80,9 @@ class WarehouseTransferTest extends TestCase
         $requester = User::factory()->create();
         $approverOne = User::factory()->create();
         $approverTwo = User::factory()->create();
+        foreach ([$requester, $approverOne, $approverTwo] as $actor) {
+            $this->grantTransferAccess($actor, $source, $destination);
+        }
 
         $transfer = app(WarehouseTransferService::class)->create(
             $source,
@@ -138,6 +141,9 @@ class WarehouseTransferTest extends TestCase
         $requester = User::factory()->create();
         $approverOne = User::factory()->create();
         $approverTwo = User::factory()->create();
+        foreach ([$requester, $approverOne, $approverTwo] as $actor) {
+            $this->grantTransferAccess($actor, $source, $destination);
+        }
         $service = app(WarehouseTransferService::class);
 
         $transfer = $service->create($source, $destination, [[

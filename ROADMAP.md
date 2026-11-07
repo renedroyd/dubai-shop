@@ -283,17 +283,17 @@ Rama `feature/pos-16a-shifts-and-cash-control`. Asignación opcional de cajeros 
 
 ### POS-16B — Alertas y reposición (integrado en PR #69)
 
-Se implementarán umbrales mínimos de inventario configurables por producto/variante y almacén, alertas de existencias bajas y solicitudes de reposición entre almacenes integradas con el flujo de transferencias existente.
+Se implementaron umbrales mínimos configurables por producto/variante y almacén, alertas de existencias bajas y solicitudes de reposición entre almacenes integradas con el flujo de transferencias existente.
 
 
-### POS-16B — Alertas y reposición (en implementación)
+### POS-16B — Alertas y reposición (detalle de la entrega integrada en PR #69)
 
 Rama `feature/pos-16b-stock-alerts-replenishment`. Cada existencia por almacén puede guardar un umbral mínimo propio; si no se configura, se mantiene el valor predeterminado de 5 unidades. Las alertas consideran existencia disponible después de reservas y bloqueos. Desde una existencia con stock bajo se puede solicitar reposición desde otro almacén, creando una transferencia de tipo `replenishment` que utiliza las reglas y aprobaciones existentes; solicitar no mueve ni reserva stock, que solo se mueve durante el despacho aprobado.
 
 
-### Estado final POS-1 a POS-16 — integrado
+### Estado final POS-1 a POS-17 — integrado
 
-Los bloques funcionales POS-1 a POS-16 están integrados en `main` mediante ramas y PR independientes. El CI posterior a la integración de POS-16B (PR #69) finalizó correctamente en PHP 8.4, PHP 8.5 y Frontend assets. La aceptación física pendiente incluye instalación y prueba de QZ Tray, impresoras térmicas y gavetas en cada puesto, así como pruebas operativas de cajeros, arqueos, límites y reposición en los almacenes reales. Esto no equivale a aceptación de producción de la tienda completa; la Fase 17 continúa separada y pendiente.
+Todos los bloques funcionales POS-1 a POS-17 están integrados en main mediante ramas y PR independientes. Los detalles de POS-17A–D y los resultados de CI se registran al final de este documento. La aceptación física pendiente incluye instalación y prueba de QZ Tray, impresoras térmicas y gavetas en cada puesto, así como pruebas operativas de cajeros, arqueos, límites y reposición en los almacenes reales. Esto no equivale a aceptación de producción de la tienda completa; la Fase 17 de estabilización general continúa separada y pendiente.
 
 
 ### POS-16C — Seguimiento de transferencias e incidencias (integrado en PR #71)

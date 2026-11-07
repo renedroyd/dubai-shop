@@ -73,7 +73,7 @@ class AdminUserResource extends Resource
                     Select::make('warehouse_id')
                         ->label(__('Almacén'))
                         ->options(fn () => Warehouse::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id'))
-                        ->searchable()->required()->distinct(),
+                        ->searchable()->required(),
                     CheckboxList::make('permissions')
                         ->label(__('Permisos en este almacén'))
                         ->options([

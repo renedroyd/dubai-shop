@@ -144,6 +144,7 @@ class PosSales extends Page
         return PosTerminal::query()
             ->where('is_active', true)
             ->whereIn('warehouse_id', $warehouseIds)
+            ->whereDoesntHave('cashSessions', fn (Builder $query) => $query->where('status', PosCashSession::STATUS_OPEN)->whereNull('closed_at'))
             ->whereHas('location', fn (Builder $query) => $query->where('is_active', true))
             ->whereHas('warehouse', fn (Builder $query) => $query->where('is_active', true))
             ->with(['location', 'warehouse'])

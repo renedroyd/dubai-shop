@@ -51,6 +51,10 @@ class PosCashSessionResource extends Resource
             TextColumn::make('terminal.location.name')->label(__('Establecimiento'))->searchable(),
             TextColumn::make('terminal.code')->label(__('Terminal'))->searchable(),
             TextColumn::make('opener.name')->label(__('Abierta por')),
+            TextColumn::make('shift_label')->label(__('Turno'))->placeholder('—'),
+            TextColumn::make('close_requested_at')->label(__('Cierre solicitado'))->dateTime(),
+            TextColumn::make('closeRequester.name')->label(__('Solicitó cierre'))->placeholder('—'),
+            TextColumn::make('closeApprover.name')->label(__('Aprobó cierre'))->placeholder('—'),
             TextColumn::make('currency')->label(__('Moneda')),
             TextColumn::make('opening_cash_amount')->label(__('Fondo inicial'))->formatStateUsing(fn ($state, PosCashSession $record) => number_format($state / 100, 2).' '.$record->currency),
             TextColumn::make('expected_cash_amount')->label(__('Efectivo esperado'))->formatStateUsing(fn ($state, PosCashSession $record) => $state === null ? '—' : number_format($state / 100, 2).' '.$record->currency),
@@ -123,7 +127,7 @@ class PosCashSessionResource extends Resource
                 ->action(fn (PosCashSession $record, array $data) => app(PosCashSessionService::class)->recordCashMovement(
                     $record, auth()->id(), PosCashMovement::TYPE_CASH_OUT, (int) $data['amount'], $data['note'], $data['reference'] ?? null,
                 )),
-            Action::make('close')->label(__('Cerrar y arquear'))->icon('heroicon-o-lock-closed')->color('danger')
+            Action::make('close')->label(fn (PosCashSession $record): string => $record->terminal?->supervised_closing ? __('Solicitar cierre supervisado') : __('Cerrar y arquear'))->icon('heroicon-o-lock-closed')->color('danger')
                 ->requiresConfirmation()->authorize('update')
                 ->visible(fn (PosCashSession $record): bool => $record->isOpen())
                 ->form([
@@ -133,6 +137,12 @@ class PosCashSessionResource extends Resource
                 ->action(fn (PosCashSession $record, array $data) => app(PosCashSessionService::class)->close(
                     $record, auth()->id(), (int) $data['counted_amount'], $data['note'] ?? null,
                 )),
+            Action::make('approveClose')->label(__('Aprobar cierre'))->icon('heroicon-o-shield-check')->color('success')
+                ->requiresConfirmation()
+                ->visible(fn (PosCashSession $record): bool => $record->close_requested_at !== null && $record->closed_at === null)
+                ->authorize(fn (PosCashSession $record): bool => (auth()->user()?->hasAdminPermission('pos_cash_sessions.approve_close') ?? false)
+                    && (auth()->user()?->hasWarehousePermission($record->terminal->warehouse_id, 'pos.operate') ?? false))
+                ->action(fn (PosCashSession $record) => app(PosCashSessionService::class)->approveClose($record, auth()->id())),
         ])->headerActions([
             Action::make('open')->label(__('Abrir caja'))->icon('heroicon-o-lock-open')->authorize('create')
                 ->form([
@@ -142,6 +152,7 @@ class PosCashSessionResource extends Resource
                     Select::make('currency')->label(__('Moneda'))->options(['CUP' => 'CUP', 'USD' => 'USD', 'EUR' => 'EUR'])->required(),
                     TextInput::make('opening_amount')->label(__('Fondo inicial en centavos'))->numeric()->integer()->minValue(0)->required()->default(0),
                     Textarea::make('note')->label(__('Observaciones de apertura'))->maxLength(2000),
+                    TextInput::make('shift_label')->label(__('Turno / jornada'))->maxLength(120),
                 ])
                 ->action(fn (array $data) => app(PosCashSessionService::class)->open(
                     PosTerminal::query()->findOrFail($data['pos_terminal_id']),
@@ -149,6 +160,7 @@ class PosCashSessionResource extends Resource
                     $data['currency'],
                     (int) $data['opening_amount'],
                     $data['note'] ?? null,
+                    $data['shift_label'] ?? null,
                 )),
         ]);
     }

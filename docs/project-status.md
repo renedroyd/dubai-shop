@@ -268,7 +268,7 @@ Cada nueva fase se desarrolla en una rama independiente. Antes de implementar, r
 
 PR #71 integrado en `main`. Dashboard de estados, actividad, incidencias y conteos por almacén, con autorización por `pos_reports.view` y `reports.view` en ambos almacenes.
 
-## POS-16D — indicadores por establecimiento (en implementación)
+## POS-16D — indicadores por establecimiento (integrado mediante PR #72)
 
 - Resumen de ventas y pedidos por moneda, sin mezclar ni convertir CUP/USD/EUR.
 - Reembolsos netos por moneda, terminales activos, cajas abiertas y cierres pendientes.
@@ -276,7 +276,7 @@ PR #71 integrado en `main`. Dashboard de estados, actividad, incidencias y conte
 - Visibilidad limitada a establecimientos que tengan terminales asociados a almacenes autorizados para `reports.view`.
 
 
-## Corrección POS — límites de efectivo por moneda (en implementación)
+## Corrección POS — límites de efectivo por moneda (integrada mediante PR #73)
 
 - Límites independientes por terminal para CUP, USD y EUR.
 - Apertura, entradas manuales y ventas en efectivo aplican exclusivamente el límite de la moneda de la sesión.

@@ -175,8 +175,27 @@ class PosSaleService
 
             $orderPricing = app(PosPricingService::class)->priceOrderDiscount($netSubtotal, $prepared, $customerUser, $cashier, $warehouse->id, $currency);
             $orderDiscountAmount = $orderPricing['discount_amount'];
-            $total = $netSubtotal - $orderDiscountAmount;
-            $discountTotal = $itemDiscountTotal + $orderDiscountAmount;
+            $eligibleSubtotal = max(0, $netSubtotal - $orderDiscountAmount);
+            $redemption = null;
+            $requestedLoyaltyPoints = (int) ($paymentDetails['loyalty_points'] ?? 0);
+            $loyaltyDiscountAmount = 0;
+
+            if ($requestedLoyaltyPoints > 0) {
+                if (! $customerUser) {
+                    throw ValidationException::withMessages(['loyaltyPointsToRedeem' => 'Vincula una cuenta de cliente para canjear puntos.']);
+                }
+
+                $redemption = app(PosLoyaltyService::class)->prepareRedemption(
+                    $customerUser->id,
+                    $currency,
+                    $eligibleSubtotal,
+                    $requestedLoyaltyPoints,
+                );
+                $loyaltyDiscountAmount = (int) $redemption['discount_amount'];
+            }
+
+            $total = $eligibleSubtotal - $loyaltyDiscountAmount;
+            $discountTotal = $itemDiscountTotal + $orderDiscountAmount + $loyaltyDiscountAmount;
             if ($total <= 0) {
                 throw ValidationException::withMessages(['discounts' => 'El total de la venta debe ser mayor que cero.']);
             }
@@ -256,6 +275,10 @@ class PosSaleService
                 'confirmed_at' => $requiresReview ? null : now(),
                 'inventory_processed_at' => $requiresReview ? null : now(),
             ]));
+
+            if ($redemption !== null) {
+                app(PosLoyaltyService::class)->recordRedemption($order, $redemption);
+            }
 
             if ($orderDiscountAmount > 0 && $orderPricing['rule']) {
                 PosDiscountEvent::query()->create([

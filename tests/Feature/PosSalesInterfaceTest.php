@@ -123,6 +123,79 @@ class PosSalesInterfaceTest extends TestCase
         ]);
     }
 
+    public function test_cashier_can_search_and_select_a_registered_customer(): void
+    {
+        $user = $this->cashier();
+        $customer = User::factory()->create([
+            'name' => 'Cliente Frecuente',
+            'email' => 'frecuente@example.com',
+            'is_admin' => false,
+            'admin_access_enabled' => false,
+        ]);
+        $terminal = $this->terminal();
+        app(PosCashSessionService::class)->open($terminal, $user->id, 'CUP', 5000);
+
+        Livewire::actingAs($user)
+            ->test(PosSales::class)
+            ->set('customerSearch', 'frecuente')
+            ->assertSee('Cliente Frecuente')
+            ->call('selectCustomer', $customer->id)
+            ->assertSet('customerUserId', $customer->id)
+            ->assertSet('customerName', 'Cliente Frecuente')
+            ->assertSet('customerEmail', 'frecuente@example.com');
+    }
+
+    public function test_cashier_can_find_a_customer_by_saved_phone_number(): void
+    {
+        $user = $this->cashier();
+        $customer = User::factory()->create([
+            'name' => 'Cliente por teléfono',
+            'email' => 'telefono@example.com',
+            'is_admin' => false,
+            'admin_access_enabled' => false,
+        ]);
+        $customer->customerAddresses()->create([
+            'recipient_name' => $customer->name,
+            'phone' => '555-7788',
+            'address' => 'Calle 1',
+            'city' => 'Guantánamo',
+            'region' => 'Guantánamo',
+        ]);
+        $terminal = $this->terminal();
+        app(PosCashSessionService::class)->open($terminal, $user->id, 'CUP', 5000);
+
+        Livewire::actingAs($user)
+            ->test(PosSales::class)
+            ->set('customerSearch', '555-7788')
+            ->assertSee('Cliente por teléfono')
+            ->call('selectCustomer', $customer->id)
+            ->assertSet('customerUserId', $customer->id);
+    }
+
+    public function test_cashier_can_register_a_customer_from_the_pos_interface(): void
+    {
+        $user = $this->cashier();
+        $terminal = $this->terminal();
+        app(PosCashSessionService::class)->open($terminal, $user->id, 'CUP', 5000);
+
+        Livewire::actingAs($user)
+            ->test(PosSales::class)
+            ->set('customerName', 'Nuevo cliente POS')
+            ->set('customerEmail', 'NUEVO@example.com')
+            ->set('customerPhone', '555-0123')
+            ->call('registerCustomer')
+            ->assertHasNoErrors()
+            ->assertSet('customerUserId', fn ($id) => $id !== null)
+            ->assertSet('customerEmail', 'nuevo@example.com');
+
+        $this->assertDatabaseHas('users', [
+            'name' => 'Nuevo cliente POS',
+            'email' => 'nuevo@example.com',
+            'is_admin' => false,
+            'admin_access_enabled' => false,
+        ]);
+    }
+
     public function test_cashier_can_register_a_sale_through_the_professional_interface_using_existing_services(): void
     {
         $user = $this->cashier();

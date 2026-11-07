@@ -5,6 +5,8 @@ namespace App\Filament\Pages;
 use App\Models\Category;
 use App\Models\Inventory;
 use App\Models\PaymentMethod;
+use App\Models\Order;
+use App\Models\User;
 use App\Models\PosCashMovement;
 use App\Models\PosCashSession;
 use App\Models\PosTerminal;
@@ -18,6 +20,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\WithFileUploads;
 
@@ -43,6 +46,8 @@ class PosSales extends Page
     public string $zelleReference = '';
     public string $zelleTransferDate = '';
     public $zelleProof = null;
+    public string $customerSearch = '';
+    public ?int $customerUserId = null;
     public string $customerName = '';
     public string $customerPhone = '';
     public string $customerEmail = '';
@@ -301,12 +306,118 @@ class PosSales extends Page
         unset($this->cart[$key]);
     }
 
-    public function clearCart(): void
+    public function customerMatches(): Collection
     {
-        $this->cart = [];
+        $term = trim($this->customerSearch);
+        if (mb_strlen($term) < 2) return collect();
+
+        return User::query()
+            ->where('is_admin', false)
+            ->where('admin_access_enabled', false)
+            ->where(fn (Builder $query) => $query
+                ->where('name', 'like', '%'.$term.'%')
+                ->orWhere('email', 'like', '%'.$term.'%')
+                ->orWhereHas('customerAddresses', fn (Builder $addresses) => $addresses->where('phone', 'like', '%'.$term.'%')))
+            ->orderBy('name')->limit(8)->get(['id', 'name', 'email']);
+    }
+
+    public function frequentCustomers(): Collection
+    {
+        $session = $this->currentSession();
+        if (! $session) return collect();
+
+        $recentPosOrders = fn (Builder $query) => $query
+            ->where('channel', 'pos')
+            ->where('pos_warehouse_id', $session->terminal->warehouse_id)
+            ->where('placed_at', '>=', now()->subDays(90));
+
+        return User::query()
+            ->where('is_admin', false)
+            ->where('admin_access_enabled', false)
+            ->whereHas('orders', $recentPosOrders)
+            ->withCount(['orders as pos_orders_count' => $recentPosOrders])
+            ->orderByDesc('pos_orders_count')->orderBy('name')->limit(5)
+            ->get(['id', 'name', 'email']);
+    }
+
+    public function updatedCustomerSearch(string $value): void
+    {
+        if ($this->customerUserId && $value !== $this->customerName) {
+            $this->customerUserId = null;
+            $this->customerName = '';
+            $this->customerPhone = '';
+            $this->customerEmail = '';
+        }
+    }
+
+    public function selectCustomer(int $userId): void
+    {
+        $customer = User::query()->whereKey($userId)
+            ->where('is_admin', false)->where('admin_access_enabled', false)
+            ->firstOrFail(['id', 'name', 'email']);
+
+        $this->customerUserId = $customer->id;
+        $this->customerSearch = $customer->name;
+        $this->customerName = $customer->name;
+        $this->customerEmail = $customer->email;
+    }
+
+    public function registerCustomer(): void
+    {
+        $this->authorizeCashierPermission('pos_cash_sessions.update');
+
+        $this->customerEmail = mb_strtolower(trim($this->customerEmail));
+        $this->validate([
+            'customerName' => ['required', 'string', 'max:255'],
+            'customerEmail' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'customerPhone' => ['nullable', 'string', 'max:40'],
+        ]);
+
+        $customer = User::query()->create([
+            'name' => trim($this->customerName),
+            'email' => $this->customerEmail,
+            'password' => Str::random(64),
+            'is_admin' => false,
+            'admin_access_enabled' => false,
+        ]);
+
+        $this->customerUserId = $customer->id;
+        $this->customerSearch = $customer->name;
+
+        Notification::make()
+            ->success()
+            ->title(__('Cliente registrado y vinculado'))
+            ->body(__('La venta quedará asociada a la cuenta de :name.', ['name' => $customer->name]))
+            ->send();
+    }
+
+    public function clearCustomer(): void
+    {
+        $this->customerUserId = null;
+        $this->customerSearch = '';
         $this->customerName = '';
         $this->customerPhone = '';
         $this->customerEmail = '';
+    }
+
+    public function customerHistory(): Collection
+    {
+        if (! $this->customerUserId || ! auth()->user()) return collect();
+
+        $warehouseIds = auth()->user()->warehouseIdsWithPermission('view');
+
+        return Order::query()
+            ->where('channel', 'pos')
+            ->whereIn('pos_warehouse_id', $warehouseIds)
+            ->where('user_id', $this->customerUserId)
+            ->latest('placed_at')->limit(5)
+            ->get(['id', 'number', 'channel', 'currency', 'total_amount', 'status', 'payment_status', 'placed_at']);
+    }
+
+    public function clearCart(): void
+    {
+        $this->cart = [];
+        $this->clearCustomer();
     }
 
     public function cartItems(): array

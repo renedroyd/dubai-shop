@@ -47,6 +47,7 @@ return new class extends Migration
         Schema::table('orders', function (Blueprint $table): void {
             $table->string('channel', 20)->default('web')->after('number');
             $table->foreignId('pos_terminal_id')->nullable()->after('channel')->constrained('pos_terminals')->restrictOnDelete();
+            $table->foreignId('pos_warehouse_id')->nullable()->after('pos_terminal_id')->constrained('warehouses')->restrictOnDelete();
             $table->foreignId('pos_cash_session_id')->nullable()->after('pos_terminal_id')->constrained('pos_cash_sessions')->restrictOnDelete();
             $table->foreignId('cashier_id')->nullable()->after('pos_cash_session_id')->constrained('users')->nullOnDelete();
             $table->index(['channel', 'placed_at']);
@@ -61,6 +62,7 @@ return new class extends Migration
             $table->dropIndex(['pos_terminal_id', 'placed_at']);
             $table->dropConstrainedForeignId('cashier_id');
             $table->dropConstrainedForeignId('pos_cash_session_id');
+            $table->dropConstrainedForeignId('pos_warehouse_id');
             $table->dropConstrainedForeignId('pos_terminal_id');
             $table->dropColumn('channel');
         });

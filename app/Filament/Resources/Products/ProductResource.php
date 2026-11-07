@@ -46,6 +46,7 @@ class ProductResource extends Resource
                 SlugField::name(label: __('Nombre')),
                 SlugField::slug(label: __('Slug')),
                 TextInput::make('sku')->label(__('SKU'))->required()->maxLength(100)->unique(ignoreRecord: true),
+                TextInput::make('barcode')->label(__('Código de barras'))->maxLength(100)->unique(ignoreRecord: true)->helperText(__('Código leído por el escáner del POS.')),
                 Select::make('category_id')->label(__('Categoría'))->relationship('category', 'name')->searchable()->preload(),
                 Select::make('brand_id')->label(__('Marca'))->relationship('brand', 'name')->searchable()->preload(),
                 TextInput::make('price_amount')->label(__('Precio (en centavos)'))->numeric()->integer()->minValue(0)->required()->helperText(__('Ejemplo: 1999 representa 19.99 en la moneda seleccionada.')),
@@ -75,6 +76,7 @@ class ProductResource extends Resource
                 Repeater::make('variants')->relationship()->label(__('Variantes'))->schema([
                     TextInput::make('name')->label(__('Nombre'))->required()->maxLength(255),
                     TextInput::make('sku')->label(__('SKU'))->required()->maxLength(100),
+                    TextInput::make('barcode')->label(__('Código de barras'))->maxLength(100)->unique(ignoreRecord: true),
                     TextInput::make('price_amount')->label(__('Precio propio (centavos)'))->numeric()->integer()->minValue(0),
                     KeyValue::make('options')->label(__('Opciones'))->keyLabel(__('Atributo'))->valueLabel(__('Valor'))->addable()->reorderable(false),
                     Toggle::make('is_active')->label(__('Activa'))->default(true),
@@ -90,6 +92,7 @@ class ProductResource extends Resource
             ->columns([
                 TextColumn::make('name')->label(__('Producto'))->searchable()->sortable()->limit(35),
                 TextColumn::make('sku')->label(__('SKU'))->searchable(),
+                TextColumn::make('barcode')->label(__('Código de barras'))->searchable()->toggleable(),
                 TextColumn::make('category.name')->label(__('Categoría'))->placeholder(__('Sin categoría')),
                 TextColumn::make('price_amount')->label(__('Precio'))->formatStateUsing(fn ($state, Product $record) => number_format($state / 100, 2).' '.$record->currency)->sortable(),
                 TextColumn::make('status')->label(__('Estado'))->badge()->color(fn (string $state): string => match ($state) {

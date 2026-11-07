@@ -38,8 +38,7 @@ class PosReportService
             ->when($warehouseId, fn (Builder $query) => $query->where('pos_warehouse_id', $warehouseId))
             ->when($terminalId, fn (Builder $query) => $query->where('pos_terminal_id', $terminalId))
             ->when($cashierId, fn (Builder $query) => $query->where('cashier_id', $cashierId))
-            ->when($currency, fn (Builder $query) => $query->where('currency', $currency))
-;
+            ->when($currency, fn (Builder $query) => $query->where('currency', $currency));
 
         $sales = $orders($from, $to)
             ->selectRaw('currency, COUNT(*) as orders_count, SUM(subtotal_amount) as subtotal_amount, SUM(discount_amount) as discounts_amount, SUM(total_amount) as total_amount')
@@ -71,25 +70,25 @@ class PosReportService
             ->when($warehouseId, fn ($query) => $query->where('orders.pos_warehouse_id', $warehouseId))
             ->when($terminalId, fn ($query) => $query->where('orders.pos_terminal_id', $terminalId))
             ->when($cashierId, fn ($query) => $query->where('orders.cashier_id', $cashierId))
-            ->when($currency, fn ($query) => $query->where('orders.currency', $currency))
-;
+            ->when($currency, fn ($query) => $query->where('orders.currency', $currency));
 
         $salesByProduct = (clone $itemBase)
             ->selectRaw('order_items.product_name, order_items.variant_name, order_items.sku, order_items.currency, SUM(order_items.quantity) as quantity_sold, SUM(order_items.line_total_amount) as sales_amount')
             ->groupBy('order_items.product_name', 'order_items.variant_name', 'order_items.sku', 'order_items.currency')
-            ->orderByDesc('sales_amount')->limit(20)->get();
+            ->orderBy('order_items.currency')->orderByDesc('sales_amount')->get();
 
         $salesByCategory = (clone $itemBase)
             ->selectRaw("COALESCE(categories.name, 'Sin categoría') as category_name, order_items.currency, SUM(order_items.quantity) as quantity_sold, SUM(order_items.line_total_amount) as sales_amount")
-            ->groupBy('categories.name', 'order_items.currency')->orderByDesc('sales_amount')->get();
+            ->groupBy('categories.name', 'order_items.currency')->orderBy('order_items.currency')->orderByDesc('sales_amount')->get();
 
         $salesByBrand = (clone $itemBase)
             ->selectRaw("COALESCE(brands.name, 'Sin marca') as brand_name, order_items.currency, SUM(order_items.quantity) as quantity_sold, SUM(order_items.line_total_amount) as sales_amount")
-            ->groupBy('brands.name', 'order_items.currency')->orderByDesc('sales_amount')->get();
+            ->groupBy('brands.name', 'order_items.currency')->orderBy('order_items.currency')->orderByDesc('sales_amount')->get();
 
         $refundedByPayment = DB::table('pos_refund_payments')
             ->join('pos_refunds', 'pos_refunds.id', '=', 'pos_refund_payments.pos_refund_id')
             ->where('pos_refunds.status', 'completed')
+            ->whereBetween('pos_refunds.refunded_at', [$from, $to])
             ->selectRaw('pos_refund_payments.payment_id, SUM(pos_refund_payments.amount) as refunded_amount')
             ->groupBy('pos_refund_payments.payment_id');
 
@@ -138,7 +137,7 @@ class PosReportService
 
         $sessions = PosCashSession::query()
             ->whereHas('terminal', fn (Builder $query) => $query->whereIn('warehouse_id', $warehouseIds))
-            ->whereBetween('opened_at', [$from, $to])
+            ->where(fn (Builder $query) => $query->whereBetween('opened_at', [$from, $to])->orWhereBetween('closed_at', [$from, $to]))
             ->when($warehouseId, fn (Builder $query) => $query->whereHas('terminal', fn (Builder $terminal) => $terminal->where('warehouse_id', $warehouseId)))
             ->when($terminalId, fn (Builder $query) => $query->where('pos_terminal_id', $terminalId))
             ->when($cashierId, fn (Builder $query) => $query->where('opened_by', $cashierId))
@@ -248,6 +247,6 @@ class PosReportService
             ->when($filters['terminal_id'] ?? null, fn (Builder $query, $id) => $query->where('pos_terminal_id', $id))
             ->when($filters['cashier_id'] ?? null, fn (Builder $query, $id) => $query->where('cashier_id', $id))
             ->when($filters['currency'] ?? null, fn (Builder $query, $code) => $query->where('currency', $code))
-            ->orderBy('placed_at');
+            ->orderBy('id');
     }
 }

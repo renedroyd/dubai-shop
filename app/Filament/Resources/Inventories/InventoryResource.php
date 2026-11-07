@@ -29,6 +29,13 @@ class InventoryResource extends Resource
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-archive-box';
     protected static ?int $navigationSort = 1;
 
+    public static function getEloquentQuery(): Builder
+    {
+        $warehouseIds = auth()->user()?->warehouseIdsWithPermission('view') ?? [];
+
+        return parent::getEloquentQuery()->whereIn('warehouse_id', $warehouseIds);
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([]);

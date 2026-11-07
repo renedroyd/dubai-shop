@@ -145,6 +145,30 @@ class PosSalesInterfaceTest extends TestCase
             ->assertSet('customerEmail', 'frecuente@example.com');
     }
 
+    public function test_cashier_can_register_a_customer_from_the_pos_interface(): void
+    {
+        $user = $this->cashier();
+        $terminal = $this->terminal();
+        app(PosCashSessionService::class)->open($terminal, $user->id, 'CUP', 5000);
+
+        Livewire::actingAs($user)
+            ->test(PosSales::class)
+            ->set('customerName', 'Nuevo cliente POS')
+            ->set('customerEmail', 'NUEVO@example.com')
+            ->set('customerPhone', '555-0123')
+            ->call('registerCustomer')
+            ->assertHasNoErrors()
+            ->assertSet('customerUserId', fn ($id) => $id !== null)
+            ->assertSet('customerEmail', 'nuevo@example.com');
+
+        $this->assertDatabaseHas('users', [
+            'name' => 'Nuevo cliente POS',
+            'email' => 'nuevo@example.com',
+            'is_admin' => false,
+            'admin_access_enabled' => false,
+        ]);
+    }
+
     public function test_cashier_can_register_a_sale_through_the_professional_interface_using_existing_services(): void
     {
         $user = $this->cashier();

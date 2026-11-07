@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\WithFileUploads;
 
@@ -356,6 +357,35 @@ class PosSales extends Page
         $this->customerSearch = $customer->name;
         $this->customerName = $customer->name;
         $this->customerEmail = $customer->email;
+    }
+
+    public function registerCustomer(): void
+    {
+        $this->authorizeCashierPermission('pos_cash_sessions.update');
+
+        $this->customerEmail = mb_strtolower(trim($this->customerEmail));
+        $this->validate([
+            'customerName' => ['required', 'string', 'max:255'],
+            'customerEmail' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'customerPhone' => ['nullable', 'string', 'max:40'],
+        ]);
+
+        $customer = User::query()->create([
+            'name' => trim($this->customerName),
+            'email' => $this->customerEmail,
+            'password' => Str::random(64),
+            'is_admin' => false,
+            'admin_access_enabled' => false,
+        ]);
+
+        $this->customerUserId = $customer->id;
+        $this->customerSearch = $customer->name;
+
+        Notification::make()
+            ->success()
+            ->title(__('Cliente registrado y vinculado'))
+            ->body(__('La venta quedará asociada a la cuenta de :name.', ['name' => $customer->name]))
+            ->send();
     }
 
     public function clearCustomer(): void

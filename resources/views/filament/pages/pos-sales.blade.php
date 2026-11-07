@@ -242,6 +242,7 @@
                                     <input wire:model="customerName" placeholder="{{ __('Nombre del cliente ocasional') }}" class="fi-input w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
                                     <input wire:model="customerPhone" placeholder="{{ __('Teléfono') }}" class="fi-input w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
                                     <input wire:model="customerEmail" type="email" placeholder="{{ __('Correo electrónico') }}" class="fi-input w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                                    <button type="button" wire:click="registerCustomer" class="w-full rounded-lg bg-gray-900 px-3 py-2 text-sm font-semibold text-white hover:bg-gray-800 dark:bg-amber-500 dark:text-gray-950 dark:hover:bg-amber-400">{{ __('Crear y vincular cliente') }}</button>
                                 @endif
                             </div>
                             <label class="block text-xs font-medium text-gray-500">{{ __('Método de cobro') }}

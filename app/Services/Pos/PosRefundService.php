@@ -98,6 +98,19 @@ class PosRefundService
                 $orderDiscountByItem[$saleLine->id] = $allocatedDiscount;
                 $remainingOrderDiscount -= $allocatedDiscount;
             }
+            $saleLines = $lockedOrder->items()->orderBy('id')->get();
+            $netLinesTotal = (int) $saleLines->sum('line_total_amount');
+            $orderLevelDiscount = max(0, (int) $lockedOrder->discount_amount - (int) $saleLines->sum('discount_amount'));
+            $remainingOrderDiscount = $orderLevelDiscount;
+            $orderDiscountByItem = [];
+            foreach ($saleLines as $position => $saleLine) {
+                $allocatedDiscount = $position === $saleLines->count() - 1
+                    ? $remainingOrderDiscount
+                    : ($netLinesTotal > 0 ? intdiv($orderLevelDiscount * (int) $saleLine->line_total_amount, $netLinesTotal) : 0);
+                $allocatedDiscount = min($remainingOrderDiscount, $allocatedDiscount);
+                $orderDiscountByItem[$saleLine->id] = $allocatedDiscount;
+                $remainingOrderDiscount -= $allocatedDiscount;
+            }
             foreach ($quantities as $itemId => $quantity) {
                 $item = OrderItem::query()->where('order_id', $lockedOrder->id)->whereKey($itemId)->lockForUpdate()->first();
                 if (! $item) {

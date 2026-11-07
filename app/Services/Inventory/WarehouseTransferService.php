@@ -439,7 +439,7 @@ class WarehouseTransferService
 
         foreach ([$sourceWarehouseId, $destinationWarehouseId] as $warehouseId) {
             if (! $user->hasWarehousePermission($warehouseId, $permission)) {
-                throw new \\Illuminate\\Auth\\Access\\AuthorizationException('No tienes permiso para realizar esta operación en ambos almacenes.');
+                throw new \Illuminate\Auth\Access\AuthorizationException('No tienes permiso para realizar esta operación en ambos almacenes.');
             }
         }
     }

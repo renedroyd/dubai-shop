@@ -437,7 +437,7 @@ class PosSaleService
                 }
             }
 
-            return $order->load(['items', 'payments.method', 'posTerminal', 'posCashSession']);
+            if (! $requiresReview) {\n                app(PosLoyaltyService::class)->awardForPaidPosOrder($order);\n            }\n\n            return $order->load(['items', 'payments.method', 'posTerminal', 'posCashSession']);
         });
     }
 }

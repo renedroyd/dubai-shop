@@ -6,6 +6,8 @@ use App\Filament\Resources\Inventories\Pages\ListInventories;
 use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\Warehouse;
+use App\Services\Inventory\InventoryCostService;
 use App\Services\Inventory\InventoryService;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
@@ -50,12 +52,42 @@ class InventoryResource extends Resource
             TextColumn::make('quantity_on_hand')->label(__('Existencia'))->sortable(),
             TextColumn::make('quantity_reserved')->label(__('Reservado'))->sortable(),
             TextColumn::make('quantity_blocked')->label(__('Bloqueado'))->sortable(),
+            TextColumn::make('acquisition_cost_amount')->label(__('Costo de adquisición'))
+                ->state(fn (Inventory $record): string => $record->acquisition_cost_amount === null ? __('Sin definir') : number_format($record->acquisition_cost_amount / 100, 2).' '.($record->product?->currency ?? ''))
+                ->visible(fn (): bool => auth()->user()?->hasAdminPermission('inventory_costs.view') ?? false),
+            TextColumn::make('minimum_sale_price_amount')->label(__('Precio mínimo'))
+                ->state(fn (Inventory $record): string => $record->minimum_sale_price_amount === null ? __('Costo de adquisición') : number_format($record->minimum_sale_price_amount / 100, 2).' '.($record->product?->currency ?? ''))
+                ->visible(fn (): bool => auth()->user()?->hasAdminPermission('inventory_costs.view') ?? false),
             TextColumn::make('available_quantity')->label(__('Disponible'))->state(fn (Inventory $record): int => $record->available_quantity)->badge()
                 ->color(fn (int $state): string => $state === 0 ? 'danger' : ($state <= 5 ? 'warning' : 'success')),
             TextColumn::make('updated_at')->label(__('Actualizado'))->dateTime()->sortable(),
         ])->filters([
             Filter::make('low_stock')->label(__('Stock bajo'))->query(fn (Builder $query): Builder => $query->whereRaw('(quantity_on_hand - quantity_reserved - quantity_blocked) <= 5')),
         ])->defaultSort('updated_at', 'desc')->recordActions([
+            Action::make('configureCosts')->label(__('Configurar costo y precio mínimo'))->icon('heroicon-o-currency-dollar')
+                ->authorize(fn (Inventory $record): bool => (auth()->user()?->hasAdminPermission('inventory_costs.update') ?? false)
+                    && (auth()->user()?->hasWarehousePermission($record->warehouse_id, 'inventory.manage') ?? false))
+                ->schema([
+                    TextInput::make('acquisition_cost')->label(__('Costo de adquisición (moneda del producto)'))->numeric()->minValue(0)->step(0.01)
+                        ->helperText(__('Deja vacío si aún no conoces el costo. Se almacena por producto/variante y almacén.')),
+                    TextInput::make('minimum_sale_price')->label(__('Precio mínimo de venta (opcional)'))->numeric()->minValue(0)->step(0.01)
+                        ->helperText(__('Si queda vacío, el costo de adquisición será el límite inferior.')),
+                    Textarea::make('reason')->label(__('Motivo del cambio'))->required()->maxLength(500),
+                ])
+                ->fillForm(fn (Inventory $record): array => [
+                    'acquisition_cost' => $record->acquisition_cost_amount === null ? null : number_format($record->acquisition_cost_amount / 100, 2, '.', ''),
+                    'minimum_sale_price' => $record->minimum_sale_price_amount === null ? null : number_format($record->minimum_sale_price_amount / 100, 2, '.', ''),
+                ])
+                ->action(function (Inventory $record, array $data): void {
+                    $toMinor = fn ($value): ?int => $value === null || trim((string) $value) === '' ? null : (int) round((float) str_replace(',', '.', (string) $value) * 100);
+                    app(InventoryCostService::class)->updateCosts(
+                        $record,
+                        auth()->user(),
+                        $toMinor($data['acquisition_cost'] ?? null),
+                        $toMinor($data['minimum_sale_price'] ?? null),
+                        $data['reason'],
+                    );
+                }),
             Action::make('adjust')->label(__('Ajustar existencia'))->icon('heroicon-o-adjustments-horizontal')
                 ->authorize('update')
                 ->schema([

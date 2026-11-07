@@ -68,3 +68,16 @@ La pantalla POS integrada permite buscar clientes registrados por nombre, correo
 Al vincular una cuenta, orders.user_id relaciona la venta con el cliente sin duplicar la entidad de usuarios. Se muestran las últimas ventas POS del cliente únicamente en almacenes donde el cajero tiene permiso de consulta, además de los clientes frecuentes de los últimos 90 días para el almacén de la caja. El nombre y correo quedan también copiados como snapshot en la orden.
 
 La infraestructura de puntos/fidelización queda para una entrega posterior: no se suman ni canjean puntos hasta definir conversión, vencimiento, límites y tratamiento de devoluciones.
+
+
+## POS-12 — promociones, descuentos y precios (en implementación)
+
+### Base de costos por almacén
+
+El costo de adquisición y el precio mínimo de venta se gestionan en cada registro de inventario, cuya clave es almacén + producto/variante. Por tanto, un mismo producto o variante puede tener costos distintos en cada almacén sin modificar el precio de catálogo global.
+
+Los importes se guardan en unidades menores (centavos) y usan la moneda del producto (CUP, USD o EUR), sin conversión automática. El precio mínimo opcional no puede ser inferior al costo de adquisición; cuando no se define un mínimo específico, el costo de adquisición constituye el límite inferior.
+
+La edición requiere el permiso administrativo `inventory_costs.update` y permiso `inventory.manage` en el almacén correspondiente. La consulta de costos requiere `inventory_costs.view`. Cada modificación guarda usuario, valores anteriores/nuevos y motivo en `inventory_cost_changes`.
+
+Esta entrega establece la base de costos y límites por almacén. El motor de reglas de precios, aplicación de descuentos, autorizaciones y auditoría de descuentos se desarrolla en los siguientes subbloques de POS-12.

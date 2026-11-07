@@ -1,7 +1,7 @@
 # Hoja de ruta — Dubai Shop / Clásico Dubai
 
 **Actualizada:** 7 de noviembre de 2026  
-**Base:** Fases 1–16 y POS-1 a POS-13 integrados; POS-14A integrado y POS-14B en implementación; POS-15 y POS-16 planificados.
+**Base:** Fases 1–16 y POS-1 a POS-14 integrados; POS-15 en implementación; POS-16 planificado.
 
 La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente y nuevas capacidades que requieren decisiones comerciales. La prioridad inmediata es estabilizar y aceptar el despliegue, no añadir integraciones externas sin proveedor o reglas aprobadas.
 
@@ -172,7 +172,7 @@ Objetivo: implementar promociones reales sin introducir ambigüedades contables.
 
 ## POS y multi almacén — entregas independientes
 
-<badge color="success">POS-1 a POS-14A integrados</badge> <badge color="info">POS-14B en implementación; POS-15 y POS-16 pendientes</badge>
+<badge color="success">POS-1 a POS-14 integrados</badge> <badge color="info">POS-15 en implementación; POS-16 pendiente</badge>
 
 El POS funcionará siempre conectado al servidor. No se desarrollará modo offline. Decisiones aprobadas: ubicaciones internas flexibles (área/pasillo/estantería/posición), existencias independientes por almacén y aprobación configurable de transferencias.
 
@@ -190,7 +190,7 @@ El POS funcionará siempre conectado al servidor. No se desarrollará modo offli
 12. **POS-12 — Promociones, descuentos y precios:** reglas porcentuales/fijas por producto, categoría, marca o venta; precios especiales por cliente; ámbito por almacén/moneda; autorización, auditoría y protección de costo/precio mínimo. Integrado en PR #58–59.
 13. **POS-13 — Devoluciones y cambios:** integrado en PR #61–63. Incluye autorización por dos usuarios, reembolsos distribuidos entre los medios originales, respeto de descuentos, cuarentena/descarte de artículos y registro vinculado de cambios con diferencia neta.
 14. **POS-14 — Impresión y periféricos:** POS-14A integrado en PR #65 (recibos térmicos 58/80 mm, copias, códigos de barras y lector tipo teclado). POS-14B en implementación en rama propia: QZ Tray para impresión directa y gaveta ESC/POS.
-15. **POS-15 — Dashboard e informes avanzados:** ventas por establecimiento, terminal, cajero, producto, categoría, marca, moneda y método; margen bruto, diferencias de caja, devoluciones/descuentos, comparativas por período y exportación.
+15. **POS-15 — Dashboard e informes avanzados:** ampliación en curso de la página existente para filtros por fecha/almacén/terminal/cajero/moneda, ventas por dimensión, pagos netos por método, margen con costo histórico, diferencias de caja, reembolsos, comparación entre períodos y exportación CSV.
 16. **POS-16 — Operación comercial avanzada:** turnos/cajeros, asignación de terminales, arqueos y cierres supervisados, límites de efectivo, alertas de stock bajo, solicitudes de reposición, seguimiento de transferencias e indicadores por establecimiento.
 
 El POS permanece exclusivamente online, sin modo offline ni sincronización diferida. Las ventas usan el almacén asignado al terminal. El flujo de pagos integrado admite efectivo, Zelle manual en USD y pagos mixtos; cada entrega mantiene la autorización por almacén, integridad transaccional, auditoría y pruebas automatizadas. Cada bloque se desarrolla en una rama propia.
@@ -269,3 +269,8 @@ PR #65 integrado en `main`. Los terminales configuran ancho 58/80 mm y 1–3 cop
 ### POS-14B — Impresión local y gaveta (en implementación)
 
 Rama `feature/pos-14b-qz-tray-cash-drawer`. Se adopta QZ Tray, aplicación local gratuita y de código abierto. Se integra selección de impresora por terminal, impresión ESC/POS directa del recibo, prueba de impresora y apertura de gaveta condicionada a una venta con efectivo. La conexión no firmada puede mostrar diálogos de confianza; no se incluye ni se expone ninguna clave privada. La configuración y prueba física de impresoras/gavetas queda como aceptación operativa por computadora.
+
+
+### POS-15 — Dashboard e informes avanzados (en implementación)
+
+Rama `feature/pos-15-advanced-reports-dashboard`. Se amplía el informe existente con filtros autorizados por almacén, terminal, cajero, moneda y rango de fechas; ventas por almacén, terminal, cajero, producto/variante, categoría y marca; importes cobrados por método con reembolsos del período descontados; devoluciones, descuentos, arqueos/diferencias de caja y comparación con el período inmediatamente anterior. El margen bruto se calcula con el costo histórico de cada línea y el descuento global del pedido; si faltan costos históricos, el total de margen se marca como no disponible. Se incorpora exportación CSV con alcance limitado a los almacenes autorizados. Los importes se mantienen separados por moneda y no se convierten.

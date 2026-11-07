@@ -1,6 +1,6 @@
 # Multi almacén y POS — arquitectura y alcance
 
-**Estado:** POS-1 a POS-6 integrados; POS-7 en implementación. Este documento distingue lo integrado de lo que aún está en desarrollo.
+**Estado:** POS-1 a POS-17 integrados. La implementación funcional multi almacén/POS está completa; la aceptación de hardware y operación en establecimientos reales permanece pendiente.
 
 ## Decisiones aprobadas
 
@@ -191,3 +191,11 @@ La tienda pública conserva temporalmente el comportamiento anterior: carrito, c
 
 1. POS-7: ventas integradas con pedidos y pagos, cajas, arqueos, recibos y devoluciones — integrado en PR #45.
 2. POS-8: permisos por almacén y usuario, informes y pruebas integrales — integrado en PR #47.
+
+## Estado final de implementación POS-1 a POS-17
+
+- POS-1 a POS-16: almacenes/ubicaciones, transferencias, abastecimiento web, terminales, ventas, cajas, pagos, devoluciones, seguridad, interfaz profesional, informes, reposición y seguimiento operativo integrados.
+- POS-17: fidelización integrada en PR #75–78: acumulación, canje por moneda, reversiones proporcionales por devolución, configuración y ajustes administrativos, saldos e historial de cliente y avisos de vencimiento.
+- CI de PR #75, #76, #77 y #78 aprobado en PHP 8.4, PHP 8.5 y Frontend assets antes de integrar.
+- El POS funciona conectado al servidor. No incluye modo offline.
+- La aceptación física de impresoras, QZ Tray, gavetas, arqueos y operación en almacenes reales debe realizarse en los equipos/establecimientos de destino; es una validación operativa posterior, no una fase de desarrollo funcional pendiente.

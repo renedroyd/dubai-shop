@@ -290,7 +290,7 @@ PR #71 integrado en `main`. Dashboard de estados, actividad, incidencias y conte
 - Acumulación calculada sobre el total POS neto de descuentos y únicamente para clientes con cuenta.
 - Ventas en efectivo acumulan al cobrarse; Zelle acumula después de la aprobación manual. Los pagos pendientes y ventas de invitado no generan puntos.
 - Pruebas automatizadas para venta pagada, exclusión de invitado, idempotencia y aprobación Zelle.
-- El canje, reversión por devoluciones, ajustes autorizados, avisos de vencimiento e interfaz administrativa/cliente quedan para los siguientes subbloques POS-17.
+- El canje, la reversión por devoluciones, los ajustes autorizados, los avisos de vencimiento y las interfaces administrativa/cliente quedaron completados en POS-17B, POS-17C y POS-17D.
 
 ## POS-17B — canje de puntos en el terminal POS (integrado mediante PR #76)
 
@@ -299,7 +299,7 @@ PR #71 integrado en `main`. Dashboard de estados, actividad, incidencias y conte
 - Canje mínimo de 100 puntos y descuento máximo del 20 % del subtotal elegible después de promociones.
 - El descuento por puntos se incorpora al total y al descuento de la orden; los importes de pago, efectivo recibido y cambio se calculan sobre el total neto.
 - Los puntos se consumen por lotes conservando su fecha de vencimiento. Si se rechaza el pago Zelle, se restituyen los puntos reservados con su vencimiento original.
-- El siguiente subbloque POS-17C concilia acumulaciones y canjes cuando se procesan devoluciones.
+- La conciliación proporcional de acumulaciones y canjes en devoluciones está integrada en POS-17C (PR #77).
 
 ## POS-17C — conciliación de puntos en devoluciones (integrado mediante PR #77)
 
@@ -309,7 +309,7 @@ PR #71 integrado en `main`. Dashboard de estados, actividad, incidencias y conte
 - Si los puntos ganados ya fueron consumidos antes de la devolución, el ledger registra el saldo negativo correspondiente; las futuras acumulaciones compensan ese saldo y el terminal no permite canjear un saldo negativo.
 - Los reembolsos monetarios siguen distribuyéndose entre los medios de pago originales y no se modifican por la conciliación de puntos.
 
-## POS-17D — administración y consulta del programa de fidelización (en revisión)
+## POS-17D — administración y consulta del programa de fidelización (integrado mediante PR #78)
 
 - Configuración Filament por moneda: acumulación, valor de canje, mínimo, porcentaje máximo y vencimiento.
 - Permisos separados para consultar/editar las reglas y para realizar ajustes manuales.
@@ -317,3 +317,7 @@ PR #71 integrado en `main`. Dashboard de estados, actividad, incidencias y conte
 - El panel de cliente muestra saldos independientes, movimientos recientes, deuda por compensar y puntos que vencen en los próximos 30 días.
 - El terminal POS también advierte al cajero cuando el cliente seleccionado tiene puntos próximos a vencer.
 - Los ajustes negativos manuales no pueden reducir un saldo disponible por debajo de cero.
+
+## Estado final de POS-17
+
+POS-17A, POS-17B, POS-17C y POS-17D están integrados en main mediante PR #75–78. La implementación funcional de fidelización está completada: acumulación, canje, devoluciones, configuración, ajustes auditados, consulta de cliente y avisos visibles. Cada PR pasó CI en PHP 8.4, PHP 8.5 y Frontend assets antes de integrarse.

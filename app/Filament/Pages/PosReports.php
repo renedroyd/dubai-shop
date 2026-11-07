@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Models\InventoryMovement;
 use App\Models\Order;
 use App\Models\PosCashSession;
+use App\Models\PosRefund;
 use App\Models\Warehouse;
 use App\Models\WarehouseTransfer;
 use Carbon\Carbon;
@@ -75,6 +76,17 @@ class PosReports extends Page
             ->orderBy('pos_warehouse_id')
             ->get();
 
+        $refunds = PosRefund::query()
+            ->join('orders', 'orders.id', '=', 'pos_refunds.order_id')
+            ->join('warehouses', 'warehouses.id', '=', 'orders.pos_warehouse_id')
+            ->where('pos_refunds.status', 'completed')
+            ->whereIn('orders.pos_warehouse_id', $warehouseIds)
+            ->whereBetween('pos_refunds.refunded_at', [$fromDate, $toDate])
+            ->selectRaw('orders.pos_warehouse_id, warehouses.name as warehouse_name, pos_refunds.currency, COUNT(pos_refunds.id) as refunds_count, SUM(pos_refunds.amount) as total_amount')
+            ->groupBy('orders.pos_warehouse_id', 'warehouses.name', 'pos_refunds.currency')
+            ->orderBy('orders.pos_warehouse_id')
+            ->get();
+
         $sessions = PosCashSession::query()
             ->whereHas('terminal', fn (Builder $query) => $query->whereIn('warehouse_id', $warehouseIds))
             ->whereBetween('opened_at', [$fromDate, $toDate])
@@ -106,6 +118,7 @@ class PosReports extends Page
             'fromDate' => $fromDate->toDateString(),
             'toDate' => $toDate->toDateString(),
             'sales' => $sales,
+            'refunds' => $refunds,
             'sessions' => $sessions,
             'movements' => $movements,
             'transfers' => $transfers,

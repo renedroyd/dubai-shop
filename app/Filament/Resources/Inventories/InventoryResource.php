@@ -14,6 +14,7 @@ use App\Services\Inventory\InventoryService;
 use App\Services\Inventory\WarehouseTransferService;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -111,7 +112,7 @@ class InventoryResource extends Resource
                     Select::make('source_warehouse_id')->label(__('Almacén de origen'))
                         ->options(fn (Inventory $record) => Warehouse::query()->where('is_active', true)
                             ->whereIn('id', auth()->user()?->warehouseIdsWithPermission('transfers.request') ?? [])
-                            ->whereKeyNot($record->warehouse_id)->orderBy('name')->pluck('name', 'id'))
+                            ->where('id', '!=', $record->warehouse_id)->orderBy('name')->pluck('name', 'id'))
                         ->live()->searchable()->required(),
                     Select::make('source_inventory_id')->label(__('Producto disponible en origen'))
                         ->options(fn (callable $get, Inventory $record) => filled($get('source_warehouse_id'))
@@ -164,7 +165,7 @@ class InventoryResource extends Resource
                         throw ValidationException::withMessages(['quantity' => __('La cantidad solicitada supera las existencias disponibles en el origen o su ubicación.')]);
                     }
 
-                    app(WarehouseTransferService::class)->create(
+                    $transfer = app(WarehouseTransferService::class)->create(
                         $sourceWarehouse,
                         $destinationWarehouse,
                         [[
@@ -177,6 +178,10 @@ class InventoryResource extends Resource
                         $data['notes'] ?? null,
                         'replenishment',
                     );
+
+                    Notification::make()->success()->title(__('Solicitud de reposición creada'))
+                        ->body(__('Transferencia :code creada y enviada al flujo de aprobación.', ['code' => $transfer->code]))
+                        ->send();
                 }),
             Action::make('adjust')->label(__('Ajustar existencia'))->icon('heroicon-o-adjustments-horizontal')
                 ->authorize('update')

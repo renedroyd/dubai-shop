@@ -209,10 +209,10 @@
         <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
             <h2 class="mb-3 text-base font-semibold">{{ __('Sesiones de caja y arqueos') }}</h2>
             <div class="max-h-80 overflow-auto"><table class="w-full text-sm">
-                <thead><tr class="border-b text-left"><th class="py-2">{{ __('Terminal') }}</th><th>{{ __('Apertura') }}</th><th>{{ __('Cajero') }}</th><th>{{ __('Estado') }}</th><th class="text-right">{{ __('Diferencia') }}</th></tr></thead>
+                <thead><tr class="border-b text-left"><th class="py-2">{{ __('Terminal') }}</th><th>{{ __('Turno') }}</th><th>{{ __('Apertura') }}</th><th>{{ __('Cajero') }}</th><th>{{ __('Aprobó cierre') }}</th><th>{{ __('Estado') }}</th><th class="text-right">{{ __('Diferencia') }}</th></tr></thead>
                 <tbody>@forelse ($sessions as $session)
-                    <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-2">{{ $session->terminal?->name ?? '—' }}</td><td>{{ $session->opened_at?->format('d/m/Y H:i') }}</td><td>{{ $session->opener?->name ?? '—' }}</td><td>{{ __($session->status) }}</td><td class="text-right tabular-nums">{{ $session->difference_amount === null ? '—' : number_format($session->difference_amount / 100, 2).' '.$session->currency }}</td></tr>
-                @empty <tr><td colspan="5" class="py-4 text-center text-gray-500">{{ __('Sin sesiones') }}</td></tr>@endforelse</tbody>
+                    <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-2">{{ $session->terminal?->name ?? '—' }}</td><td>{{ $session->shift_label ?: '—' }}</td><td>{{ $session->opened_at?->format('d/m/Y H:i') }}</td><td>{{ $session->opener?->name ?? '—' }}</td><td>{{ $session->closeApprover?->name ?? '—' }}</td><td>{{ __($session->status) }} @if($session->close_requested_at && !$session->closed_at)<span class="text-xs text-amber-600">· {{ __('Pendiente de aprobación') }}</span>@endif</td><td class="text-right tabular-nums">{{ $session->difference_amount === null ? '—' : number_format($session->difference_amount / 100, 2).' '.$session->currency }}</td></tr>
+                @empty <tr><td colspan="7" class="py-4 text-center text-gray-500">{{ __('Sin sesiones') }}</td></tr>@endforelse</tbody>
             </table></div>
         </section>
 

@@ -14,7 +14,25 @@
             <div class="flex justify-between gap-4 border-b py-2">
                 <span>{{ $item->quantity }} × {{ $item->product_name }} @if ($item->variant_name) — {{ $item->variant_name }} @endif <small class="block">{{ $item->sku }}</small></span>
                 <strong>{{ number_format($item->line_total_amount / 100, 2) }} {{ $item->currency }}</strong>
-            </div>
+                @if ($order->posExchangeAsReplacement)
+        <section>
+            <h3 class="mb-2 font-semibold">{{ __('Cambio vinculado') }}</h3>
+            <p>{{ __('Venta original:') }} {{ $order->posExchangeAsReplacement->originalOrder?->number ?? '—' }}</p>
+            <p>{{ __('Devolución aplicada:') }} {{ number_format($order->posExchangeAsReplacement->returned_amount / 100, 2) }} {{ $order->posExchangeAsReplacement->currency }}</p>
+            <p>{{ __('Venta de reemplazo:') }} {{ number_format($order->posExchangeAsReplacement->replacement_amount / 100, 2) }} {{ $order->posExchangeAsReplacement->currency }}</p>
+            <p class="font-semibold">{{ __('Diferencia neta:') }} {{ number_format($order->posExchangeAsReplacement->difference_amount / 100, 2) }} {{ $order->posExchangeAsReplacement->currency }}</p>
+            <p>{{ $order->posExchangeAsReplacement->reason }}</p>
+        </section>
+    @endif
+    @if ($order->posExchangesAsOriginal->isNotEmpty())
+        <section>
+            <h3 class="mb-2 font-semibold">{{ __('Cambios realizados desde esta venta') }}</h3>
+            @foreach ($order->posExchangesAsOriginal as $exchange)
+                <p>{{ __('Venta de reemplazo:') }} {{ $exchange->replacementOrder?->number ?? '—' }} · {{ __('Diferencia neta:') }} {{ number_format($exchange->difference_amount / 100, 2) }} {{ $exchange->currency }}</p>
+            @endforeach
+        </section>
+    @endif
+</div>
         @endforeach
         <p class="mt-3 text-right font-semibold">{{ __('Productos:') }} {{ number_format($order->subtotal_amount / 100, 2) }} {{ $order->currency }}</p>
         <p class="text-right">{{ __('Envío:') }} {{ number_format($order->shipping_amount / 100, 2) }} {{ $order->currency }} · {{ __('Impuestos:') }} {{ number_format($order->tax_amount / 100, 2) }} {{ $order->currency }}</p>

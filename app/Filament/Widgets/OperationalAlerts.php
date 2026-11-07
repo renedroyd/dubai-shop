@@ -22,11 +22,11 @@ class OperationalAlerts extends StatsOverviewWidget
 
     protected function getStats(): array
     {
-        $pendingPayments = Payment::query()
+        $pendingPayments = Payment::query()->accessibleTo(auth()->user())
             ->where('status', Payment::STATUS_AWAITING_REVIEW)
             ->count();
 
-        $pendingOrders = Order::query()
+        $pendingOrders = Order::query()->accessibleTo(auth()->user())
             ->where('status', Order::STATUS_PENDING)
             ->count();
 
@@ -36,7 +36,7 @@ class OperationalAlerts extends StatsOverviewWidget
             ->whereNotIn('status', [Order::STATUS_DELIVERED, Order::STATUS_CANCELLED])
             ->count();
 
-        $lowStock = Inventory::query()
+        $lowStock = Inventory::query()->accessibleTo(auth()->user())
             ->whereRaw('(quantity_on_hand - quantity_reserved) <= 5')
             ->count();
 

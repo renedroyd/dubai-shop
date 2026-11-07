@@ -51,6 +51,7 @@ class PosSaleService
             }
 
             $prepared = [];
+            $requestedByInventory = [];
             $currency = $lockedSession->currency;
             $subtotal = 0;
 
@@ -91,18 +92,19 @@ class PosSaleService
                     ->lockForUpdate()
                     ->first();
 
-                if ($inventory && $inventory->available_quantity < $quantity) {
-                    throw ValidationException::withMessages(["items.{$index}.quantity" => "Existencias insuficientes en el almacén {$warehouse->name}."]);
-                }
-
                 if ($inventory) {
+                    $requestedByInventory[$inventory->id] = ($requestedByInventory[$inventory->id] ?? 0) + $quantity;
+
+                    if ($inventory->available_quantity < $requestedByInventory[$inventory->id]) {
+                        throw ValidationException::withMessages(["items.{$index}.quantity" => "Existencias insuficientes en el almacén {$warehouse->name}."]);
+                    }
                     $balances = InventoryLocationBalance::query()
                         ->where('inventory_id', $inventory->id)
                         ->lockForUpdate()
                         ->orderBy('warehouse_location_id')
                         ->get();
 
-                    if ($balances->sum('quantity_on_hand') < $quantity) {
+                    if ($balances->sum('quantity_on_hand') < $requestedByInventory[$inventory->id]) {
                         throw ValidationException::withMessages(["items.{$index}.quantity" => 'Los saldos por ubicación no coinciden con el inventario agregado. Concilia el almacén antes de vender.']);
                     }
                 }

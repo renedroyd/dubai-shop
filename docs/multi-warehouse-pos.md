@@ -112,7 +112,7 @@ También se contemplan `rejected` y `cancelled`. La cancelación de una transfer
 5. Impedir desactivar establecimientos o almacenes con terminales activos.
 6. Aplicar permisos RBAC separados para consultar, crear, modificar y eliminar establecimientos y terminales.
 
-## POS-7 — Ventas, caja y recibos (en implementación)
+## POS-7 — Ventas, caja, recibos y devoluciones (implementación lista para validar)
 
 - Las ventas POS se registran como pedidos compartidos (orders) con canal pos, terminal, sesión de caja y cajero asociados.
 - Cada terminal utiliza exclusivamente el almacén activo que tiene asignado; el POS no suma existencias de otros almacenes.
@@ -133,6 +133,8 @@ También se contemplan `rejected` y `cancelled`. La cancelación de una transfer
 6. Registrar entradas/salidas de caja y cerrar con arqueo y diferencia calculada.
 7. Consultar e imprimir un recibo POS desde el pedido.
 8. Rechazar ventas en sesiones cerradas o con inventario inconsistente.
+9. Registrar devoluciones parciales/totales en caja abierta del mismo terminal y moneda, sin exceder unidades ni importes originales.
+10. Reintegrar el inventario en las ubicaciones de origen y registrar movimientos de caja, pagos y auditoría del reembolso.
 
 ## Reglas de integridad
 

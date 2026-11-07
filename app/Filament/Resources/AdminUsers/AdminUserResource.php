@@ -116,7 +116,8 @@ class AdminUserResource extends Resource
             TextColumn::make('name')->label(__('Usuario'))->searchable()->sortable(),
             TextColumn::make('email')->label(__('Correo'))->searchable(),
             IconColumn::make('admin_access_enabled')->label(__('Acceso al panel'))->boolean(),
-            TextColumn::make('roles.name')->label(__('Roles'))->badge(),\n            TextColumn::make('warehouseAccesses.warehouse.name')->label(__('Almacenes autorizados'))->badge(),
+            TextColumn::make('roles.name')->label(__('Roles'))->badge(),
+            TextColumn::make('warehouseAccesses.warehouse.name')->label(__('Almacenes autorizados'))->badge(),
         ])->recordActions([EditAction::make()])->headerActions([CreateAction::make()->label(__('Registrar usuario'))]);
     }
 

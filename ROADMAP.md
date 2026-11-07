@@ -1,7 +1,7 @@
 # Hoja de ruta — Dubai Shop / Clásico Dubai
 
 **Actualizada:** 6 de noviembre de 2026  
-**Base:** Fases 1–16, PR #29–38 y POS-1 a POS-8 (PR #39–47) integrados.
+**Base:** Fases 1–16, PR #29–38 y POS-1 a POS-8 (PR #39–47) integrados; interfaz POS profesional en desarrollo.
 
 La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente y nuevas capacidades que requieren decisiones comerciales. La prioridad inmediata es estabilizar y aceptar el despliegue, no añadir integraciones externas sin proveedor o reglas aprobadas.
 
@@ -49,7 +49,9 @@ Arquitectura y CI, sistema visual, catálogo, carrito/checkout, pedidos e invent
 ## Próximas entregas
 
 ### Fase 17 — Aceptación operativa y estabilización de producción
-<badge color="warning">Prioridad crítica</badge> <badge color="info">En preparación; validación externa pendiente</badge>
+<badge color="warning">Pausada</badge> <badge color="info">Validación externa pendiente</badge>
+
+La ejecución de esta fase queda pausada temporalmente por decisión del usuario para priorizar la experiencia de venta POS. No se han modificado servicios ni configuración de producción.
 
 Objetivo: convertir la configuración desplegada en una operación verificable y segura.
 
@@ -142,7 +144,7 @@ Objetivo: implementar promociones reales sin introducir ambigüedades contables.
 
 ## POS y multi almacén — entregas independientes
 
-<badge color="success">POS-1 a POS-8 integrados</badge>
+<badge color="success">POS-1 a POS-8 integrados</badge> <badge color="info">POS-9 en desarrollo</badge>
 
 El POS funcionará siempre conectado al servidor. No se desarrollará modo offline. Decisiones aprobadas: ubicaciones internas flexibles (área/pasillo/estantería/posición), existencias independientes por almacén y aprobación configurable de transferencias.
 
@@ -154,6 +156,7 @@ El POS funcionará siempre conectado al servidor. No se desarrollará modo offli
 6. **POS-6 — Terminales:** establecimientos, terminales y asignación de almacén. Integrado en PR #44.
 7. **POS-7 — Operación POS:** ventas integradas con Orders/Payments, sesiones de caja, arqueos, recibos, devoluciones parciales/totales y reposición auditada de inventario. Integrado en PR #45.
 8. **POS-8 — Seguridad y aceptación:** asignación de permisos por usuario/almacén, restricciones en servicios y recursos, informes por almacén y pruebas de contención de inventario entre web y POS. Integrado en PR #47.
+9. **POS-9 — Interfaz profesional de ventas:** pantalla táctil independiente, catálogo por almacén/moneda, variantes, carrito, cobro, operaciones de caja y arqueo reutilizando los servicios POS existentes. En desarrollo en la rama feature/pos-professional-sales-interface.
 
 El POS permanece conectado al servidor. Las ventas usan el almacén asignado al terminal y, en esta primera entrega, un método de cobro en efectivo habilitado. Cada entrega se desarrolla en rama propia y se integra solo con aprobación explícita.
 

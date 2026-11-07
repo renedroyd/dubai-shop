@@ -11,7 +11,6 @@ use App\Models\PosPriceRule;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Warehouse;
-use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DateTimePicker;
@@ -72,7 +71,8 @@ class PosPriceRuleResource extends Resource
                     ->searchable()->preload(),
                 Select::make('warehouse_id')->label(__('Almacén (vacío = todos)'))
                     ->options(fn (): array => Warehouse::query()->whereIn('id', auth()->user()?->warehouseIdsWithPermission('inventory.manage') ?? [])->orderBy('name')->pluck('name', 'id')->all())
-                    ->searchable()->placeholder(__('Todos los almacenes')),
+                    ->searchable()->placeholder(__('Todos los almacenes'))
+                    ->required(fn (): bool => ! (auth()->user()?->isSuperAdmin() ?? false)),
                 Select::make('currency')->label(__('Moneda (vacío = todas)'))
                     ->options(['CUP' => 'CUP', 'USD' => 'USD', 'EUR' => 'EUR'])->placeholder(__('Todas las monedas'))
                     ->required(fn (callable $get): bool => in_array($get('rule_type'), [PosPriceRule::TYPE_FIXED, PosPriceRule::TYPE_SPECIAL_PRICE], true)),
@@ -122,7 +122,7 @@ class PosPriceRuleResource extends Resource
         ])->recordActions([
             EditAction::make()->visible(fn (PosPriceRule $record): bool => static::canEdit($record)),
             DeleteAction::make()->requiresConfirmation()->visible(fn (PosPriceRule $record): bool => static::canDelete($record)),
-        ])->headerActions([CreateAction::make()->label(__('Nueva regla'))->visible(fn (): bool => static::canCreate())]);
+        ]);
     }
 
     public static function getPages(): array

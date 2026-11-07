@@ -170,7 +170,7 @@ class PosPricingRulesTest extends TestCase
         $this->assertDatabaseHas('payments', ['order_id' => $order->id, 'amount' => 1150]);
     }
 
-    public function test_discount_below_acquisition_cost_is_rejected_without_override_permission(): void
+    public function test_discount_below_acquisition_cost_is_not_applied_without_override_permission(): void
     {
         [$cashier, $session, $warehouse] = $this->cashier();
         $product = $this->product();

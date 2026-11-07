@@ -23,11 +23,11 @@
                     </div>
                     <div class="rounded-xl border border-gray-200 p-3 dark:border-gray-700">
                         <p class="text-sm text-gray-500">{{ __('Cajas abiertas') }}</p>
-                        <p class="mt-1 text-2xl font-semibold tabular-nums">{{ (int) ($metric['sessions']->open_sessions_count ?? 0) }}</p>
+                        <p class="mt-1 text-2xl font-semibold tabular-nums">{{ (int) ($metric['currentSessions']->open_sessions_count ?? 0) }}</p>
                     </div>
                     <div class="rounded-xl border border-gray-200 p-3 dark:border-gray-700">
                         <p class="text-sm text-gray-500">{{ __('Cierres pendientes de aprobación') }}</p>
-                        <p class="mt-1 text-2xl font-semibold tabular-nums">{{ (int) ($metric['sessions']->pending_close_count ?? 0) }}</p>
+                        <p class="mt-1 text-2xl font-semibold tabular-nums">{{ (int) ($metric['currentSessions']->pending_close_count ?? 0) }}</p>
                     </div>
                 </div>
 
@@ -36,14 +36,13 @@
                     <table class="w-full text-sm">
                         <thead><tr class="border-b text-left"><th class="py-2">{{ __('Moneda') }}</th><th>{{ __('Pedidos') }}</th><th class="text-right">{{ __('Ventas brutas') }}</th><th class="text-right">{{ __('Reembolsos') }}</th><th class="text-right">{{ __('Ventas netas') }}</th></tr></thead>
                         <tbody>
-                            @forelse ($metric['sales'] as $sale)
-                                @php($refund = $metric['refunds']->firstWhere('currency', $sale->currency))
+                            @forelse ($metric['currencyRows'] as $row)
                                 <tr class="border-b border-gray-100 dark:border-gray-800">
-                                    <td class="py-2 font-medium">{{ $sale->currency }}</td>
-                                    <td>{{ $sale->orders_count }}</td>
-                                    <td class="text-right tabular-nums">{{ number_format($sale->sales_amount / 100, 2) }}</td>
-                                    <td class="text-right tabular-nums">{{ number_format(($refund->refunded_amount ?? 0) / 100, 2) }}</td>
-                                    <td class="text-right font-semibold tabular-nums">{{ number_format(($sale->sales_amount - ($refund->refunded_amount ?? 0)) / 100, 2) }} {{ $sale->currency }}</td>
+                                    <td class="py-2 font-medium">{{ $row['currency'] }}</td>
+                                    <td>{{ $row['orders_count'] }}</td>
+                                    <td class="text-right tabular-nums">{{ number_format($row['sales_amount'] / 100, 2) }}</td>
+                                    <td class="text-right tabular-nums">{{ number_format($row['refunded_amount'] / 100, 2) }}</td>
+                                    <td class="text-right font-semibold tabular-nums">{{ number_format(($row['sales_amount'] - $row['refunded_amount']) / 100, 2) }} {{ $row['currency'] }}</td>
                                 </tr>
                             @empty
                                 <tr><td colspan="5" class="py-4 text-center text-gray-500">{{ __('Sin ventas en el período seleccionado.') }}</td></tr>

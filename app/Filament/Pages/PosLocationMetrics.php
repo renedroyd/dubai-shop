@@ -5,7 +5,6 @@ namespace App\Filament\Pages;
 use App\Models\Order;
 use App\Models\PosCashSession;
 use App\Models\PosLocation;
-use App\Models\PosTerminal;
 use App\Models\PosRefund;
 use Carbon\Carbon;
 use Filament\Pages\Page;
@@ -56,9 +55,6 @@ class PosLocationMetrics extends Page
                     ->where('is_active', true)
                     ->whereIn('warehouse_id', $warehouseIds),
             ])
-            ->with(['terminals' => fn (Builder $query) => $query
-                ->whereIn('warehouse_id', $warehouseIds)
-                ->select(['id', 'pos_location_id', 'warehouse_id', 'is_active'])])
             ->orderBy('name')
             ->get();
 

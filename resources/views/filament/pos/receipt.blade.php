@@ -101,7 +101,7 @@
     </div>
 </div>
 @if (filled($order->posTerminal?->printer_name))
-    <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.5/qz-tray.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.3.0/qz-tray.js"></script>
     <script>
         document.getElementById('pos-qz-print-receipt')?.addEventListener('click', async (event) => {
             const button = event.currentTarget;

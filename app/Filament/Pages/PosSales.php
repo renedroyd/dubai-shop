@@ -36,6 +36,9 @@ class PosSales extends Page
     public array $variantSelections = [];
     public ?int $paymentMethodId = null;
     public string $cashReceivedAmount = '';
+    public bool $mixedPayment = false;
+    public string $mixedCashAmount = '';
+    public string $mixedZelleAmount = '';
     public string $zelleSenderName = '';
     public string $zelleReference = '';
     public string $zelleTransferDate = '';
@@ -447,7 +450,28 @@ class PosSales extends Page
         ]);
 
         $paymentDetails = [];
-        if ($method->driver === 'cash_on_delivery') {
+        if ($this->mixedPayment) {
+            $this->validate([
+                'mixedCashAmount' => ['required', 'numeric', 'gt:0'],
+                'mixedZelleAmount' => ['required', 'numeric', 'gt:0'],
+                'zelleSenderName' => ['required', 'string', 'max:255'],
+                'zelleReference' => ['required', 'string', 'max:120'],
+                'zelleTransferDate' => ['required', 'date'],
+                'zelleProof' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            ]);
+            $paymentDetails = [
+                'mixed' => true,
+                'cash_amount' => $this->parseAmount($this->mixedCashAmount, 'mixedCashAmount'),
+                'zelle_amount' => $this->parseAmount($this->mixedZelleAmount, 'mixedZelleAmount'),
+                'cash_received_amount' => $this->cashReceivedAmount === ''
+                    ? $this->parseAmount($this->mixedCashAmount, 'mixedCashAmount')
+                    : $this->parseAmount($this->cashReceivedAmount, 'cashReceivedAmount'),
+                'sender_name' => $this->zelleSenderName,
+                'reference' => $this->zelleReference,
+                'transfer_date' => $this->zelleTransferDate,
+                'proof' => $this->zelleProof,
+            ];
+        } elseif ($method->driver === 'cash_on_delivery') {
             $paymentDetails['cash_received_amount'] = $this->cashReceivedAmount === ''
                 ? $this->cartSubtotal()
                 : $this->parseAmount($this->cashReceivedAmount, 'cashReceivedAmount');
@@ -485,6 +509,9 @@ class PosSales extends Page
 
         $this->lastOrderNumber = $order->number;
         $this->cashReceivedAmount = '';
+        $this->mixedPayment = false;
+        $this->mixedCashAmount = '';
+        $this->mixedZelleAmount = '';
         $this->zelleSenderName = '';
         $this->zelleReference = '';
         $this->zelleTransferDate = '';
@@ -493,7 +520,7 @@ class PosSales extends Page
 
         Notification::make()
             ->success()
-            ->title($method->driver === 'zelle_manual' ? __('Venta registrada · pago pendiente de validación') : __('Venta registrada correctamente'))
+            ->title(($method->driver === 'zelle_manual' || $this->mixedPayment) ? __('Venta registrada · pago pendiente de validación') : __('Venta registrada correctamente'))
             ->body(__('Pedido :number · :total', [
                 'number' => $order->number,
                 'total' => $this->formatMoney((int) $order->total_amount, $order->currency),

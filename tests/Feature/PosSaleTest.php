@@ -206,6 +206,62 @@ class PosSaleTest extends TestCase
         $this->assertSame(5, $inventory->fresh()->quantity_on_hand);
     }
 
+    public function test_pos_mixed_payment_records_cash_and_zelle_parts_and_reconciles_cash_only(): void
+    {
+        Storage::fake('local');
+        $user = User::factory()->create();
+        $session = $this->openSession($user, 'USD');
+        $product = $this->product('USD');
+        $inventory = app(InventoryService::class)->setOnHand($product, 5, reason: 'Carga inicial');
+        $cash = PaymentMethod::query()->where('driver', 'cash_on_delivery')->firstOrFail();
+        $zelle = PaymentMethod::query()->where('driver', 'zelle_manual')->firstOrFail();
+        $cash->update(['is_enabled' => true]);
+        $zelle->update(['is_enabled' => true]);
+
+        $order = app(PosSaleService::class)->sell($session, $user->id, [['product_id' => $product->id, 'quantity' => 1]], $cash->id, [], [
+            'mixed' => true, 'cash_amount' => 500, 'zelle_amount' => 750, 'cash_received_amount' => 600,
+            'sender_name' => 'Cliente mixto', 'reference' => 'ZELLE-MIX-001',
+            'transfer_date' => now()->toDateString(),
+            'proof' => UploadedFile::fake()->create('proof.pdf', 20, 'application/pdf'),
+        ]);
+
+        $this->assertSame(Order::STATUS_PENDING, $order->status);
+        $this->assertDatabaseHas('payments', ['order_id' => $order->id, 'driver' => 'cash_on_delivery', 'amount' => 500, 'status' => Payment::STATUS_PAID]);
+        $this->assertDatabaseHas('payments', ['order_id' => $order->id, 'driver' => 'zelle_manual', 'amount' => 750, 'status' => Payment::STATUS_AWAITING_REVIEW]);
+        $this->assertDatabaseHas('pos_cash_movements', ['pos_cash_session_id' => $session->id, 'type' => 'sale', 'amount' => 500]);
+        $this->assertSame(1, $inventory->fresh()->quantity_reserved);
+        app(\App\Services\Payments\PaymentStatusService::class)->approve($order->payments()->where('driver', 'zelle_manual')->firstOrFail(), $user->id, 'Confirmado');
+        $this->assertSame(0, $inventory->fresh()->quantity_reserved);
+        $this->assertSame(4, $inventory->fresh()->quantity_on_hand);
+    }
+
+    public function test_rejected_mixed_zelle_payment_refunds_cash_and_releases_inventory(): void
+    {
+        Storage::fake('local');
+        $user = User::factory()->create();
+        $session = $this->openSession($user, 'USD');
+        $product = $this->product('USD');
+        $inventory = app(InventoryService::class)->setOnHand($product, 5, reason: 'Carga inicial');
+        $cash = PaymentMethod::query()->where('driver', 'cash_on_delivery')->firstOrFail();
+        $cash->update(['is_enabled' => true]);
+        PaymentMethod::query()->where('driver', 'zelle_manual')->update(['is_enabled' => true]);
+
+        $order = app(PosSaleService::class)->sell($session, $user->id, [['product_id' => $product->id, 'quantity' => 1]], $cash->id, [], [
+            'mixed' => true, 'cash_amount' => 500, 'zelle_amount' => 750, 'cash_received_amount' => 500,
+            'sender_name' => 'Cliente mixto', 'reference' => 'ZELLE-MIX-002',
+            'transfer_date' => now()->toDateString(),
+            'proof' => UploadedFile::fake()->create('proof.pdf', 20, 'application/pdf'),
+        ]);
+        $zellePayment = $order->payments()->where('driver', 'zelle_manual')->firstOrFail();
+        app(\App\Services\Payments\PaymentStatusService::class)->reject($zellePayment, $user->id, 'Transferencia no localizada');
+
+        $this->assertSame(Order::STATUS_CANCELLED, $order->fresh()->status);
+        $this->assertSame(0, $inventory->fresh()->quantity_reserved);
+        $this->assertSame(5, $inventory->fresh()->quantity_on_hand);
+        $this->assertDatabaseHas('pos_cash_movements', ['pos_cash_session_id' => $session->id, 'type' => 'refund', 'amount' => 500]);
+        $this->assertDatabaseHas('payments', ['order_id' => $order->id, 'driver' => 'cash_on_delivery', 'status' => Payment::STATUS_REFUNDED]);
+    }
+
     public function test_pos_sale_supports_variant_inventory_and_uses_variant_price(): void
     {
         $user = User::factory()->create();

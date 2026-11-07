@@ -40,3 +40,8 @@ La siguiente entrega incorporará Zelle manual en POS, evidencia privada, estado
 ### POS-10 — Zelle manual
 
 El POS ofrece Zelle únicamente en sesiones USD. Para registrar la venta se exige remitente, referencia, fecha y comprobante (PDF/JPG/PNG hasta 5 MB), almacenado en el disco privado local. La orden queda pendiente de revisión y el pago en estado `awaiting_review`; el stock se reserva sin descontarse ni generar movimiento de caja. La aprobación confirma la orden y consume la reserva; el rechazo cancela la orden y libera la reserva. La evidencia no se expone mediante URL pública.
+
+
+### POS-10 — pagos mixtos
+
+Permite dividir una venta USD entre efectivo y Zelle manual. Las dos partes deben ser mayores que cero y sumar exactamente el total. La caja registra únicamente el componente en efectivo; el componente Zelle queda pendiente y mantiene reservadas las existencias. Si Zelle se aprueba, se consume la reserva; si se rechaza, se libera y se registra la devolución del componente en efectivo como movimiento de caja y reversión auditada del pago.

@@ -41,6 +41,10 @@ class PaymentResource extends Resource
             TextColumn::make('order.number')->label(__('Pedido'))->searchable()->sortable(),
             TextColumn::make('order.customer_name')->label(__('Cliente'))->searchable(),
             TextColumn::make('method.name')->label(__('Método'))->placeholder(fn (Payment $record) => $record->driver),
+            TextColumn::make('reference')->label(__('Referencia'))->placeholder('—')->searchable(),
+            TextColumn::make('metadata.sender_name')->label(__('Remitente'))->placeholder('—')->toggleable(),
+            TextColumn::make('metadata.transfer_date')->label(__('Fecha de transferencia'))->date()->placeholder('—')->toggleable(),
+            TextColumn::make('reviewer.name')->label(__('Validado por'))->placeholder(__('Pendiente'))->toggleable(),
             TextColumn::make('amount')->label(__('Importe'))->formatStateUsing(fn ($state, Payment $record) => number_format($state / 100, 2).' '.$record->currency),
             TextColumn::make('status')->label(__('Estado'))->badge()->color(fn (string $state): string => match ($state) {
                 Payment::STATUS_PAID => 'success',

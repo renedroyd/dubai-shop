@@ -21,6 +21,12 @@ class PaymentStatusService
             }
 
             if ($order->channel === 'pos') {
+                $paidBefore = (int) $order->payments()
+                    ->where('status', Payment::STATUS_PAID)
+                    ->sum('amount');
+                if ($paidBefore + (int) $lockedPayment->amount !== (int) $order->total_amount) {
+                    throw ValidationException::withMessages(['payment' => 'La suma de los pagos confirmados no coincide con el total de la venta.']);
+                }
                 app(OrderInventoryService::class)->fulfill($order);
             }
             $from = $lockedPayment->status;

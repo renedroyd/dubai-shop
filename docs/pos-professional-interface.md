@@ -45,3 +45,8 @@ El POS ofrece Zelle únicamente en sesiones USD. Para registrar la venta se exig
 ### POS-10 — pagos mixtos
 
 Permite dividir una venta USD entre efectivo y Zelle manual. Las dos partes deben ser mayores que cero y sumar exactamente el total. La caja registra únicamente el componente en efectivo; el componente Zelle queda pendiente y mantiene reservadas las existencias. Si Zelle se aprueba, se consume la reserva; si se rechaza, se libera y se registra la devolución del componente en efectivo como movimiento de caja y reversión auditada del pago.
+
+
+### POS-10 — revisión y conciliación
+
+La vista de pagos expone referencia, remitente, fecha de transferencia y usuario validador para facilitar la revisión. El comprobante se descarga mediante una acción protegida, desde almacenamiento privado. La aprobación POS verifica que los pagos ya confirmados más el pago que se aprueba coincidan exactamente con el total; el bloqueo transaccional y la transición de estado impiden confirmar dos veces o consumir dos veces la reserva. La caja solo contabiliza pagos en efectivo y sus devoluciones.

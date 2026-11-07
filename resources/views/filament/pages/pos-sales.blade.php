@@ -31,7 +31,7 @@
                         {{ __('No tienes terminales activos autorizados. Solicita al administrador acceso POS al almacén y verifica la configuración del terminal.') }}
                     </div>
                 @else
-                    <form wire:submit="openCashSession($terminalId)" class="space-y-4">
+                    <form wire:submit="openCashSession" class="space-y-4">
                         <div>
                             <label class="mb-1 block text-sm font-medium">{{ __('Terminal') }}</label>
                             <select id="pos-terminal" wire:model="terminalId" class="fi-input w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-950" required>

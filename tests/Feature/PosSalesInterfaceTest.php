@@ -95,8 +95,32 @@ class PosSalesInterfaceTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(PosSales::class)
-            ->call('openCashSession', $terminal->id)
+            ->set('terminalId', $terminal->id)
+            ->call('openCashSession')
             ->assertForbidden();
+    }
+
+    public function test_cashier_can_open_a_cash_session_using_the_selected_terminal_property(): void
+    {
+        $user = $this->cashier();
+        $terminal = $this->terminal();
+
+        Livewire::actingAs($user)
+            ->test(PosSales::class)
+            ->set('terminalId', $terminal->id)
+            ->set('openingCurrency', 'CUP')
+            ->set('openingAmount', '500.00')
+            ->call('openCashSession')
+            ->assertSet('cashSessionId', fn ($id) => $id !== null)
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('pos_cash_sessions', [
+            'pos_terminal_id' => $terminal->id,
+            'opened_by' => $user->id,
+            'status' => 'open',
+            'currency' => 'CUP',
+            'opening_cash_amount' => 50000,
+        ]);
     }
 
     public function test_cashier_can_register_a_sale_through_the_professional_interface_using_existing_services(): void

@@ -327,7 +327,7 @@ class PosSales extends Page
         return number_format($amount / 100, 2, '.', ',').' '.$currency;
     }
 
-    public function openCashSession(?int $terminalId): void
+    public function openCashSession(): void
     {
         $this->authorizeCashierPermission('pos_cash_sessions.create');
 
@@ -335,7 +335,7 @@ class PosSales extends Page
             throw ValidationException::withMessages(['openingCurrency' => __('Selecciona una moneda admitida.')]);
         }
 
-        $terminal = $terminalId ? $this->availableTerminals()->firstWhere('id', $terminalId) : null;
+        $terminal = $this->terminalId ? $this->availableTerminals()->firstWhere('id', $this->terminalId) : null;
 
         if (! $terminal) {
             throw ValidationException::withMessages(['terminalId' => __('Selecciona un terminal autorizado y activo.')]);

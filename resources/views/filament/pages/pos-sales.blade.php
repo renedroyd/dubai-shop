@@ -211,7 +211,10 @@
                         @endif
                         <div class="space-y-3 border-t border-gray-200 p-4 dark:border-gray-800">
                             <div class="flex items-center justify-between text-sm text-gray-500"><span>{{ __('Subtotal') }}</span><span class="font-semibold text-gray-950 dark:text-white">{{ $this->formatMoney($this->cartSubtotal(), $session->currency) }}</span></div>
-                            <div class="flex items-center justify-between border-t border-dashed border-gray-200 pt-3 text-base font-bold dark:border-gray-700"><span>{{ __('Total a cobrar') }}</span><span class="text-xl text-amber-600 dark:text-amber-400">{{ $this->formatMoney($this->cartSubtotal(), $session->currency) }}</span></div>
+                            @if ($this->cartDiscountTotal() > 0)
+                                <div class="flex items-center justify-between text-sm text-emerald-700 dark:text-emerald-300"><span>{{ __('Descuentos y puntos') }}</span><span class="font-semibold">−{{ $this->formatMoney($this->cartDiscountTotal(), $session->currency) }}</span></div>
+                            @endif
+                            <div class="flex items-center justify-between border-t border-dashed border-gray-200 pt-3 text-base font-bold dark:border-gray-700"><span>{{ __('Total a cobrar') }}</span><span class="text-xl text-amber-600 dark:text-amber-400">{{ $this->formatMoney($this->cartTotal(), $session->currency) }}</span></div>
                             <div class="space-y-2 rounded-xl border border-gray-200 p-3 dark:border-gray-700">
                                 <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300">{{ __('Cliente (opcional)') }}</label>
                                 <input wire:model.live.debounce.300ms="customerSearch" placeholder="{{ __('Buscar cliente por nombre o correo') }}" class="fi-input w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
@@ -239,6 +242,27 @@
                                     <div class="flex items-center justify-between rounded-lg bg-amber-50 p-2 text-xs dark:bg-amber-500/10">
                                         <span class="font-medium">{{ __('Cuenta vinculada') }} · {{ $customerEmail }}</span>
                                         <button type="button" wire:click="clearCustomer" class="font-semibold text-amber-700 dark:text-amber-300">{{ __('Quitar') }}</button>
+                                    </div>
+                                    <div class="space-y-2 rounded-lg border border-amber-500/30 bg-amber-50/60 p-3 dark:bg-amber-500/5">
+                                        <div class="flex items-center justify-between text-xs">
+                                            <span class="font-semibold text-gray-700 dark:text-gray-200">{{ __('Puntos disponibles') }}</span>
+                                            <span class="font-bold text-amber-700 dark:text-amber-300">{{ number_format($this->loyaltyAvailablePoints()) }}</span>
+                                        </div>
+                                        @if ($this->loyaltyAvailablePoints() >= 100)
+                                            <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">{{ __('Puntos que deseas canjear (mínimo 100)') }}
+                                                <input type="number" min="0" step="1" wire:model.live.debounce.300ms="loyaltyPointsToRedeem" class="fi-input mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                                            </label>
+                                            @php($loyaltyPreview = $this->loyaltyRedemptionPreview())
+                                            @if ($loyaltyPreview['error'])
+                                                <p class="text-xs text-danger-600">{{ $loyaltyPreview['error'] }}</p>
+                                            @elseif ($loyaltyPreview['discount_amount'] > 0)
+                                                <p class="text-xs font-medium text-emerald-700 dark:text-emerald-300">{{ __('Descuento por puntos: :amount', ['amount' => $this->formatMoney($loyaltyPreview['discount_amount'], $session->currency)]) }}</p>
+                                            @endif
+                                            @error('loyaltyPointsToRedeem') <p class="text-xs text-danger-600">{{ $message }}</p> @enderror
+                                            <p class="text-[11px] text-gray-500">{{ __('El canje está limitado al 20 % del subtotal después de promociones.') }}</p>
+                                        @else
+                                            <p class="text-[11px] text-gray-500">{{ __('Se necesitan al menos 100 puntos para canjear.') }}</p>
+                                        @endif
                                     </div>
                                     <input wire:model="customerPhone" placeholder="{{ __('Teléfono para esta venta (opcional)') }}" class="fi-input w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
                                     @if ($this->customerHistory()->isNotEmpty())
@@ -285,7 +309,7 @@
                                 </div>
                             @elseif ($this->selectedPaymentMethod()?->driver === 'cash_on_delivery')
                                 <label class="block text-xs font-medium text-gray-500">{{ __('Efectivo recibido (opcional; vacío = importe exacto)') }}
-                                    <input type="number" min="0.01" step="0.01" wire:model="cashReceivedAmount" placeholder="{{ number_format($this->cartSubtotal() / 100, 2, '.', '') }}" class="fi-input mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                                    <input type="number" min="0.01" step="0.01" wire:model="cashReceivedAmount" placeholder="{{ number_format($this->cartTotal() / 100, 2, '.', '') }}" class="fi-input mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
                                     @error('cashReceivedAmount') <p class="mt-1 text-sm text-danger-600">{{ $message }}</p> @enderror
                                 </label>
                             @elseif ($this->selectedPaymentMethod()?->driver === 'zelle_manual')
@@ -303,7 +327,7 @@
                                 </div>
                             @endif
                             <button type="button" wire:click="completeSale" wire:confirm="{{ __('¿Confirmas el cobro y registro de esta venta?') }}" wire:loading.attr="disabled" @disabled(empty($cartItems) || $this->paymentMethods()->isEmpty()) class="fi-btn fi-btn-color-primary w-full justify-center py-3 text-base font-bold disabled:opacity-50">
-                                <x-heroicon-o-banknotes class="h-5 w-5" /> {{ __('Cobrar :total', ['total' => $this->formatMoney($this->cartSubtotal(), $session->currency)]) }}
+                                <x-heroicon-o-banknotes class="h-5 w-5" /> {{ __('Cobrar :total', ['total' => $this->formatMoney($this->cartTotal(), $session->currency)]) }}
                             </button>
                             @error('cart') <p class="text-sm text-danger-600">{{ $message }}</p> @enderror
                         </div>

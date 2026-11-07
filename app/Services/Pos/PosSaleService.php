@@ -70,6 +70,10 @@ class PosSaleService
                 }
 
                 $variant = null;
+                if ($variantId === null && $product->variants()->where('is_active', true)->exists()) {
+                    throw ValidationException::withMessages(["items.{$index}.product_variant_id" => 'Selecciona una variante para este producto.']);
+                }
+
                 if ($variantId !== null) {
                     $variant = ProductVariant::query()->whereKey($variantId)->where('product_id', $product->id)->where('is_active', true)->first();
                     if (! $variant) {

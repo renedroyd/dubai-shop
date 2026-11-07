@@ -34,13 +34,7 @@ class OrderResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $warehouseIds = auth()->user()?->warehouseIdsWithPermission('view') ?? [];
-
-        return parent::getEloquentQuery()->where(function (Builder $query) use ($warehouseIds): void {
-            $query->where(fn (Builder $pos) => $pos->where('channel', 'pos')->whereIn('pos_warehouse_id', $warehouseIds))
-                ->orWhere(fn (Builder $web) => $web->where('channel', '!=', 'pos')
-                    ->whereDoesntHave('items.inventory', fn (Builder $inventory) => $inventory->whereNotIn('warehouse_id', $warehouseIds)));
-        });
+        return parent::getEloquentQuery()->accessibleTo(auth()->user());
     }
 
     public static function form(Schema $schema): Schema

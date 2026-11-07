@@ -70,6 +70,7 @@ class PosSaleTest extends TestCase
 
         $this->assertSame('pos', $order->channel);
         $this->assertSame($session->id, $order->pos_cash_session_id);
+        $this->assertSame($session->terminal->warehouse_id, $order->pos_warehouse_id);
         $this->assertSame(2500, $order->total_amount);
         $this->assertSame('paid', $order->payment_status);
         $this->assertSame(6, $inventory->fresh()->quantity_on_hand);

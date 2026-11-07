@@ -55,7 +55,7 @@ class WarehouseTransferRuleResource extends Resource
         return $schema->components([
             TextInput::make('name')->label(__('Nombre de la regla'))->required()->maxLength(255),
             Select::make('source_warehouse_id')->label(__('Almacén de origen'))->options(fn () => Warehouse::query()->whereIn('id', auth()->user()?->warehouseIdsWithPermission('warehouse.manage') ?? [])->pluck('name', 'id'))->searchable()->placeholder(__('Cualquier almacén')),
-            Select::make('destination_warehouse_id')->label(__('Almacén de destino'))->options(fn () => Warehouse::query()->pluck('name', 'id'))->searchable()->placeholder(__('Cualquier almacén')),
+            Select::make('destination_warehouse_id')->label(__('Almacén de destino'))->options(fn () => Warehouse::query()->whereIn('id', auth()->user()?->warehouseIdsWithPermission('warehouse.manage') ?? [])->pluck('name', 'id'))->searchable()->placeholder(__('Cualquier almacén')),
             Select::make('transfer_type')->label(__('Tipo de transferencia'))->options([
                 'standard' => __('Estándar'),
                 'replenishment' => __('Reposición'),

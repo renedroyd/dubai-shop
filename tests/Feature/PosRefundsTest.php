@@ -174,7 +174,7 @@ class PosRefundsTest extends TestCase
         $this->assertSame(3, $inventory->fresh()->quantity_on_hand);
         $this->assertSame(1, $inventory->fresh()->quantity_blocked);
         $this->assertDatabaseHas('pos_refund_items', ['pos_refund_id' => $discardRefund->id, 'disposition' => 'discarded']);
-        $this->assertDatabaseHas('inventory_movements', ['reference_type' => App\\Models\\PosRefund::class, 'reference_id' => $discardRefund->id, 'type' => 'return_discarded', 'quantity_delta' => 0]);
+        $this->assertDatabaseHas('inventory_movements', ['reference_type' => PosRefund::class, 'reference_id' => $discardRefund->id, 'type' => 'return_discarded', 'quantity_delta' => 0]);
     }
     public function test_refund_cannot_return_more_units_than_were_sold(): void
     {

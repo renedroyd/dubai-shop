@@ -132,6 +132,8 @@ class PosSalesInterfaceTest extends TestCase
             'is_admin' => false,
             'admin_access_enabled' => false,
         ]);
+        $terminal = $this->terminal();
+        app(PosCashSessionService::class)->open($terminal, $user->id, 'CUP', 5000);
 
         Livewire::actingAs($user)
             ->test(PosSales::class)

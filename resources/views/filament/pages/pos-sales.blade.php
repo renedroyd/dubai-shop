@@ -201,7 +201,7 @@
                             <div class="space-y-2 rounded-xl border border-gray-200 p-3 dark:border-gray-700">
                                 <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300">{{ __('Cliente (opcional)') }}</label>
                                 <input wire:model.live.debounce.300ms="customerSearch" placeholder="{{ __('Buscar cliente por nombre o correo') }}" class="fi-input w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
-                                @if ($this->customerMatches()->isNotEmpty())
+                                @if (! $customerUserId && $this->customerMatches()->isNotEmpty())
                                     <div class="max-h-40 space-y-1 overflow-y-auto">
                                         @foreach ($this->customerMatches() as $customer)
                                             <button type="button" wire:click="selectCustomer({{ $customer->id }})" class="flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-800">
@@ -211,7 +211,7 @@
                                         @endforeach
                                     </div>
                                 @endif
-                                @if ($this->frequentCustomers()->isNotEmpty())
+                                @if (! $customerUserId && $this->frequentCustomers()->isNotEmpty())
                                     <div class="space-y-1 border-t border-gray-100 pt-2 dark:border-gray-700">
                                         <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{{ __('Clientes frecuentes · últimos 90 días') }}</p>
                                         @foreach ($this->frequentCustomers() as $frequentCustomer)
@@ -226,6 +226,7 @@
                                         <span class="font-medium">{{ __('Cuenta vinculada') }} · {{ $customerEmail }}</span>
                                         <button type="button" wire:click="clearCustomer" class="font-semibold text-amber-700 dark:text-amber-300">{{ __('Quitar') }}</button>
                                     </div>
+                                    <input wire:model="customerPhone" placeholder="{{ __('Teléfono para esta venta (opcional)') }}" class="fi-input w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
                                     @if ($this->customerHistory()->isNotEmpty())
                                         <div class="space-y-1 border-t border-gray-100 pt-2 dark:border-gray-700">
                                             <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{{ __('Últimas compras') }}</p>

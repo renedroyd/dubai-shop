@@ -30,6 +30,13 @@ class InventoryLocationBalanceResource extends Resource
     public static function getModelLabel(): string { return __('saldo por ubicación'); }
     public static function getPluralModelLabel(): string { return __('stock por ubicación'); }
 
+    public static function getEloquentQuery(): Builder
+    {
+        $warehouseIds = auth()->user()?->warehouseIdsWithPermission('view') ?? [];
+
+        return parent::getEloquentQuery()->whereHas('inventory', fn (Builder $query) => $query->whereIn('warehouse_id', $warehouseIds));
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([]);

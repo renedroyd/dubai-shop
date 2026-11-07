@@ -178,7 +178,7 @@ class PosCashSessionService
                 throw new AuthorizationException('No tienes permiso para aprobar cierres de caja en este almacén.');
             }
 
-            if ($locked->closed_at !== null || $locked->close_requested_at === null || ! $locked->isOpen() && $locked->status !== PosCashSession::STATUS_OPEN) {
+            if ($locked->closed_at !== null || $locked->close_requested_at === null || $locked->status !== PosCashSession::STATUS_OPEN) {
                 throw ValidationException::withMessages(['session' => 'No existe una solicitud de cierre pendiente para aprobar.']);
             }
 

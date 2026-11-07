@@ -26,9 +26,10 @@ class ProductionReadinessCheck extends Command
         $mailer = (string) config('mail.default');
         $smtpHost = (string) config('mail.mailers.smtp.host');
         $smtpPort = (int) config('mail.mailers.smtp.port');
+        $usesSmtp = $mailer === 'smtp' || ($mailer === 'failover' && in_array('smtp', config('mail.mailers.failover.mailers', []), true));
 
         $mailTransportConfigured = ! in_array($mailer, ['log', 'array'], true)
-            && ($mailer !== 'smtp' || (filled($smtpHost) && $smtpPort >= 1 && $smtpPort <= 65535))
+            && (! $usesSmtp || (filled($smtpHost) && $smtpPort >= 1 && $smtpPort <= 65535))
             && ($mailer !== 'failover' || collect(config('mail.mailers.failover.mailers', []))
                 ->every(fn (string $fallback): bool => ! in_array($fallback, ['log', 'array'], true)));
 

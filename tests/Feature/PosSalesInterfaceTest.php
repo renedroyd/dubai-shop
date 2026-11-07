@@ -258,4 +258,27 @@ class PosSalesInterfaceTest extends TestCase
             ->assertSee('Abrir gaveta (prueba autorizada)');
     }
 
+
+    public function test_successful_cash_sale_dispatches_drawer_open_event_when_terminal_has_drawer_enabled(): void
+    {
+        $user = $this->cashier();
+        $terminal = $this->terminal();
+        $terminal->update([
+            'printer_name' => 'EPSON TM-T20III',
+            'cash_drawer_enabled' => true,
+            'cash_drawer_pin' => 0,
+        ]);
+        app(PosCashSessionService::class)->open($terminal, $user->id, 'CUP', 5000);
+        $product = $this->product();
+        app(InventoryService::class)->setOnHand($product, 3, reason: 'Carga inicial');
+        $method = PaymentMethod::query()->where('driver', 'cash_on_delivery')->where('is_enabled', true)->firstOrFail();
+
+        Livewire::actingAs($user)
+            ->test(PosSales::class)
+            ->call('addProduct', $product->id)
+            ->set('paymentMethodId', $method->id)
+            ->call('completeSale')
+            ->assertDispatched('pos-cash-drawer-open');
+    }
+
 }

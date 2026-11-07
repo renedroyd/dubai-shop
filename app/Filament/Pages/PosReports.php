@@ -89,12 +89,13 @@ class PosReports extends Page
             fwrite($stream, "\xEF\xBB\xBF");
             fputcsv($stream, [
                 'Pedido', 'Fecha', 'Almacén', 'Terminal', 'Cajero', 'Moneda',
-                'Subtotal', 'Descuentos', 'Total', 'Reembolsos', 'Métodos de pago', 'Estado de pago',
+                'Subtotal', 'Descuentos', 'Total', 'Reembolsos acumulados', 'Métodos de pago', 'Estado de pago',
             ]);
 
             foreach ($rows->with(['posWarehouse:id,name', 'posTerminal:id,name,code', 'cashier:id,name', 'payments.method', 'posRefunds'])->lazyById(500) as $order) {
                 $refundTotal = $order->posRefunds->where('status', 'completed')->sum('amount');
                 $paymentSummary = $order->payments
+                    ->whereIn('status', ['paid', 'partially_refunded', 'refunded'])
                     ->map(fn ($payment) => ($payment->method?->name ?? $payment->driver).': '.number_format($payment->amount / 100, 2).' '.$payment->currency)
                     ->implode(' | ');
 
@@ -129,7 +130,7 @@ class PosReports extends Page
             request()->integer('warehouse_id') ?: null,
             request()->integer('terminal_id') ?: null,
             request()->integer('cashier_id') ?: null,
-            request()->query('currency'),
+            is_string(request()->query('currency')) ? request()->query('currency') : null,
         );
     }
 

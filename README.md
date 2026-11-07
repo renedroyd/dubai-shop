@@ -9,7 +9,7 @@ Tienda online premium construida con Laravel 13 y Filament 5, con escaparate pú
 La última entrega de producto añade RBAC al panel Filament. El asistente de banners continúa generando prompts para usar manualmente en ChatGPT; no utiliza la API de OpenAI ni requiere claves o facturación de API.
 
 Consulta primero:
-- [Estado actual del proyecto](docs/project-status.md)
+- [Guía de configuración de la tienda y del POS](docs/store-and-pos-setup.md)\n- [Estado actual del proyecto](docs/project-status.md)
 - [Hoja de ruta](ROADMAP.md)
 - [Arquitectura técnica](docs/architecture.md)
 - [Modelo de dominio](docs/domain-model.md)

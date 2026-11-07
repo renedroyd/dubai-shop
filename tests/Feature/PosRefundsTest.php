@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Inventory;
 use App\Models\Payment;
+use App\Models\PosRefund;
 use App\Models\AdminRole;
 use App\Models\PaymentMethod;
 use App\Models\PosCashSession;

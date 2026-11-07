@@ -17,10 +17,10 @@ use Filament\Tables\Table;
 class PosLoyaltySettingResource extends Resource
 {
     protected static ?string $model = PosLoyaltySetting::class;
-    protected static string | \\BackedEnum | null $navigationIcon = 'heroicon-o-star';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-star';
     protected static ?int $navigationSort = 9;
 
-    public static function getNavigationGroup(): string | \\UnitEnum | null { return __('Punto de venta'); }
+    public static function getNavigationGroup(): string | \UnitEnum | null { return __('Punto de venta'); }
     public static function getNavigationLabel(): string { return __('Fidelización'); }
     public static function getModelLabel(): string { return __('configuración de fidelización'); }
     public static function getPluralModelLabel(): string { return __('configuración de fidelización'); }
@@ -63,7 +63,7 @@ class PosLoyaltySettingResource extends Resource
             TextColumn::make('expiration_months')->label(__('Vencimiento'))->suffix(' meses'),
             IconColumn::make('is_enabled')->label(__('Activo'))->boolean(),
         ])->recordActions([
-            \\Filament\\Actions\\EditAction::make()->visible(fn (PosLoyaltySetting $record): bool => static::canEdit($record)),
+            \Filament\Actions\EditAction::make()->visible(fn (PosLoyaltySetting $record): bool => static::canEdit($record)),
         ]);
     }
 

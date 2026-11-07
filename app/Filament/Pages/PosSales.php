@@ -8,6 +8,7 @@ use App\Models\PaymentMethod;
 use App\Models\Order;
 use App\Models\User;
 use App\Models\PosCashMovement;
+use App\Models\PosLoyaltyWallet;
 use App\Models\PosCashSession;
 use App\Models\PosTerminal;
 use App\Models\Product;
@@ -47,6 +48,7 @@ class PosSales extends Page
     public string $zelleReference = '';
     public string $zelleTransferDate = '';
     public $zelleProof = null;
+    public string $loyaltyPointsToRedeem = '0';
     public string $customerSearch = '';
     public ?int $customerUserId = null;
     public string $customerName = '';
@@ -104,11 +106,13 @@ class PosSales extends Page
         if (! $session) {
             $this->cashSessionId = $this->openSessions()->first()?->id;
             $this->cart = [];
+            $this->loyaltyPointsToRedeem = '0';
 
             return;
         }
 
         $this->cart = [];
+        $this->loyaltyPointsToRedeem = '0';
         $this->paymentMethodId = $this->cashPaymentMethods()->first()?->id;
     }
 
@@ -389,6 +393,7 @@ class PosSales extends Page
     {
         if ($this->customerUserId && $value !== $this->customerName) {
             $this->customerUserId = null;
+            $this->loyaltyPointsToRedeem = '0';
             $this->customerName = '';
             $this->customerPhone = '';
             $this->customerEmail = '';
@@ -402,6 +407,7 @@ class PosSales extends Page
             ->firstOrFail(['id', 'name', 'email']);
 
         $this->customerUserId = $customer->id;
+        $this->loyaltyPointsToRedeem = '0';
         $this->customerSearch = $customer->name;
         $this->customerName = $customer->name;
         $this->customerEmail = $customer->email;
@@ -439,6 +445,7 @@ class PosSales extends Page
     public function clearCustomer(): void
     {
         $this->customerUserId = null;
+        $this->loyaltyPointsToRedeem = '0';
         $this->customerSearch = '';
         $this->customerName = '';
         $this->customerPhone = '';
@@ -524,7 +531,7 @@ class PosSales extends Page
 
     public function cartDiscountTotal(): int
     {
-        return collect($this->cartItems())->sum('discount_amount') + $this->cartOrderDiscount();
+        return collect($this->cartItems())->sum('discount_amount') + $this->cartOrderDiscount() + (int) $this->loyaltyRedemptionPreview()['discount_amount'];
     }
 
     public function cartPricingWarnings(): array
@@ -540,9 +547,39 @@ class PosSales extends Page
         return array_values(array_unique($warnings));
     }
 
+
+    public function loyaltyAvailablePoints(): int
+    {
+        $session = $this->currentSession();
+        if (! $this->customerUserId || ! $session) return 0;
+
+        return PosLoyaltyWallet::query()
+            ->where('user_id', $this->customerUserId)
+            ->where('currency', $session->currency)
+            ->first()?->availablePoints() ?? 0;
+    }
+
+    public function loyaltyRedemptionPreview(): array
+    {
+        $session = $this->currentSession();
+        $requested = ctype_digit(trim($this->loyaltyPointsToRedeem)) ? (int) $this->loyaltyPointsToRedeem : 0;
+        if (! $session || ! $this->customerUserId || $requested <= 0) {
+            return ['points' => 0, 'discount_amount' => 0, 'available_points' => $this->loyaltyAvailablePoints(), 'error' => null];
+        }
+
+        $eligibleAmount = max(0, $this->cartSubtotal() - $this->cartOrderDiscount());
+
+        return app(\App\Services\Pos\PosLoyaltyService::class)->previewRedemption(
+            $this->customerUserId,
+            $session->currency,
+            $eligibleAmount,
+            $requested,
+        );
+    }
+
     public function cartTotal(): int
     {
-        return max(0, $this->cartSubtotal() - $this->cartOrderDiscount());
+        return max(0, $this->cartSubtotal() - $this->cartOrderDiscount() - (int) $this->loyaltyRedemptionPreview()['discount_amount']);
     }
 
     public function formatMoney(int $amount, string $currency): string
@@ -655,6 +692,7 @@ class PosSales extends Page
         }
 
         $this->validate([
+            'loyaltyPointsToRedeem' => ['nullable', 'integer', 'min:0'],
             'customerName' => ['nullable', 'string', 'max:255'],
             'customerPhone' => ['nullable', 'string', 'max:40'],
             'customerEmail' => ['nullable', 'email', 'max:255'],
@@ -701,6 +739,7 @@ class PosSales extends Page
             ];
         }
 
+        $paymentDetails['loyalty_points'] = max(0, (int) $this->loyaltyPointsToRedeem);
         $wasMixedPayment = $this->mixedPayment;
         $wasZellePayment = $method->driver === 'zelle_manual';
         $order = app(PosSaleService::class)->sell(
@@ -738,6 +777,7 @@ class PosSales extends Page
         }
 
         $this->cashReceivedAmount = '';
+        $this->loyaltyPointsToRedeem = '0';
         $this->mixedPayment = false;
         $this->mixedCashAmount = '';
         $this->mixedZelleAmount = '';

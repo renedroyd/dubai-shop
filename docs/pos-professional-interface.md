@@ -181,3 +181,13 @@ Dashboard filtrable por período que agrupa resultados por establecimiento: pedi
 ### Corrección POS — límites de efectivo por moneda (integrada en PR #73)
 
 Los límites de efectivo se configuran independientemente para CUP, USD y EUR en cada terminal. El servicio valida el fondo inicial, entradas manuales y ventas que realmente cobran efectivo contra el límite de la moneda de la sesión. Los pagos exclusivamente Zelle no afectan el límite. Los valores existentes de `cash_limit_amount` se migran a CUP, la moneda predeterminada inicial del POS; el administrador puede ajustar USD/EUR desde la configuración del terminal.
+
+## POS-17 — Fidelización integrada
+
+- El cajero puede consultar el saldo del cliente por moneda, canjear puntos y ver el descuento aplicado en el total de la venta.
+- El canje exige un mínimo de 100 puntos y no puede superar el 20 % del subtotal elegible después de promociones.
+- CUP, USD y EUR mantienen carteras y valores independientes; no se convierten ni combinan saldos.
+- Se muestran avisos de puntos que vencen en los próximos 30 días y saldos pendientes por compensar.
+- La cuenta del cliente muestra saldos, movimientos recientes y puntos próximos a vencer.
+- Las devoluciones parciales/totales ajustan proporcionalmente los puntos ganados y canjeados sin alterar los reembolsos monetarios por los medios originales.
+- Configuración de acumulación, canje y vencimiento desde Filament; ajustes manuales sujetos a permiso, motivo obligatorio y auditoría.

@@ -1,7 +1,7 @@
 # Hoja de ruta — Dubai Shop / Clásico Dubai
 
 **Actualizada:** 7 de noviembre de 2026  
-**Base:** Fases 1–16 y POS-1 a POS-15 integrados; POS-16A en implementación; POS-16B pendiente.
+**Base:** Fases 1–16 y POS-1 a POS-16A integrados; POS-16B en implementación.
 
 La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente y nuevas capacidades que requieren decisiones comerciales. La prioridad inmediata es estabilizar y aceptar el despliegue, no añadir integraciones externas sin proveedor o reglas aprobadas.
 
@@ -172,7 +172,7 @@ Objetivo: implementar promociones reales sin introducir ambigüedades contables.
 
 ## POS y multi almacén — entregas independientes
 
-<badge color="success">POS-1 a POS-15 integrados</badge> <badge color="info">POS-16A en implementación; POS-16B pendiente</badge>
+<badge color="success">POS-1 a POS-16A integrados</badge> <badge color="info">POS-16B en implementación</badge>
 
 El POS funcionará siempre conectado al servidor. No se desarrollará modo offline. Decisiones aprobadas: ubicaciones internas flexibles (área/pasillo/estantería/posición), existencias independientes por almacén y aprobación configurable de transferencias.
 
@@ -283,3 +283,8 @@ Rama `feature/pos-16a-shifts-and-cash-control`. Asignación opcional de cajeros 
 ### POS-16B — Alertas y reposición (pendiente)
 
 Se implementarán umbrales mínimos de inventario configurables por producto/variante y almacén, alertas de existencias bajas y solicitudes de reposición entre almacenes integradas con el flujo de transferencias existente.
+
+
+### POS-16B — Alertas y reposición (en implementación)
+
+Rama `feature/pos-16b-stock-alerts-replenishment`. Cada existencia por almacén puede guardar un umbral mínimo propio; si no se configura, se mantiene el valor predeterminado de 5 unidades. Las alertas consideran existencia disponible después de reservas y bloqueos. Desde una existencia con stock bajo se puede solicitar reposición desde otro almacén, creando una transferencia de tipo `replenishment` que utiliza las reglas y aprobaciones existentes; solicitar no mueve ni reserva stock, que solo se mueve durante el despacho aprobado.

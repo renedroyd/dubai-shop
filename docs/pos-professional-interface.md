@@ -141,7 +141,7 @@ PR #61, #62 y #63 integran los bloques de devoluciones/reembolsos, disposición 
 - No se suman importes de monedas diferentes ni se aplica conversión automática. Los reportes por producto/categoría/marca reflejan descuentos de línea; los descuentos globales no se prorratean en esos desgloses.
 
 
-## POS-16A — turnos, cajeros y control de caja (en implementación)
+## POS-16A — turnos, cajeros y control de caja (integrado en PR #68)
 
 - Cada terminal puede restringirse a una lista de cajeros autorizados. Si la lista está vacía, se mantiene el acceso de cualquier usuario con permiso `pos.operate` para el almacén.
 - Cada sesión guarda una etiqueta de turno/jornada y el cajero que la abrió.
@@ -150,8 +150,9 @@ PR #61, #62 y #63 integran los bloques de devoluciones/reembolsos, disposición 
 - Un usuario con permiso `pos_cash_sessions.approve_close` y acceso operativo al almacén debe aprobar el cierre. El solicitante no puede aprobar su propia solicitud. Se auditan solicitante, aprobador, importes y diferencia.
 - Las sesiones pendientes de aprobación no se consideran cierres definitivos en los informes de diferencias de caja.
 
-## POS-16B — alertas de inventario y reposición (pendiente)
+## POS-16B — alertas de inventario y reposición (en implementación)
 
-- Umbral mínimo configurable por producto/variante y almacén.
-- Alertas de existencias disponibles bajas, respetando reservas y bloqueos.
-- Solicitudes de reposición entre almacenes conectadas al flujo existente de transferencias y sus aprobaciones.
+- Umbral mínimo configurable por existencia de producto/variante y almacén; si no se define, se usa 5 unidades.
+- Alertas de existencias disponibles bajas, restando reservas y bloqueos.
+- Solicitudes de reposición desde la existencia con stock bajo, seleccionando origen, ubicaciones y cantidad; se crean como transferencias `replenishment` con las reglas de aprobación ya configuradas.
+- Crear la solicitud no mueve ni reserva inventario. El stock se descuenta únicamente al despachar una transferencia aprobada.

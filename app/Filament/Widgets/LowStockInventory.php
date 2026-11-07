@@ -30,8 +30,8 @@ class LowStockInventory extends TableWidget
             ->query(
                 Inventory::query()->accessibleTo(auth()->user())
                     ->with(['product', 'variant'])
-                    ->whereRaw('(quantity_on_hand - quantity_reserved) <= 5')
-                    ->orderByRaw('(quantity_on_hand - quantity_reserved) asc')
+                    ->whereRaw('(quantity_on_hand - quantity_reserved - quantity_blocked) <= COALESCE(minimum_stock_quantity, 5)')
+                    ->orderByRaw('(quantity_on_hand - quantity_reserved - quantity_blocked) asc')
             )
             ->columns([
                 TextColumn::make('product.name')
@@ -47,9 +47,16 @@ class LowStockInventory extends TableWidget
                 TextColumn::make('quantity_reserved')
                     ->label(__('Reservado'))
                     ->numeric(),
+                TextColumn::make('quantity_blocked')
+                    ->label(__('Bloqueado'))
+                    ->numeric(),
+                TextColumn::make('minimum_stock_quantity')
+                    ->label(__('Umbral'))
+                    ->state(fn (Inventory $record): int => $record->minimum_stock_quantity ?? 5)
+                    ->numeric(),
                 TextColumn::make('available_quantity')
                     ->label(__('Disponible'))
-                    ->state(fn (Inventory $record): int => max(0, $record->quantity_on_hand - $record->quantity_reserved))
+                    ->state(fn (Inventory $record): int => $record->available_quantity)
                     ->badge()
                     ->color(fn (int $state): string => $state === 0 ? 'danger' : 'warning'),
             ])

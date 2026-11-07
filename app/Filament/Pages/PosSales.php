@@ -439,7 +439,7 @@ class PosSales extends Page
             $warehouseId = $session?->terminal->warehouse_id;
             $inventory = $warehouseId ? Inventory::query()->where('warehouse_id', $warehouseId)->where('stock_key', $variant ? 'variant:'.$variant->id : 'product:'.$product->id)->first() : null;
             $pricing = $warehouseId && $session
-                ? app(PosPricingService::class)->previewLine($product, $variant, $inventory, $this->customerUserId, $warehouseId, $session->currency)
+                ? app(PosPricingService::class)->previewLine($product, $variant, $inventory, $this->customerUserId, $warehouseId, $session->currency, auth()->user())
                 : ['original_unit_price_amount' => (int) ($variant?->price_amount ?? $product->price_amount), 'unit_price_amount' => (int) ($variant?->price_amount ?? $product->price_amount), 'discount_amount' => 0, 'rule' => null];
             $price = $pricing['unit_price_amount'];
             $items[] = [
@@ -451,6 +451,8 @@ class PosSales extends Page
                 'original_price' => $pricing['original_unit_price_amount'],
                 'discount_amount' => $pricing['discount_amount'] * (int) $line['quantity'],
                 'rule_name' => $pricing['rule']?->name,
+                'blocked_reason' => $pricing['blocked_reason'] ?? null,
+                'inventory' => $inventory,
                 'total' => $price * (int) $line['quantity'],
             ];
         }
@@ -472,12 +474,26 @@ class PosSales extends Page
     {
         $session = $this->currentSession();
         if (! $session) return 0;
-        return app(PosPricingService::class)->previewOrderDiscount($this->cartSubtotal(), $this->customerUserId, $session->terminal->warehouse_id, $session->currency)['discount_amount'];
+        $prepared = collect($this->cartItems())->map(fn (array $item): array => ['inventory' => $item['inventory'], 'quantity' => $item['quantity']])->all();
+        return app(PosPricingService::class)->previewOrderDiscount($this->cartSubtotal(), $this->customerUserId, $session->terminal->warehouse_id, $session->currency, $prepared, auth()->user())['discount_amount'];
     }
 
     public function cartDiscountTotal(): int
     {
         return collect($this->cartItems())->sum('discount_amount') + $this->cartOrderDiscount();
+    }
+
+    public function cartPricingWarnings(): array
+    {
+        $warnings = collect($this->cartItems())->pluck('blocked_reason')->filter()->unique()->values()->all();
+        $session = $this->currentSession();
+        if ($session) {
+            $items = $this->cartItems();
+            $prepared = collect($items)->map(fn (array $item): array => ['inventory' => $item['inventory'], 'quantity' => $item['quantity']])->all();
+            $orderPreview = app(PosPricingService::class)->previewOrderDiscount($this->cartSubtotal(), $this->customerUserId, $session->terminal->warehouse_id, $session->currency, $prepared, auth()->user());
+            if ($orderPreview['blocked_reason'] ?? null) $warnings[] = $orderPreview['blocked_reason'];
+        }
+        return array_values(array_unique($warnings));
     }
 
     public function cartTotal(): int

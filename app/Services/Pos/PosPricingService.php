@@ -8,81 +8,95 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Validation\ValidationException;
 
 class PosPricingService
 {
-    public function previewLine(Product $product, ?ProductVariant $variant, ?Inventory $inventory, ?int $customerId, int $warehouseId, string $currency): array
+    public function previewLine(Product $product, ?ProductVariant $variant, ?Inventory $inventory, ?int $customerId, int $warehouseId, string $currency, ?User $cashier = null): array
     {
-        $base = (int) ($variant?->price_amount ?? $product->price_amount);
-        $rule = $this->lineRule($product, $customerId, $warehouseId, $currency);
-        $result = $this->calculate($base, $rule);
-
-        if ($result['discount_amount'] > 0) {
-            if (! $inventory || $inventory->acquisition_cost_amount === null) {
-                $result['blocked_reason'] = __('Configura el costo de adquisición en este almacén para aplicar el descuento.');
-                return $result;
-            }
-
-            $floor = max((int) $inventory->acquisition_cost_amount, (int) ($inventory->minimum_sale_price_amount ?? $inventory->acquisition_cost_amount));
-            if ($result['unit_price_amount'] < $floor) {
-                $result['blocked_reason'] = __('El descuento supera el límite mínimo permitido.');
-            }
-        }
-
-        return $result;
+        return $this->resolveLine($product, $variant, $inventory, $customerId, $cashier, $warehouseId, $currency);
     }
 
     public function priceLine(Product $product, ?ProductVariant $variant, ?Inventory $inventory, ?User $customer, User $cashier, int $warehouseId, string $currency): array
     {
-        $base = (int) ($variant?->price_amount ?? $product->price_amount);
-        $rule = $this->lineRule($product, $customer?->id, $warehouseId, $currency);
-        $result = $this->calculate($base, $rule);
-        $approvedBy = $this->authorizeRule($rule, $cashier, $result['discount_amount']);
-
-        if ($result['discount_amount'] > 0) {
-            if (! $inventory || $inventory->acquisition_cost_amount === null) {
-                throw ValidationException::withMessages(['discounts' => "Configura primero el costo de adquisición de {$product->name} en el almacén antes de aplicar un descuento."]);
-            }
-
-            $floor = max((int) $inventory->acquisition_cost_amount, (int) ($inventory->minimum_sale_price_amount ?? $inventory->acquisition_cost_amount));
-            if ($result['unit_price_amount'] < $floor && ! $cashier->hasAdminPermission('pos_discounts.override_floor')) {
-                throw ValidationException::withMessages(['discounts' => "El descuento deja {$product->name} por debajo del costo o precio mínimo permitido."]);
-            }
-            if ($result['unit_price_amount'] < $floor) $approvedBy = $cashier->id;
-        }
-
-        return $result + ['approved_by' => $approvedBy];
+        return $this->resolveLine($product, $variant, $inventory, $customer?->id, $cashier, $warehouseId, $currency);
     }
 
-    public function previewOrderDiscount(int $netSubtotal, ?int $customerId, int $warehouseId, string $currency): array
+    public function previewOrderDiscount(int $netSubtotal, ?int $customerId, int $warehouseId, string $currency, array $preparedLines = [], ?User $cashier = null): array
     {
-        return $this->calculate($netSubtotal, $this->orderRule($customerId, $warehouseId, $currency), true);
+        return $this->resolveOrderDiscount($netSubtotal, $preparedLines, $customerId, $cashier, $warehouseId, $currency);
     }
 
     public function priceOrderDiscount(int $netSubtotal, array $preparedLines, ?User $customer, User $cashier, int $warehouseId, string $currency): array
     {
-        $rule = $this->orderRule($customer?->id, $warehouseId, $currency);
-        $result = $this->calculate($netSubtotal, $rule, true);
-        $approvedBy = $this->authorizeRule($rule, $cashier, $result['discount_amount']);
+        return $this->resolveOrderDiscount($netSubtotal, $preparedLines, $customer?->id, $cashier, $warehouseId, $currency);
+    }
+
+    private function resolveLine(Product $product, ?ProductVariant $variant, ?Inventory $inventory, ?int $customerId, ?User $cashier, int $warehouseId, string $currency): array
+    {
+        $base = (int) ($variant?->price_amount ?? $product->price_amount);
+        $rule = $this->lineRule($product, $customerId, $warehouseId, $currency);
+        $result = $this->calculate($base, $rule);
+        $approvedBy = null;
 
         if ($result['discount_amount'] > 0) {
+            if (! $inventory || $inventory->acquisition_cost_amount === null) {
+                return $this->blockedResult($base, __('Configura el costo de adquisición en este almacén para aplicar la promoción.'));
+            }
+
+            if ($rule?->requires_approval && ! ($cashier?->hasAdminPermission('pos_discounts.approve') ?? false)) {
+                return $this->blockedResult($base, __('Esta promoción requiere autorización de un supervisor.'));
+            }
+
+            $floor = max((int) $inventory->acquisition_cost_amount, (int) ($inventory->minimum_sale_price_amount ?? $inventory->acquisition_cost_amount));
+            if ($result['unit_price_amount'] < $floor) {
+                if (! ($cashier?->hasAdminPermission('pos_discounts.override_floor') ?? false)) {
+                    return $this->blockedResult($base, __('La promoción supera el límite mínimo de costo/precio de este almacén.'));
+                }
+                $approvedBy = $cashier?->id;
+            }
+
+            if ($rule?->requires_approval) $approvedBy = $cashier?->id;
+        }
+
+        return $result + ['approved_by' => $approvedBy, 'blocked_reason' => null];
+    }
+
+    private function resolveOrderDiscount(int $netSubtotal, array $preparedLines, ?int $customerId, ?User $cashier, int $warehouseId, string $currency): array
+    {
+        $rule = $this->orderRule($customerId, $warehouseId, $currency);
+        $result = $this->calculate($netSubtotal, $rule, true);
+        $approvedBy = null;
+
+        if ($result['discount_amount'] > 0) {
+            if ($rule?->requires_approval && ! ($cashier?->hasAdminPermission('pos_discounts.approve') ?? false)) {
+                return $this->blockedResult($netSubtotal, __('El descuento de la venta requiere autorización de un supervisor.'));
+            }
+
             $floorTotal = 0;
             foreach ($preparedLines as $line) {
-                $inventory = $line['inventory'];
+                $inventory = $line['inventory'] ?? null;
                 if (! $inventory || $inventory->acquisition_cost_amount === null) {
-                    throw ValidationException::withMessages(['discounts' => 'Configura los costos de adquisición de todos los artículos antes de aplicar un descuento a la venta.']);
+                    return $this->blockedResult($netSubtotal, __('Configura el costo de todos los artículos antes de aplicar un descuento a la venta.'));
                 }
                 $floorTotal += max((int) $inventory->acquisition_cost_amount, (int) ($inventory->minimum_sale_price_amount ?? $inventory->acquisition_cost_amount)) * (int) $line['quantity'];
             }
 
-            if (($netSubtotal - $result['discount_amount']) < $floorTotal && ! $cashier->hasAdminPermission('pos_discounts.override_floor')) {
-                throw ValidationException::withMessages(['discounts' => 'El descuento de la venta deja el total por debajo del costo o precio mínimo permitido.']);
+            if (($netSubtotal - $result['discount_amount']) < $floorTotal) {
+                if (! ($cashier?->hasAdminPermission('pos_discounts.override_floor') ?? false)) {
+                    return $this->blockedResult($netSubtotal, __('El descuento de la venta supera el límite mínimo de costo/precio de este almacén.'));
+                }
+                $approvedBy = $cashier?->id;
             }
-            if (($netSubtotal - $result['discount_amount']) < $floorTotal) $approvedBy = $cashier->id;
+
+            if ($rule?->requires_approval) $approvedBy = $cashier?->id;
         }
 
-        return $result + ['approved_by' => $approvedBy];
+        return $result + ['approved_by' => $approvedBy, 'blocked_reason' => null];
+    }
+
+    private function blockedResult(int $baseAmount, string $reason): array
+    {
+        return ['rule' => null, 'original_unit_price_amount' => $baseAmount, 'unit_price_amount' => $baseAmount, 'discount_amount' => 0, 'approved_by' => null, 'blocked_reason' => $reason];
     }
 
     private function lineRule(Product $product, ?int $customerId, int $warehouseId, string $currency): ?PosPriceRule

@@ -15,6 +15,8 @@ use App\Filament\Widgets\SalesTrendChart;
 use App\Models\AdminRole;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Features\SupportLazyLoading\SupportLazyLoading;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class AdminDashboardTest extends TestCase
@@ -24,13 +26,18 @@ class AdminDashboardTest extends TestCase
     public function test_administrator_can_open_dashboard_with_all_commercial_widgets_registered(): void
     {
         $this->withoutVite();
-
         $admin = User::factory()->create(['is_admin' => true, 'admin_access_enabled' => true]);
         $admin->roles()->attach(AdminRole::query()->where('slug', 'superadmin')->firstOrFail());
 
-        $this->actingAs($admin)
-            ->get('/admin')
-            ->assertOk();
+        Livewire::withoutLazyLoading();
+
+        try {
+            $this->actingAs($admin)
+                ->get('/admin')
+                ->assertOk();
+        } finally {
+            SupportLazyLoading::$disableWhileTesting = false;
+        }
 
         $widgets = app(Dashboard::class)->getWidgets();
 

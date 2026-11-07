@@ -19,6 +19,7 @@ class OrderItem extends Model
 
     public function order(): BelongsTo { return $this->belongsTo(Order::class); }
     public function product(): BelongsTo { return $this->belongsTo(Product::class); }
+    public function inventory(): BelongsTo { return $this->belongsTo(Inventory::class); }
     public function priceRule(): BelongsTo { return $this->belongsTo(PosPriceRule::class, 'pos_price_rule_id'); }
     public function discountEvents(): \Illuminate\Database\Eloquent\Relations\HasMany { return $this->hasMany(PosDiscountEvent::class); }
 }

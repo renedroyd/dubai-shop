@@ -350,7 +350,7 @@
             </div>
         @endif
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.5/qz-tray.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.3.0/qz-tray.js"></script>
     <script>
         (() => {
             const root = document.getElementById('pos-hardware');

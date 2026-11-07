@@ -45,7 +45,8 @@ class WarehouseLocationResource extends Resource
             Select::make('warehouse_id')->label(__('Almacén'))->options(fn () => Warehouse::query()->whereIn('id', auth()->user()?->warehouseIdsWithPermission('warehouse.manage') ?? [])->orderBy('name')->pluck('name', 'id'))->required()->live()->searchable(),
             Select::make('parent_id')->label(__('Ubicación superior'))
                 ->options(fn (Get $get, ?WarehouseLocation $record) => WarehouseLocation::query()
-                    ->where('warehouse_id', $get('warehouse_id'))\n                    ->whereIn('warehouse_id', auth()->user()?->warehouseIdsWithPermission('warehouse.manage') ?? [])
+                    ->where('warehouse_id', $get('warehouse_id'))
+                    ->whereIn('warehouse_id', auth()->user()?->warehouseIdsWithPermission('warehouse.manage') ?? [])
                     ->when($record, fn ($query) => $query->whereKeyNot($record->getKey()))
                     ->where('type', '!=', WarehouseLocation::TYPE_UNASSIGNED)
                     ->orderBy('name')->get()->mapWithKeys(fn ($location) => [

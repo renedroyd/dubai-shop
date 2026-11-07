@@ -8,6 +8,7 @@ use App\Models\PosCashSession;
 use App\Models\PosLocation;
 use App\Models\PosTerminal;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\User;
 use App\Models\Warehouse;
 use App\Services\Inventory\InventoryService;
@@ -90,6 +91,36 @@ class PosSaleTest extends TestCase
             'pos_cash_session_id' => $session->id,
             'type' => 'sale',
             'amount' => 2500,
+        ]);
+    }
+
+    public function test_pos_sale_supports_variant_inventory_and_uses_variant_price(): void
+    {
+        $user = User::factory()->create();
+        $session = $this->openSession($user);
+        $product = $this->product();
+        $variant = ProductVariant::query()->create([
+            'product_id' => $product->id,
+            'name' => 'Presentación grande',
+            'sku' => 'POS-VAR-'.uniqid(),
+            'price_amount' => 1800,
+            'is_active' => true,
+        ]);
+        $inventory = app(InventoryService::class)->setOnHand($product, 4, $variant, reason: 'Carga inicial');
+
+        $order = app(PosSaleService::class)->sell(
+            $session,
+            $user->id,
+            [['product_id' => $product->id, 'product_variant_id' => $variant->id, 'quantity' => 1]],
+            $this->cashMethod()->id,
+        );
+
+        $this->assertSame(1800, $order->total_amount);
+        $this->assertSame(3, $inventory->fresh()->quantity_on_hand);
+        $this->assertDatabaseHas('order_items', [
+            'order_id' => $order->id,
+            'product_variant_id' => $variant->id,
+            'unit_price_amount' => 1800,
         ]);
     }
 

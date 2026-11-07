@@ -24,6 +24,12 @@ class PosSaleTest extends TestCase
 
     private function openSession(User $user, string $currency = 'CUP'): PosCashSession
     {
+        $user->update(['admin_access_enabled' => true]);
+        $user->warehouseAccesses()->firstOrCreate(
+            ['warehouse_id' => Warehouse::primary()->id],
+            ['permissions' => WarehouseUserAccess::PERMISSIONS],
+        );
+    {
         $location = PosLocation::query()->create(['code' => 'POS-LOC', 'name' => 'Tienda POS', 'is_active' => true]);
         $terminal = PosTerminal::query()->create([
             'pos_location_id' => $location->id,

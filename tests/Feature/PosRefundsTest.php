@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Inventory;
 use App\Models\Payment;
+use App\Models\AdminRole;
 use App\Models\PaymentMethod;
 use App\Models\PosCashSession;
 use App\Models\PosLocation;
@@ -86,7 +87,7 @@ class PosRefundsTest extends TestCase
 
         $partial = $service->refund($order, $session, $user->id, [
             ['order_item_id' => $item->id, 'quantity' => 1],
-        ], 'Producto devuelto en buen estado');
+        ], 'Producto devuelto en buen estado', $user->id);
 
         $this->assertSame(1250, $partial->amount);
         $this->assertSame(3, $inventory->fresh()->quantity_on_hand);
@@ -94,7 +95,7 @@ class PosRefundsTest extends TestCase
 
         $full = $service->refund($order->fresh(), $session, $user->id, [
             ['order_item_id' => $item->id, 'quantity' => 2],
-        ], 'Devolución del resto');
+        ], 'Devolución del resto', $user->id);
 
         $this->assertSame(2500, $full->amount);
         $this->assertSame(5, $inventory->fresh()->quantity_on_hand);
@@ -116,7 +117,7 @@ class PosRefundsTest extends TestCase
         $this->expectException(ValidationException::class);
         app(PosRefundService::class)->refund($order, $session, $user->id, [
             ['order_item_id' => $item->id, 'quantity' => 4],
-        ], 'Cantidad superior a la venta');
+        ], 'Cantidad superior a la venta', $user->id);
     }
 
     public function test_refund_requires_open_session_for_same_terminal_and_currency(): void
@@ -129,6 +130,6 @@ class PosRefundsTest extends TestCase
         $this->expectException(ValidationException::class);
         app(PosRefundService::class)->refund($order, $session, $user->id, [
             ['order_item_id' => $item->id, 'quantity' => 1],
-        ], 'Caja cerrada');
+        ], 'Caja cerrada', $user->id);
     }
 }

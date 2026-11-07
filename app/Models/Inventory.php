@@ -11,7 +11,7 @@ class Inventory extends Model
 {
     protected $fillable = [
         'warehouse_id', 'product_id', 'product_variant_id', 'stock_key',
-        'quantity_on_hand', 'quantity_reserved', 'quantity_blocked',
+        'quantity_on_hand', 'quantity_reserved', 'quantity_blocked', 'acquisition_cost_amount', 'minimum_sale_price_amount',
     ];
 
     protected function casts(): array
@@ -20,6 +20,8 @@ class Inventory extends Model
             'quantity_on_hand' => 'integer',
             'quantity_reserved' => 'integer',
             'quantity_blocked' => 'integer',
+            'acquisition_cost_amount' => 'integer',
+            'minimum_sale_price_amount' => 'integer',
         ];
     }
 
@@ -51,6 +53,11 @@ class Inventory extends Model
     public function movements(): HasMany
     {
         return $this->hasMany(InventoryMovement::class);
+    }
+
+    public function costChanges(): HasMany
+    {
+        return $this->hasMany(InventoryCostChange::class);
     }
 
     public function getAvailableQuantityAttribute(): int

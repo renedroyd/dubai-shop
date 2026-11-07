@@ -81,6 +81,8 @@ return [
         'products.delete' => 'Eliminar productos',
         'inventories.view' => 'Consultar existencias',
         'inventories.update' => 'Ajustar existencias',
+        'inventory_costs.view' => 'Consultar costos y precios mínimos por almacén',
+        'inventory_costs.update' => 'Modificar costos de adquisición y precios mínimos',
         'inventory_movements.view' => 'Consultar movimientos de inventario',
         'inventory_location_balances.view' => 'Consultar existencias por ubicación',
         'inventory_location_balances.update' => 'Ajustar y mover existencias entre ubicaciones',

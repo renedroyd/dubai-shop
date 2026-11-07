@@ -33,6 +33,14 @@ class PosTerminal extends Model
                 ]);
             }
 
+            if ($terminal->exists
+                && ($terminal->isDirty('warehouse_id') || ($terminal->isDirty('is_active') && ! $terminal->is_active))
+                && $terminal->cashSessions()->where('status', PosCashSession::STATUS_OPEN)->whereNull('closed_at')->exists()) {
+                throw ValidationException::withMessages([
+                    'is_active' => __('No puedes desactivar ni reasignar un terminal mientras tenga una caja abierta.'),
+                ]);
+            }
+
             if (! $terminal->is_active) {
                 return;
             }

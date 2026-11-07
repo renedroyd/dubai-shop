@@ -63,6 +63,17 @@ class PosRefundsTest extends TestCase
         return PaymentMethod::query()->where('driver', 'cash_on_delivery')->where('is_enabled', true)->firstOrFail();
     }
 
+    private function authorizedApprover(User $cashier): User
+    {
+        $cashier->update(['admin_access_enabled' => true]);
+        $processRole = AdminRole::query()->create(['name' => 'Procesador devoluciones', 'slug' => 'refund-process-'.uniqid(), 'permissions' => ['pos_refunds.process']]);
+        $cashier->roles()->attach($processRole);
+        $approver = User::factory()->create(['admin_access_enabled' => true]);
+        $approveRole = AdminRole::query()->create(['name' => 'Autorizador devoluciones', 'slug' => 'refund-approve-'.uniqid(), 'permissions' => ['pos_refunds.approve']]);
+        $approver->roles()->attach($approveRole);
+        return $approver;
+    }
+
     private function completedSale(User $user): array
     {
         $session = $this->openCashSession($user);
@@ -84,10 +95,11 @@ class PosRefundsTest extends TestCase
         [$session, $order, $inventory] = $this->completedSale($user);
         $item = $order->items()->firstOrFail();
         $service = app(PosRefundService::class);
+        $approver = $this->authorizedApprover($user);
 
         $partial = $service->refund($order, $session, $user->id, [
             ['order_item_id' => $item->id, 'quantity' => 1],
-        ], 'Producto devuelto en buen estado', $user->id);
+        ], 'Producto devuelto en buen estado', $approver->id);
 
         $this->assertSame(1250, $partial->amount);
         $this->assertSame(3, $inventory->fresh()->quantity_on_hand);
@@ -113,6 +125,7 @@ class PosRefundsTest extends TestCase
         $user = User::factory()->create();
         [$session, $order] = $this->completedSale($user);
         $item = $order->items()->firstOrFail();
+        $approver = $this->authorizedApprover($user);
 
         $this->expectException(ValidationException::class);
         app(PosRefundService::class)->refund($order, $session, $user->id, [

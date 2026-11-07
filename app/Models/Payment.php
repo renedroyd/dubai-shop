@@ -29,4 +29,5 @@ class Payment extends Model
     public function method(): BelongsTo { return $this->belongsTo(PaymentMethod::class, 'payment_method_id'); }
     public function reviewer(): BelongsTo { return $this->belongsTo(User::class, 'reviewed_by'); }
     public function events(): HasMany { return $this->hasMany(PaymentEvent::class)->latest(); }
+    public function posCashMovements(): HasMany { return $this->hasMany(PosCashMovement::class); }
 }

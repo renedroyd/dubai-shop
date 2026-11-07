@@ -283,11 +283,20 @@ PR #71 integrado en `main`. Dashboard de estados, actividad, incidencias y conte
 - Zelle puro no altera ni consume el límite de efectivo.
 - La migración conserva el límite histórico en CUP, moneda predeterminada inicial del POS; debe revisarse la configuración de terminales si un límite anterior se había usado para otra moneda.
 
-## POS-17A — libro de fidelización y acumulación inicial (en revisión)
+## POS-17A — libro de fidelización y acumulación inicial (integrado mediante PR #75)
 
-- Base de datos de configuración por moneda para CUP, USD y EUR; valores iniciales: 1 punto por cada 100 unidades monetarias menores, con vencimiento a los 12 meses.
+- Configuración por moneda para CUP, USD y EUR; acumulación inicial: 1 punto por cada 100 CUP, 1 punto por cada 1 USD y 1 punto por cada 1 EUR. Los importes se almacenan en unidades menores (CUP: 10 000; USD/EUR: 100). Los puntos vencen a los 12 meses.
 - Carteras separadas por cliente y moneda, con libro de movimientos e identificador único de idempotencia.
 - Acumulación calculada sobre el total POS neto de descuentos y únicamente para clientes con cuenta.
 - Ventas en efectivo acumulan al cobrarse; Zelle acumula después de la aprobación manual. Los pagos pendientes y ventas de invitado no generan puntos.
 - Pruebas automatizadas para venta pagada, exclusión de invitado, idempotencia y aprobación Zelle.
 - El canje, reversión por devoluciones, ajustes autorizados, avisos de vencimiento e interfaz administrativa/cliente quedan para los siguientes subbloques POS-17.
+
+## POS-17B — canje de puntos en el terminal POS (en revisión)
+
+- Canje vinculado a una cuenta de cliente y al saldo de la moneda de la sesión; nunca convierte ni mezcla CUP, USD y EUR.
+- Valor inicial de canje: 1 punto = 1 CUP, 0.01 USD o 0.01 EUR.
+- Canje mínimo de 100 puntos y descuento máximo del 20 % del subtotal elegible después de promociones.
+- El descuento por puntos se incorpora al total y al descuento de la orden; los importes de pago, efectivo recibido y cambio se calculan sobre el total neto.
+- Los puntos se consumen por lotes conservando su fecha de vencimiento. Si se rechaza el pago Zelle, se restituyen los puntos reservados con su vencimiento original.
+- El canje parcial por devoluciones y la restitución proporcional se implementarán en POS-17C.

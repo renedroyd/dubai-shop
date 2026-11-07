@@ -9,18 +9,20 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class PosRefund extends Model
 {
     protected $fillable = [
-        'order_id', 'payment_id', 'pos_cash_session_id', 'processed_by',
+        'order_id', 'payment_id', 'pos_cash_session_id', 'processed_by', 'approved_by', 'approved_at',
         'amount', 'currency', 'status', 'reason', 'reference', 'refunded_at',
     ];
 
     protected function casts(): array
     {
-        return ['amount' => 'integer', 'refunded_at' => 'datetime'];
+        return ['amount' => 'integer', 'refunded_at' => 'datetime', 'approved_at' => 'datetime'];
     }
 
     public function order(): BelongsTo { return $this->belongsTo(Order::class); }
     public function payment(): BelongsTo { return $this->belongsTo(Payment::class); }
     public function session(): BelongsTo { return $this->belongsTo(PosCashSession::class, 'pos_cash_session_id'); }
     public function processor(): BelongsTo { return $this->belongsTo(User::class, 'processed_by'); }
+    public function approver(): BelongsTo { return $this->belongsTo(User::class, 'approved_by'); }
+    public function payments(): HasMany { return $this->hasMany(PosRefundPayment::class); }
     public function items(): HasMany { return $this->hasMany(PosRefundItem::class); }
 }

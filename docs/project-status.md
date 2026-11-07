@@ -2,7 +2,7 @@
 
 **Corte:** 7 de noviembre de 2026  
 **Rama de referencia:** `main`  
-**Última entrega integrada:** POS-14A — recibos térmicos y códigos de barras (PR #65, integrado). POS-14B — integración QZ Tray, en implementación en rama independiente.
+**Última entrega integrada:** POS-14 — periféricos POS (PR #65–66, integrados). POS-15 — dashboard e informes avanzados, en implementación en rama independiente.
 
 > Este documento distingue implementación integrada, validación automatizada y aceptación operativa. Que una funcionalidad esté integrada o que CI pase no significa que esté configurada ni aceptada en el entorno real.
 
@@ -107,8 +107,8 @@ Las Fases 1–16 y las mejoras PR #29–37 están integradas. La entrega PR #38 
 
 - POS-1 a POS-10 integrados en main.
 - POS-11 integrado mediante PR #56: búsqueda por nombre/correo/teléfono guardado, alta rápida, asociación de ventas, historial limitado por almacén y clientes frecuentes.
-- POS-1 a POS-14A integrados en main. POS-14B está en desarrollo en `feature/pos-14b-qz-tray-cash-drawer`.
-- POS-14A (PR #65) está integrado. POS-14B desarrolla impresión QZ Tray y control de gaveta; POS-15 y POS-16 siguen pendientes.
+- POS-1 a POS-14 integrados en main.
+- POS-14A y POS-14B (PR #65–66) están integrados. POS-15 está en desarrollo en `feature/pos-15-advanced-reports-dashboard`; POS-16 sigue pendiente.
 - POS-13 (PR #61–63): autorización por separado para procesar/aprobar devoluciones; reembolsos por los medios originales con distribución proporcional efectivo/Zelle; solo efectivo afecta caja; descuentos respetados; stock devuelto vendible, en cuarentena o desechado; cambios vinculados y diferencia neta; búsqueda de ventas por número, cliente, fecha, terminal y almacén.
 - Los PR #61, #62 y #63 superaron PHP 8.4, PHP 8.5 y Frontend assets antes de integrarse.
 - El POS es exclusivamente online. POS-10 admite efectivo, Zelle manual USD y pagos mixtos; los pagos Zelle requieren revisión.
@@ -205,3 +205,12 @@ Cada nueva fase se desarrolla en una rama independiente. Antes de implementar, r
 - Rama: `feature/pos-14b-qz-tray-cash-drawer`.
 - Configuración de impresora y gaveta por terminal; impresión térmica ESC/POS; apertura automática solo tras una venta con efectivo cobrado y prueba manual con permiso de caja.
 - QZ Tray requiere instalación local por computadora. La impresión no firmada puede mostrar confirmaciones de confianza; no se expone una clave privada ni se incluye una integración de firma silenciosa de pago.
+
+
+### POS-15 — dashboard e informes avanzados (en desarrollo)
+- Rama: `feature/pos-15-advanced-reports-dashboard`.
+- Filtros por fecha, almacén, terminal, cajero y moneda con alcance restringido a `reports.view`.
+- Desgloses de ventas por almacén, terminal, cajero, producto/variante, categoría, marca y método de pago.
+- Reembolsos descontados de los métodos de pago dentro del período; diferencias de caja y comparativa con el período anterior.
+- Margen bruto con costo histórico por línea y descuento global; si faltan costos históricos, se informa como no disponible.
+- Exportación CSV filtrada y limitada a los almacenes autorizados. No se convierten ni mezclan monedas.

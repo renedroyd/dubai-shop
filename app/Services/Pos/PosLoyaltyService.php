@@ -334,6 +334,16 @@ class PosLoyaltyService
     {
         return DB::transaction(function () use ($userId, $currency, $pointsDelta, $reason, $actorId): PosLoyaltyEntry {
             $actor = \App\Models\User::query()->findOrFail($actorId);
+            $customer = \App\Models\User::query()
+                ->whereKey($userId)
+                ->where('is_admin', false)
+                ->where('admin_access_enabled', false)
+                ->first();
+
+            if (! $customer) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['customerUserId' => 'Selecciona una cuenta de cliente válida.']);
+            }
+
             if (! $actor->hasAdminPermission('pos_loyalty.adjust')) {
                 throw new \Illuminate\Auth\Access\AuthorizationException('No tienes permiso para ajustar puntos de fidelización.');
             }

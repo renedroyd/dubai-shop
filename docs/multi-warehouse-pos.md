@@ -121,7 +121,7 @@ También se contemplan `rejected` y `cancelled`. La cancelación de una transfer
 - Las sesiones de caja registran fondo inicial, entradas/salidas manuales, ventas cobradas, efectivo esperado, efectivo contado y diferencia de arqueo.
 - Un terminal solo puede tener una sesión abierta; no se permiten ventas ni movimientos manuales en sesiones cerradas.
 - En la primera entrega, el cobro inmediato POS usa un método de efectivo habilitado. Zelle y otros métodos manuales no se marcan automáticamente como cobrados desde el POS.
-- Los recibos consultan los mismos pedidos y pagos; las devoluciones/reembolsos quedan para la siguiente parte de POS-7 y requieren reversión auditada del inventario y caja.
+- Los recibos consultan los mismos pedidos y pagos. Las devoluciones parciales o totales requieren una sesión abierta del mismo terminal/moneda, registran el reembolso, descuentan efectivo de caja y restauran stock en las ubicaciones originales.
 
 ### Criterios de aceptación POS-7
 

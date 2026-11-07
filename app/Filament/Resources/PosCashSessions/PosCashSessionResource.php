@@ -138,6 +138,11 @@ class PosCashSessionResource extends Resource
                     $record, auth()->id(), (int) $data['counted_amount'], $data['note'] ?? null,
                 )),
             Action::make('approveClose')->label(__('Aprobar cierre'))->icon('heroicon-o-shield-check')->color('success')
+                ->modalDescription(fn (PosCashSession $record): string => __('Esperado: :expected · Contado: :counted · Diferencia: :difference', [
+                    'expected' => number_format(((int) $record->expected_cash_amount) / 100, 2).' '.$record->currency,
+                    'counted' => number_format(((int) $record->close_counted_cash_amount) / 100, 2).' '.$record->currency,
+                    'difference' => number_format(((int) $record->difference_amount) / 100, 2).' '.$record->currency,
+                ]))
                 ->requiresConfirmation()
                 ->visible(fn (PosCashSession $record): bool => $record->close_requested_at !== null && $record->closed_at === null)
                 ->authorize(fn (PosCashSession $record): bool => (auth()->user()?->hasAdminPermission('pos_cash_sessions.approve_close') ?? false)

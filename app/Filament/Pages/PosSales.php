@@ -553,10 +553,12 @@ class PosSales extends Page
         $session = $this->currentSession();
         if (! $this->customerUserId || ! $session) return 0;
 
-        return PosLoyaltyWallet::query()
+        $balance = PosLoyaltyWallet::query()
             ->where('user_id', $this->customerUserId)
             ->where('currency', $session->currency)
             ->first()?->availablePoints() ?? 0;
+
+        return max(0, $balance);
     }
 
     public function loyaltyRedemptionPreview(): array

@@ -90,7 +90,7 @@ class PosReports extends Page
             fputcsv($stream, [
                 'Pedido', 'Fecha', 'Almacén', 'Terminal', 'Cajero', 'Moneda',
                 'Subtotal', 'Descuentos', 'Total', 'Reembolsos acumulados', 'Métodos de pago', 'Estado de pago',
-            ]);
+            ], ',', '"', '');
 
             foreach ($rows->with(['posWarehouse:id,name', 'posTerminal:id,name,code', 'cashier:id,name', 'payments.method', 'posRefunds'])->lazyById(500) as $order) {
                 $refundTotal = $order->posRefunds->where('status', 'completed')->sum('amount');
@@ -112,7 +112,7 @@ class PosReports extends Page
                     number_format($refundTotal / 100, 2, '.', ''),
                     $paymentSummary,
                     $order->payment_status,
-                ]);
+                ], ',', '"', '');
             }
 
             fclose($stream);
@@ -125,8 +125,8 @@ class PosReports extends Page
     {
         return $this->sanitizeFilters(
             $user,
-            (string) request()->query('from', now()->subDays(29)->toDateString()),
-            (string) request()->query('to', now()->toDateString()),
+            is_string(request()->query('from')) ? request()->query('from') : now()->subDays(29)->toDateString(),
+            is_string(request()->query('to')) ? request()->query('to') : now()->toDateString(),
             request()->integer('warehouse_id') ?: null,
             request()->integer('terminal_id') ?: null,
             request()->integer('cashier_id') ?: null,

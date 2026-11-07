@@ -2,7 +2,7 @@
 
 **Corte:** 7 de noviembre de 2026  
 **Rama de referencia:** `main`  
-**Última entrega integrada:** POS-15 — dashboard e informes avanzados (PR #67, integrado). POS-16A — turnos y control de caja, en implementación en rama independiente.
+**Última entrega integrada:** POS-16A — turnos y control de caja (PR #68, integrado). POS-16B — alertas de inventario y reposición, en implementación.
 
 > Este documento distingue implementación integrada, validación automatizada y aceptación operativa. Que una funcionalidad esté integrada o que CI pase no significa que esté configurada ni aceptada en el entorno real.
 
@@ -107,8 +107,8 @@ Las Fases 1–16 y las mejoras PR #29–37 están integradas. La entrega PR #38 
 
 - POS-1 a POS-10 integrados en main.
 - POS-11 integrado mediante PR #56: búsqueda por nombre/correo/teléfono guardado, alta rápida, asociación de ventas, historial limitado por almacén y clientes frecuentes.
-- POS-1 a POS-15 integrados en main.
-- POS-14A y POS-14B (PR #65–66) están integrados. POS-15 (PR #67) está integrado. POS-16A está en desarrollo en `feature/pos-16a-shifts-and-cash-control`; POS-16B sigue pendiente.
+- POS-1 a POS-16A integrados en main.
+- POS-14A y POS-14B (PR #65–66) están integrados. POS-15 (PR #67) está integrado. POS-16A (PR #68) está integrado. POS-16B está en desarrollo en `feature/pos-16b-stock-alerts-replenishment`.
 - POS-13 (PR #61–63): autorización por separado para procesar/aprobar devoluciones; reembolsos por los medios originales con distribución proporcional efectivo/Zelle; solo efectivo afecta caja; descuentos respetados; stock devuelto vendible, en cuarentena o desechado; cambios vinculados y diferencia neta; búsqueda de ventas por número, cliente, fecha, terminal y almacén.
 - Los PR #61, #62 y #63 superaron PHP 8.4, PHP 8.5 y Frontend assets antes de integrarse.
 - El POS es exclusivamente online. POS-10 admite efectivo, Zelle manual USD y pagos mixtos; los pagos Zelle requieren revisión.
@@ -226,3 +226,11 @@ Cada nueva fase se desarrolla en una rama independiente. Antes de implementar, r
 ### POS-16B — alertas y reposición (pendiente)
 - Umbrales de inventario configurables por almacén y producto/variante.
 - Alertas de stock bajo y solicitudes de reposición integradas con transferencias multi almacén.
+
+
+### POS-16B — alertas y reposición (en desarrollo)
+- Rama: `feature/pos-16b-stock-alerts-replenishment`.
+- Umbral mínimo configurable por existencia/almacén, con valor predeterminado de 5 unidades.
+- Alertas calculadas sobre disponible real (existencia menos reservado y bloqueado).
+- Acción de solicitar reposición desde otra ubicación/almacén, usando transferencias existentes tipo `replenishment` y sus aprobaciones.
+- La solicitud no altera el stock; el movimiento ocurre en el despacho aprobado.

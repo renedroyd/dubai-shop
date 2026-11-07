@@ -62,6 +62,15 @@ class PosRefundService
                 throw ValidationException::withMessages(['payment' => 'No existe un cobro POS en efectivo válido para reembolsar.']);
             }
 
+            $cashier = User::query()->findOrFail($cashierId);
+            if (! $cashier->hasAdminPermission('pos_refunds.process')) {
+                throw new AuthorizationException('No tienes permiso para procesar devoluciones POS.');
+            }
+            $approver = User::query()->lockForUpdate()->findOrFail($approverId);
+            if ($approver->id === $cashier->id || ! $approver->hasAdminPermission('pos_refunds.approve')) {
+                throw new AuthorizationException('La devolución requiere la aprobación de otro usuario autorizado.');
+            }
+
             $quantities = [];
             foreach ($lines as $index => $line) {
                 $itemId = (int) ($line['order_item_id'] ?? 0);

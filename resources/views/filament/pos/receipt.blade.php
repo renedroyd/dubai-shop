@@ -1,6 +1,28 @@
 @php
     $receiptWidth = in_array($order->posTerminal?->receipt_width, ['58', '80'], true) ? $order->posTerminal->receipt_width : '80';
     $receiptCopies = max(1, min(3, (int) ($order->posTerminal?->receipt_copies ?? 1)));
+    $receiptLines = [
+        'CLÁSICO DUBAI',
+        $order->posTerminal?->location?->name ?? '',
+        $order->posTerminal?->name ?? '',
+        $order->number,
+        $order->placed_at?->format('d/m/Y H:i') ?? '',
+        str_repeat('-', 32),
+    ];
+    foreach ($order->items as $item) {
+        $receiptLines[] = $item->product_name.($item->variant_name ? ' · '.$item->variant_name : '');
+        $receiptLines[] = $item->quantity.' x '.number_format($item->unit_price_amount / 100, 2).' = '.number_format($item->line_total_amount / 100, 2).' '.$item->currency;
+    }
+    $receiptLines[] = str_repeat('-', 32);
+    $receiptLines[] = 'Subtotal: '.number_format($order->subtotal_amount / 100, 2).' '.$order->currency;
+    if (($order->discount_amount ?? 0) > 0) $receiptLines[] = 'Descuentos: -'.number_format($order->discount_amount / 100, 2).' '.$order->currency;
+    $receiptLines[] = 'TOTAL: '.number_format($order->total_amount / 100, 2).' '.$order->currency;
+    foreach ($order->payments as $payment) {
+        $receiptLines[] = ($payment->method?->name ?? $payment->driver).': '.number_format($payment->amount / 100, 2).' '.$payment->currency;
+    }
+    $receiptLines[] = 'Atendido por: '.($order->cashier?->name ?? '');
+    $receiptLines[] = 'Gracias por su compra';
+    $receiptText = implode("\n", array_filter($receiptLines, fn ($line) => $line !== ''));
 @endphp
 <style>
     @page { size: {{ $receiptWidth }}mm auto; margin: 2mm; }
@@ -64,7 +86,48 @@
             </div>
         </div>
     @endfor
-    <div class="pos-receipt-actions flex justify-center py-3 print:hidden">
-        <button type="button" onclick="window.print()" class="rounded-lg bg-gray-900 px-4 py-2 text-white">{{ __('Imprimir recibo') }} ({{ $receiptWidth }} mm · {{ $receiptCopies }} {{ __('copias') }})</button>
+    <div class="pos-receipt-actions flex flex-wrap justify-center gap-2 py-3 print:hidden">
+        @if (filled($order->posTerminal?->printer_name))
+            <button
+                type="button"
+                id="pos-qz-print-receipt"
+                data-printer="{{ $order->posTerminal->printer_name }}"
+                data-receipt="{{ base64_encode($receiptText) }}"
+                data-copies="{{ $receiptCopies }}"
+                class="rounded-lg bg-gray-900 px-4 py-2 text-white"
+            >{{ __('Imprimir en térmica') }} ({{ $receiptWidth }} mm · {{ $receiptCopies }} {{ __('copias') }})</button>
+        @endif
+        <button type="button" onclick="window.print()" class="rounded-lg border border-gray-300 px-4 py-2 text-gray-900">{{ __('Imprimir con navegador') }}</button>
     </div>
 </div>
+@if (filled($order->posTerminal?->printer_name))
+    <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.5/qz-tray.js"></script>
+    <script>
+        document.getElementById('pos-qz-print-receipt')?.addEventListener('click', async (event) => {
+            const button = event.currentTarget;
+            const original = button.textContent;
+            try {
+                button.disabled = true;
+                button.textContent = 'Conectando con QZ Tray…';
+                if (!window.qz) throw new Error('No se pudo cargar QZ Tray.');
+                if (!qz.websocket.isActive()) await qz.websocket.connect({ retries: 2, delay: 1 });
+                const printer = await qz.printers.find(button.dataset.printer);
+                const config = qz.configs.create(printer, { encoding: 'CP1252', copies: Number(button.dataset.copies || 1) });
+                const receipt = atob(button.dataset.receipt);
+                await qz.print(config, [
+                    '\x1B\x40',
+                    '\x1B\x61\x01',
+                    receipt.replaceAll('·', '-').replaceAll('á', 'a').replaceAll('é', 'e').replaceAll('í', 'i').replaceAll('ó', 'o').replaceAll('ú', 'u'),
+                    '\n\n\n',
+                    '\x1D\x56\x00'
+                ]);
+                button.textContent = 'Recibo enviado a la impresora';
+            } catch (error) {
+                button.textContent = 'Error: ' + (error?.message || error);
+            } finally {
+                button.disabled = false;
+                window.setTimeout(() => { button.textContent = original; }, 4000);
+            }
+        });
+    </script>
+@endif

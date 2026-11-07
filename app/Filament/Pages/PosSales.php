@@ -371,7 +371,11 @@ class PosSales extends Page
     {
         if (! $this->customerUserId || ! auth()->user()) return collect();
 
-        return Order::query()->accessibleTo(auth()->user())
+        $warehouseIds = auth()->user()->warehouseIdsWithPermission('view');
+
+        return Order::query()
+            ->where('channel', 'pos')
+            ->whereIn('pos_warehouse_id', $warehouseIds)
             ->where('user_id', $this->customerUserId)
             ->latest('placed_at')->limit(5)
             ->get(['id', 'number', 'channel', 'currency', 'total_amount', 'status', 'payment_status', 'placed_at']);

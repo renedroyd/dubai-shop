@@ -26,12 +26,13 @@ class PosRefundService
         int $cashierId,
         array $lines,
         string $reason,
+        int $approverId,
     ): PosRefund {
         if ($lines === [] || trim($reason) === '') {
             throw ValidationException::withMessages(['items' => 'Selecciona artículos y escribe el motivo de la devolución.']);
         }
 
-        return DB::transaction(function () use ($order, $session, $cashierId, $lines, $reason): PosRefund {
+        return DB::transaction(function () use ($order, $session, $cashierId, $lines, $reason, $approverId): PosRefund {
             $lockedOrder = Order::query()->lockForUpdate()->findOrFail($order->id);
             $lockedSession = PosCashSession::query()->lockForUpdate()->findOrFail($session->id);
 

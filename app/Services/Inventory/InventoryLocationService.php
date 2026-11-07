@@ -24,6 +24,10 @@ class InventoryLocationService
 
         return DB::transaction(function () use ($inventory, $location, $quantity, $userId, $reason): InventoryLocationBalance {
             $inventory = Inventory::query()->whereKey($inventory->id)->lockForUpdate()->firstOrFail();
+            if ($userId !== null && ! User::query()->findOrFail($userId)->hasWarehousePermission($inventory->warehouse_id, 'inventory.manage')) {
+                throw new AuthorizationException('No tienes permiso para gestionar inventario en este almacén.');
+            }
+
             $this->assertLocationBelongsToInventory($location, $inventory);
 
             $balance = $this->balanceFor($inventory, $location);
@@ -80,6 +84,10 @@ class InventoryLocationService
 
         DB::transaction(function () use ($inventory, $from, $to, $quantity, $userId, $reason): void {
             $inventory = Inventory::query()->whereKey($inventory->id)->lockForUpdate()->firstOrFail();
+            if ($userId !== null && ! User::query()->findOrFail($userId)->hasWarehousePermission($inventory->warehouse_id, 'inventory.manage')) {
+                throw new AuthorizationException('No tienes permiso para gestionar inventario en este almacén.');
+            }
+
             $this->assertLocationBelongsToInventory($from, $inventory, allowUnassigned: true);
             $this->assertLocationBelongsToInventory($to, $inventory);
 

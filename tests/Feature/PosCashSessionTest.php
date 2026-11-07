@@ -72,6 +72,16 @@ class PosCashSessionTest extends TestCase
         $service->open($terminal, $user->id, 'CUP', 0);
     }
 
+    public function test_cash_withdrawal_cannot_exceed_the_available_register_balance(): void
+    {
+        $user = User::factory()->create();
+        $service = app(PosCashSessionService::class);
+        $session = $service->open($this->terminal(), $user->id, 'CUP', 1000);
+
+        $this->expectException(ValidationException::class);
+        $service->recordCashMovement($session, $user->id, 'cash_out', 1001, 'Retiro no permitido');
+    }
+
     public function test_closed_session_rejects_cash_movements_and_cannot_be_closed_twice(): void
     {
         $user = User::factory()->create();

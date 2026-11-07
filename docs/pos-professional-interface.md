@@ -173,7 +173,7 @@ Todos los bloques POS-1 a POS-16 están integrados en `main` (PR #49–69). El C
 - No modifica reglas de aprobación, stock ni el flujo de despacho/recepción.
 
 
-### POS-16D — indicadores operativos por establecimiento (en implementación)
+### POS-16D — indicadores operativos por establecimiento (integrado en PR #72)
 
 Dashboard filtrable por período que agrupa resultados por establecimiento: pedidos y ventas por moneda, reembolsos por moneda, terminales activos, sesiones de caja, cajas abiertas y cierres pendientes de aprobación. La autorización se calcula a partir de los almacenes accesibles con `reports.view`; no se exponen establecimientos ajenos al ámbito del usuario ni se agregan importes de monedas diferentes.
 

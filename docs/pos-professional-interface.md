@@ -127,3 +127,15 @@ PR #61, #62 y #63 integran los bloques de devoluciones/reembolsos, disposición 
 - El nombre de impresora y la configuración de gaveta se guardan por terminal; la apertura ESC/POS se limita a terminales habilitados y se dispara después de una venta que haya cobrado un componente en efectivo. Zelle puro no abre la gaveta.
 - Se mantiene una acción de prueba de periféricos protegida por permiso de operaciones de caja.
 - QZ Tray debe estar instalado y ejecutándose en cada puesto. Sin firma de mensajes, QZ Tray puede solicitar confirmación; no se almacenan claves privadas en el navegador ni en el repositorio. La prueba física de impresora, pin y cable de gaveta es necesaria antes de aceptar cada terminal.
+
+
+## POS-15 — dashboard e informes avanzados (en implementación)
+
+- Filtros por período (hasta 366 días), almacén, terminal, cajero y moneda; todos los resultados respetan `reports.view` por almacén.
+- Resumen de ventas por moneda y comparación con el período inmediatamente anterior.
+- Desgloses por almacén, terminal, cajero, producto/variante, categoría, marca y método de pago.
+- Los importes por método descuentan las asignaciones de reembolso efectuadas dentro del período. Los reembolsos se presentan también por almacén y moneda.
+- Diferencias netas y absolutas de arqueos, sesiones de caja, movimientos de inventario y transferencias.
+- Margen bruto estimado a partir del costo histórico guardado en cada línea y del descuento global del pedido. Si existe alguna línea sin costo histórico, el total de margen se marca como no disponible en lugar de mostrar un resultado engañoso. El margen no representa utilidad neta y se muestra antes de reembolsos.
+- Exportación CSV de pedidos pagados dentro del alcance de filtros y almacenes autorizados.
+- No se suman importes de monedas diferentes ni se aplica conversión automática. Los reportes por producto/categoría/marca reflejan descuentos de línea; los descuentos globales no se prorratean en esos desgloses.

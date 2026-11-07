@@ -1,7 +1,7 @@
 # Hoja de ruta — Dubai Shop / Clásico Dubai
 
 **Actualizada:** 7 de noviembre de 2026  
-**Base:** Fases 1–16 y POS-1 a POS-9 integrados; POS-10 en implementación.
+**Base:** Fases 1–16 y POS-1 a POS-10 integrados; POS-11 en planificación.
 
 La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente y nuevas capacidades que requieren decisiones comerciales. La prioridad inmediata es estabilizar y aceptar el despliegue, no añadir integraciones externas sin proveedor o reglas aprobadas.
 
@@ -15,7 +15,7 @@ La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente
 | Experiencia pública y panel premium | Integrados; QA visual final pendiente | Media |
 | Importación Excel/CSV | Integrada; imágenes/variantes excluidas | Media |
 | Seguridad, RBAC y preflight | Integrados en esta entrega; configuración externa pendiente | Crítica |
-| POS y multi almacén | POS-1 a POS-8 integrados; aceptación real en producción pendiente | Alta |
+| POS y multi almacén | POS-1 a POS-10 integrados; aceptación real en producción pendiente | Alta |
 | Asistente de prompts IA para banners | Integrado, flujo manual gratuito | Media |
 | Lanzamiento de producción | No aceptado aún | Crítica |
 
@@ -47,6 +47,34 @@ Arquitectura y CI, sistema visual, catálogo, carrito/checkout, pedidos e invent
 ---
 
 ## Próximas entregas
+
+### POS-10 — Pagos avanzados (completada)
+
+<badge color="success">Integrada en main</badge>
+
+**Decisiones comerciales aplicadas:** efectivo, Zelle manual y pagos mixtos; Zelle solo USD; una sola moneda por venta y sin conversión automática. Una venta con Zelle pendiente se registra como pendiente, reserva existencias y no autoriza la entrega hasta que un usuario con permiso de revisión apruebe el pago.
+
+**Capacidades entregadas**
+1. Reutilización del dominio existente `Payment`, `PaymentEvent`, métodos de pago, sesiones de caja y reservas de inventario.
+2. Efectivo recibido, cálculo del cambio en centavos y movimientos de caja por el importe neto de la venta.
+3. Zelle manual POS con remitente, referencia, fecha y comprobante privado.
+4. Revisión de pagos desde Filament con aprobación/rechazo y registro del usuario validador.
+5. Reserva de inventario durante la revisión; consumo al aprobar y liberación al rechazar.
+6. Pagos mixtos USD con componentes positivos que deben sumar exactamente el total.
+7. En pago mixto rechazado, reversión auditada del componente en efectivo y movimiento de devolución en caja.
+8. Protección contra aprobación repetida y validación de que los importes pagados sumen el total de la orden.
+9. Pruebas automatizadas para efectivo/cambio, Zelle, reservas, aprobación/rechazo, pagos mixtos, conciliación e idempotencia.
+
+**Integración y CI**
+- PR #51: efectivo recibido y cambio.
+- PR #52: Zelle manual y reserva de inventario.
+- PR #53: pagos mixtos y devolución de efectivo al rechazar Zelle.
+- PR #54: auditoría de revisión, conciliación e idempotencia.
+- En los PR #52, #53 y #54, los trabajos PHP 8.4, PHP 8.5 y Frontend assets finalizaron correctamente.
+
+**Fuera del alcance POS-10:** pasarelas automáticas de tarjeta, modo offline, escáner físico/cámara y diseño de impresión térmica; se mantienen para fases posteriores según la hoja de ruta.
+
+---
 
 ### Fase 17 — Aceptación operativa y estabilización de producción
 <badge color="warning">Pausada</badge> <badge color="info">Validación externa pendiente</badge>

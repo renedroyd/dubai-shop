@@ -418,6 +418,37 @@
                     status.textContent = 'Error: ' + (error?.message || error);
                 }
             });
+
+            const openCashDrawer = async (printer, pin) => {
+                if (!window.qz) throw new Error('QZ Tray no está disponible.');
+                if (!connected) {
+                    await qz.websocket.connect({ retries: 2, delay: 1 });
+                    connected = true;
+                }
+                const targetPrinter = await qz.printers.find(printer);
+                const config = qz.configs.create(targetPrinter);
+                const pulse = Number(pin) === 1
+                    ? '\x1B\x70\x01\x19\xFA'
+                    : '\x1B\x70\x00\x19\xFA';
+                await qz.print(config, [pulse]);
+                if (status) status.textContent = 'Gaveta abierta tras operación en efectivo';
+            };
+
+            const bindLivewireDrawerEvent = () => {
+                if (!window.Livewire?.on) return false;
+                window.Livewire.on('pos-cash-drawer-open', async (event) => {
+                    try {
+                        await openCashDrawer(event.printer, event.pin);
+                    } catch (error) {
+                        if (status) status.textContent = 'No se pudo abrir la gaveta: ' + (error?.message || error);
+                    }
+                });
+                return true;
+            };
+
+            if (!bindLivewireDrawerEvent()) {
+                document.addEventListener('livewire:init', bindLivewireDrawerEvent, { once: true });
+            }
         })();
     </script>
 </x-filament-panels::page>

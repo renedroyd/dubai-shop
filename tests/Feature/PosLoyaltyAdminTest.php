@@ -15,6 +15,13 @@ class PosLoyaltyAdminTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutVite();
+    }
+
     private function superadmin(): User
     {
         $admin = User::factory()->create(['is_admin' => true, 'admin_access_enabled' => true]);

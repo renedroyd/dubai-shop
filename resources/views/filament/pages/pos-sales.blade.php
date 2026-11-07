@@ -70,8 +70,8 @@
                         <p class="text-xs font-semibold uppercase tracking-[0.18em] text-amber-300">{{ __('Clásico Dubai · Punto de venta') }}</p>
                         <h2 class="text-lg font-semibold">{{ $session->terminal->name }}</h2>
                         <p class="text-xs text-gray-300">{{ $session->terminal->location->name }} · {{ $session->terminal->warehouse->name }} · {{ $session->shift_label ?: __('Turno sin nombre') }}</p>
-                        @if ($session->terminal->cash_limit_amount !== null)
-                            <p class="mt-1 text-[11px] text-amber-200">{{ __('Límite de efectivo') }}: {{ $this->formatMoney($session->terminal->cash_limit_amount, $session->currency) }}</p>
+                        @if (($cashLimit = $session->terminal->cashLimitFor($session->currency)) !== null)
+                            <p class="mt-1 text-[11px] text-amber-200">{{ __('Límite de efectivo') }}: {{ number_format($cashLimit / 100, 2) }} {{ $session->currency }}</p>
                         @endif
                     </div>
                 </div>

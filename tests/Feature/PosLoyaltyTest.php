@@ -206,14 +206,14 @@ class PosLoyaltyTest extends TestCase
         try {
             app(PosSaleService::class)->sell($session, $cashier->id, [['product_id' => $product->id, 'quantity' => 1]], $cash->id, ['user_id' => $customer->id], ['loyalty_points' => 50]);
             $this->fail('A redemption below the minimum must be rejected.');
-        } catch (\\Illuminate\\Validation\\ValidationException) {
+        } catch (\Illuminate\Validation\ValidationException) {
             $this->assertDatabaseCount('orders', 0);
         }
 
         try {
             app(PosSaleService::class)->sell($session, $cashier->id, [['product_id' => $product->id, 'quantity' => 1]], $cash->id, ['user_id' => $customer->id], ['loyalty_points' => 300]);
             $this->fail('A redemption above the 20% cap must be rejected.');
-        } catch (\\Illuminate\\Validation\\ValidationException) {
+        } catch (\Illuminate\Validation\ValidationException) {
             $this->assertDatabaseCount('orders', 0);
             $this->assertSame(500, $wallet->fresh()->availablePoints());
         }

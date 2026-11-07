@@ -305,6 +305,6 @@ PR #71 / rama `feature/pos-16c-transfer-monitoring`. Dashboard Filament con cont
 Rama `feature/pos-16d-location-metrics`. Resumen por establecimiento de ventas/pedidos y reembolsos separados por moneda, terminales activos, cajas abiertas, cierres pendientes de aprobación y sesiones del período. Solo incluye establecimientos con terminales asociados a almacenes para los que el usuario posee `reports.view`; requiere `pos_reports.view`. No realiza conversiones monetarias ni altera ventas o caja.
 
 
-### Corrección POS — límites de efectivo por moneda (en implementación)
+### Corrección POS — límites de efectivo por moneda (integrada en PR #73)
 
 Rama `fix/pos-cash-limits-by-currency`. Cada terminal mantiene límites independientes en CUP, USD y EUR; la apertura de caja, entradas manuales y ventas en efectivo solo comparan el límite de la moneda de la sesión. La migración conserva los límites históricos bajo CUP, moneda inicial predeterminada del POS, para evitar aplicar importes nominales a monedas distintas.

@@ -1,7 +1,7 @@
 # Hoja de ruta — Dubai Shop / Clásico Dubai
 
 **Actualizada:** 7 de noviembre de 2026  
-**Base:** Fases 1–16 y POS-1 a POS-12 integrados; POS-13 a POS-16 planificados.
+**Base:** Fases 1–16 y POS-1 a POS-13 integrados; POS-14 a POS-16 planificados.
 
 La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente y nuevas capacidades que requieren decisiones comerciales. La prioridad inmediata es estabilizar y aceptar el despliegue, no añadir integraciones externas sin proveedor o reglas aprobadas.
 
@@ -15,7 +15,7 @@ La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente
 | Experiencia pública y panel premium | Integrados; QA visual final pendiente | Media |
 | Importación Excel/CSV | Integrada; imágenes/variantes excluidas | Media |
 | Seguridad, RBAC y preflight | Integrados en esta entrega; configuración externa pendiente | Crítica |
-| POS y multi almacén | POS-1 a POS-10 integrados; aceptación real en producción pendiente | Alta |
+| POS y multi almacén | POS-1 a POS-13 integrados; aceptación real en producción pendiente | Alta |
 | Asistente de prompts IA para banners | Integrado, flujo manual gratuito | Media |
 | Lanzamiento de producción | No aceptado aún | Crítica |
 
@@ -188,7 +188,7 @@ El POS funcionará siempre conectado al servidor. No se desarrollará modo offli
 10. **POS-10 — Pagos avanzados:** efectivo con cambio, Zelle manual USD, pagos mixtos, comprobantes privados, revisión, reservas, devoluciones de efectivo y conciliación. Integrado en PR #51–55.
 11. **POS-11 — Clientes y fidelización:** búsqueda por nombre/teléfono/correo, alta rápida, asociación de ventas, historial, clientes frecuentes y preparación para puntos futuros. Integrado en PR #56.
 12. **POS-12 — Promociones, descuentos y precios:** reglas porcentuales/fijas por producto, categoría, marca o venta; precios especiales por cliente; ámbito por almacén/moneda; autorización, auditoría y protección de costo/precio mínimo. Integrado en PR #58–59.
-13. **POS-13 — Devoluciones y cambios:** localización de ventas, devoluciones parciales/totales, cambios, reposición según estado del artículo, reembolsos permitidos y autorización especial con trazabilidad.
+13. **POS-13 — Devoluciones y cambios:** integrado en PR #61–63. Incluye autorización por dos usuarios, reembolsos distribuidos entre los medios originales, respeto de descuentos, cuarentena/descarte de artículos y registro vinculado de cambios con diferencia neta.
 14. **POS-14 — Impresión y periféricos:** recibos térmicos configurables de 58/80 mm y copias duplicadas, lectores de códigos, gaveta de efectivo controlada e impresión USB/red mediante solución local.
 15. **POS-15 — Dashboard e informes avanzados:** ventas por establecimiento, terminal, cajero, producto, categoría, marca, moneda y método; margen bruto, diferencias de caja, devoluciones/descuentos, comparativas por período y exportación.
 16. **POS-16 — Operación comercial avanzada:** turnos/cajeros, asignación de terminales, arqueos y cierres supervisados, límites de efectivo, alertas de stock bajo, solicitudes de reposición, seguimiento de transferencias e indicadores por establecimiento.

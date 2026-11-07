@@ -61,7 +61,6 @@ class WarehouseLocationResource extends Resource
                 WarehouseLocation::TYPE_SHELF => __('Estantería'),
                 WarehouseLocation::TYPE_BIN => __('Posición'),
                 WarehouseLocation::TYPE_QUARANTINE => __('Cuarentena / no vendible'),
-                WarehouseLocation::TYPE_QUARANTINE => __('Cuarentena / no vendible'),
             ])->default(WarehouseLocation::TYPE_AREA),
             TextInput::make('sort_order')->label(__('Orden'))->numeric()->integer()->default(0),
             Toggle::make('is_active')->label(__('Activa'))->default(true),
@@ -84,6 +83,7 @@ class WarehouseLocationResource extends Resource
                 WarehouseLocation::TYPE_AISLE => __('Pasillo'),
                 WarehouseLocation::TYPE_SHELF => __('Estantería'),
                 WarehouseLocation::TYPE_BIN => __('Posición'),
+                WarehouseLocation::TYPE_QUARANTINE => __('Cuarentena / no vendible'),
             ]),
         ])->recordActions([
             EditAction::make()->visible(fn (WarehouseLocation $record): bool => $record->type !== WarehouseLocation::TYPE_UNASSIGNED),

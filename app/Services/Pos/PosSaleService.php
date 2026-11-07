@@ -205,7 +205,8 @@ class PosSaleService
                 }
             }
             $cashCollectedAmount = $method->driver === 'cash_on_delivery' ? $cashAmount : 0;
-            if ($cashCollectedAmount > 0 && $terminal->cash_limit_amount !== null) {
+            $cashLimit = $terminal->cashLimitFor($currency);
+            if ($cashCollectedAmount > 0 && $cashLimit !== null) {
                 $cashTotals = $lockedSession->movements()
                     ->selectRaw("COALESCE(SUM(CASE WHEN type IN (?, ?) THEN amount ELSE 0 END), 0) as cash_in", [
                         PosCashMovement::TYPE_CASH_IN, PosCashMovement::TYPE_SALE,
@@ -215,7 +216,7 @@ class PosSaleService
                     ])->first();
                 $availableCash = (int) $lockedSession->opening_cash_amount + (int) $cashTotals->cash_in - (int) $cashTotals->cash_out;
 
-                if ($availableCash + $cashCollectedAmount > $terminal->cash_limit_amount) {
+                if ($availableCash + $cashCollectedAmount > $cashLimit) {
                     throw ValidationException::withMessages(['paymentDetails' => 'La venta supera el límite de efectivo configurado para este terminal. Registra una salida de efectivo autorizada antes de continuar.']);
                 }
             }

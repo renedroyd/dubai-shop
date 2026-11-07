@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Inventory;
 use App\Models\Payment;
+use App\Models\PosRefund;
 use App\Models\AdminRole;
 use App\Models\PaymentMethod;
 use App\Models\PosCashSession;
@@ -148,6 +149,32 @@ class PosRefundsTest extends TestCase
         $this->assertDatabaseHas('pos_refund_payments', ['pos_refund_id' => $refund->id, 'payment_id' => $cashPayment->id, 'driver' => 'cash_on_delivery', 'amount' => 833]);
         $this->assertDatabaseHas('pos_refund_payments', ['pos_refund_id' => $refund->id, 'payment_id' => $zellePayment->id, 'driver' => 'zelle_manual', 'amount' => 417]);
         $this->assertSame(833, (int) $session->movements()->where('type', 'refund')->sum('amount'));
+    }
+    public function test_quarantine_returns_are_blocked_and_discarded_returns_do_not_reenter_stock(): void
+    {
+        $cashier = User::factory()->create();
+        [$session, $order, $inventory] = $this->completedSale($cashier);
+        $item = $order->items()->firstOrFail();
+        $approver = $this->authorizedApprover($cashier);
+
+        $quarantineRefund = app(PosRefundService::class)->refund($order, $session, $cashier->id, [
+            ['order_item_id' => $item->id, 'quantity' => 1, 'disposition' => 'quarantine', 'condition_note' => 'Empaque dañado'],
+        ], 'Artículo recibido con daño', $approver->id);
+
+        $this->assertSame(3, $inventory->fresh()->quantity_on_hand);
+        $this->assertSame(1, $inventory->fresh()->quantity_blocked);
+        $this->assertSame(2, $inventory->fresh()->available_quantity);
+        $this->assertDatabaseHas('pos_refund_items', ['pos_refund_id' => $quarantineRefund->id, 'disposition' => 'quarantine']);
+        $this->assertDatabaseHas('warehouse_locations', ['warehouse_id' => $inventory->warehouse_id, 'code' => 'QUARANTINE', 'type' => 'quarantine']);
+
+        $discardRefund = app(PosRefundService::class)->refund($order->fresh(), $session, $cashier->id, [
+            ['order_item_id' => $item->id, 'quantity' => 1, 'disposition' => 'discarded', 'condition_note' => 'No recuperable'],
+        ], 'Artículo no recuperable', $approver->id);
+
+        $this->assertSame(3, $inventory->fresh()->quantity_on_hand);
+        $this->assertSame(1, $inventory->fresh()->quantity_blocked);
+        $this->assertDatabaseHas('pos_refund_items', ['pos_refund_id' => $discardRefund->id, 'disposition' => 'discarded']);
+        $this->assertDatabaseHas('inventory_movements', ['reference_type' => PosRefund::class, 'reference_id' => $discardRefund->id, 'type' => 'return_discarded', 'quantity_delta' => 0]);
     }
     public function test_refund_cannot_return_more_units_than_were_sold(): void
     {

@@ -48,6 +48,7 @@ class WarehouseLocation extends Model
     public const TYPE_SHELF = 'shelf';
     public const TYPE_BIN = 'bin';
     public const TYPE_UNASSIGNED = 'unassigned';
+    public const TYPE_QUARANTINE = 'quarantine';
 
     protected $fillable = [
         'warehouse_id', 'parent_id', 'code', 'name', 'type', 'sort_order', 'is_active',

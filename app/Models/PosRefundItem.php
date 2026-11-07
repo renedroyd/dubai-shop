@@ -7,7 +7,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PosRefundItem extends Model
 {
-    protected $fillable = ['pos_refund_id', 'order_item_id', 'quantity', 'amount'];
+    public const DISPOSITION_RESELLABLE = 'resellable';
+    public const DISPOSITION_QUARANTINE = 'quarantine';
+    public const DISPOSITION_DISCARDED = 'discarded';
+
+    protected $fillable = ['pos_refund_id', 'order_item_id', 'quantity', 'amount', 'disposition', 'condition_note'];
 
     protected function casts(): array
     {

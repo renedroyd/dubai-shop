@@ -3,9 +3,7 @@
 namespace Tests\Feature;
 
 use App\Filament\Pages\PosSales;
-use App\Models\Inventory;
 use App\Models\PaymentMethod;
-use App\Models\PosCashSession;
 use App\Models\PosLocation;
 use App\Models\PosTerminal;
 use App\Models\Product;

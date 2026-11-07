@@ -328,6 +328,12 @@ class PosSales extends Page
 
     public function openCashSession(?int $terminalId): void
     {
+        $this->authorizeCashierPermission('pos_cash_sessions.create');
+
+        if (! in_array($this->openingCurrency, ['CUP', 'USD', 'EUR'], true)) {
+            throw ValidationException::withMessages(['openingCurrency' => __('Selecciona una moneda admitida.')]);
+        }
+
         $terminal = $terminalId ? $this->availableTerminals()->firstWhere('id', $terminalId) : null;
 
         if (! $terminal) {
@@ -352,6 +358,8 @@ class PosSales extends Page
 
     public function recordCashMovement(): void
     {
+        $this->authorizeCashierPermission('pos_cash_sessions.create');
+
         $session = $this->currentSession();
 
         if (! $session) {
@@ -376,6 +384,8 @@ class PosSales extends Page
 
     public function closeCashSession(): void
     {
+        $this->authorizeCashierPermission('pos_cash_sessions.update');
+
         $session = $this->currentSession();
 
         if (! $session) {
@@ -395,6 +405,8 @@ class PosSales extends Page
 
     public function completeSale(): void
     {
+        $this->authorizeCashierPermission('pos_cash_sessions.update');
+
         $session = $this->currentSession();
 
         if (! $session) {
@@ -462,6 +474,11 @@ class PosSales extends Page
             ->first();
 
         return (int) $session->opening_cash_amount + (int) $totals->cash_in - (int) $totals->cash_out;
+    }
+
+    private function authorizeCashierPermission(string $permission): void
+    {
+        abort_unless(auth()->user()?->hasAdminPermission($permission) ?? false, 403);
     }
 
     private function stockFor(Product $product, ?ProductVariant $variant, int $warehouseId): ?int

@@ -58,6 +58,39 @@ class PaymentStatusService
 
             if ($order->channel === 'pos') {
                 app(OrderInventoryService::class)->release($order);
+                $cashPayments = $order->payments()
+                    ->where('driver', 'cash_on_delivery')
+                    ->where('status', Payment::STATUS_PAID)
+                    ->whereJsonContains('metadata->mixed_payment', true)
+                    ->lockForUpdate()
+                    ->get();
+                foreach ($cashPayments as $cashPayment) {
+                    $cashPayment->update([
+                        'status' => Payment::STATUS_REFUNDED,
+                        'reviewed_by' => $actorId,
+                        'reviewed_at' => now(),
+                        'review_note' => 'Devolución del efectivo por rechazo del componente Zelle.',
+                    ]);
+                    $cashPayment->events()->create([
+                        'from_status' => Payment::STATUS_PAID,
+                        'to_status' => Payment::STATUS_REFUNDED,
+                        'actor_id' => $actorId,
+                        'note' => 'Devolución del componente en efectivo tras rechazo de Zelle.',
+                    ]);
+                    $session = $order->posCashSession;
+                    if ($session) {
+                        $session->movements()->create([
+                            'payment_id' => $cashPayment->id,
+                            'user_id' => $actorId,
+                            'type' => \App\Models\PosCashMovement::TYPE_REFUND,
+                            'amount' => $cashPayment->amount,
+                            'currency' => $cashPayment->currency,
+                            'reference' => $order->number,
+                            'note' => 'Devolución por rechazo del componente Zelle.',
+                            'metadata' => ['mixed_payment' => true],
+                        ]);
+                    }
+                }
                 $order->update(['status' => Order::STATUS_CANCELLED, 'cancelled_at' => now()]);
             }
             $from = $lockedPayment->status;

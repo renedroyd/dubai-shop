@@ -157,7 +157,9 @@ class AppServiceProvider extends ServiceProvider
                     $subject instanceof Payment => $subject->order?->items()->with('inventory')->get()->pluck('inventory.warehouse_id')->all(),
                     $subject instanceof Order && $subject->channel === 'pos' => [$subject->pos_warehouse_id],
                     $subject instanceof Order => $subject->items()->with('inventory')->get()->pluck('inventory.warehouse_id')->all(),
+                    $subject instanceof WarehouseTransferRule && ($subject->source_warehouse_id === null || $subject->destination_warehouse_id === null) => Warehouse::query()->pluck('id')->all(),
                     $subject instanceof WarehouseTransferRule => [$subject->source_warehouse_id, $subject->destination_warehouse_id],
+                    $subject instanceof PosLocation => $subject->terminals()->pluck('warehouse_id')->all(),
                     default => null,
                 };
 

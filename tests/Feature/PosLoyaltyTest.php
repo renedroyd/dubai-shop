@@ -175,7 +175,12 @@ class PosLoyaltyTest extends TestCase
 
         $this->assertSame(115000, $order->total_amount);
         $this->assertSame(10000, $order->discount_amount);
-        $this->assertSame(50, $wallet->fresh()->availablePoints());
+        $this->assertSame(61, $wallet->fresh()->availablePoints());
+        $this->assertDatabaseHas('pos_loyalty_entries', [
+            'order_id' => $order->id,
+            'type' => 'earn',
+            'points_delta' => 11,
+        ]);
         $this->assertDatabaseHas('pos_loyalty_entries', [
             'order_id' => $order->id,
             'type' => 'redeem',

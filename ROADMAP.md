@@ -1,7 +1,7 @@
 # Hoja de ruta — Dubai Shop / Clásico Dubai
 
-**Actualizada:** 6 de noviembre de 2026  
-**Base:** Fases 1–16, PR #29–38 y POS-1 a POS-8 (PR #39–47) integrados; interfaz POS profesional en desarrollo.
+**Actualizada:** 7 de noviembre de 2026  
+**Base:** Fases 1–16 y POS-1 a POS-9 integrados; POS-10 en implementación.
 
 La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente y nuevas capacidades que requieren decisiones comerciales. La prioridad inmediata es estabilizar y aceptar el despliegue, no añadir integraciones externas sin proveedor o reglas aprobadas.
 
@@ -144,7 +144,7 @@ Objetivo: implementar promociones reales sin introducir ambigüedades contables.
 
 ## POS y multi almacén — entregas independientes
 
-<badge color="success">POS-1 a POS-8 integrados</badge> <badge color="info">POS-9 en desarrollo</badge>
+<badge color="success">POS-1 a POS-9 integrados</badge> <badge color="info">POS-10 en desarrollo</badge>
 
 El POS funcionará siempre conectado al servidor. No se desarrollará modo offline. Decisiones aprobadas: ubicaciones internas flexibles (área/pasillo/estantería/posición), existencias independientes por almacén y aprobación configurable de transferencias.
 
@@ -169,3 +169,20 @@ El POS permanece conectado al servidor. Las ventas usan el almacén asignado al 
 5. Ejecutar pruebas, auditorías y build; corregir fallos.
 6. Abrir PR con resumen, pruebas y pendientes manuales.
 7. Integrar únicamente después de aprobación explícita del responsable.
+
+
+### POS-10 — Pagos avanzados (en implementación)
+
+Decisiones aprobadas: efectivo, Zelle manual y pagos mixtos; Zelle solo en USD; una sola moneda por venta; no hay conversión automática. Una venta con Zelle pendiente puede registrarse, pero no se considera pagada ni se entrega mercancía hasta la aprobación de un usuario autorizado.
+
+Entregas:
+1. Auditoría y reutilización de Payment, PaymentEvent, PaymentDriverManager y OrderInventoryService.
+2. Arquitectura extensible de métodos de pago sin duplicar el dominio existente.
+3. Efectivo recibido, cálculo de cambio y conciliación de caja sobre el neto de la venta.
+4. Zelle manual POS con referencia, remitente, fecha y comprobante privado.
+5. Pagos mixtos con suma exacta, validación de moneda y saldo pendiente controlado.
+6. Aprobación/rechazo con permisos, auditoría y control de concurrencia.
+7. Reserva de inventario mientras Zelle está pendiente; completar al aprobar y liberar al rechazar.
+8. Pruebas de idempotencia, integridad de inventario, caja y documentación.
+
+**Implementado en la primera entrega:** captura del efectivo recibido y cálculo/auditoría del cambio. Pendiente: Zelle POS, pagos mixtos y validación integral de los flujos.

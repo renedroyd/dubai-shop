@@ -28,12 +28,13 @@ class PosSaleService
         array $lines,
         int $paymentMethodId,
         array $customer = [],
+        array $paymentDetails = [],
     ): Order {
         if ($lines === []) {
             throw ValidationException::withMessages(['items' => 'Agrega al menos un producto a la venta.']);
         }
 
-        return DB::transaction(function () use ($session, $cashierId, $lines, $paymentMethodId, $customer): Order {
+        return DB::transaction(function () use ($session, $cashierId, $lines, $paymentMethodId, $customer, $paymentDetails): Order {
             $lockedSession = PosCashSession::query()->lockForUpdate()->with('terminal.warehouse', 'terminal.location')->findOrFail($session->id);
 
             if (! $lockedSession->isOpen()) {
@@ -54,6 +55,11 @@ class PosSaleService
             $method = PaymentMethod::query()->whereKey($paymentMethodId)->where('is_enabled', true)->first();
             if (! $method || $method->driver !== 'cash_on_delivery') {
                 throw ValidationException::withMessages(['payment_method_id' => 'En esta versión del POS solo se admite un método de cobro inmediato en efectivo habilitado.']);
+            }
+
+            $cashReceived = (int) ($paymentDetails['cash_received_amount'] ?? 0);
+            if ($method->driver === 'cash_on_delivery') {
+                $cashReceived = $cashReceived > 0 ? $cashReceived : 0;
             }
 
             $prepared = [];
@@ -120,6 +126,13 @@ class PosSaleService
                 }
 
                 $prepared[] = compact('product', 'variant', 'inventory', 'quantity', 'price', 'lineTotal');
+            }
+
+            if ($method->driver === 'cash_on_delivery' && $cashReceived > 0 && $cashReceived < $subtotal) {
+                throw ValidationException::withMessages(['cash_received_amount' => 'El efectivo recibido no puede ser inferior al total de la venta.']);
+            }
+            if ($method->driver === 'cash_on_delivery' && $cashReceived === 0) {
+                $cashReceived = $subtotal;
             }
 
             $order = Order::withoutEvents(fn () => Order::query()->create([
@@ -219,7 +232,12 @@ class PosSaleService
                 'reviewed_by' => $cashierId,
                 'reviewed_at' => now(),
                 'review_note' => 'Cobro registrado en terminal POS.',
-                'metadata' => ['channel' => 'pos', 'terminal_id' => $terminal->id],
+                'metadata' => [
+                    'channel' => 'pos',
+                    'terminal_id' => $terminal->id,
+                    'cash_received_amount' => $cashReceived,
+                    'change_amount' => max(0, $cashReceived - $subtotal),
+                ],
             ]);
 
             PaymentEvent::query()->create([

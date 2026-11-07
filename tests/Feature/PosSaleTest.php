@@ -102,6 +102,57 @@ class PosSaleTest extends TestCase
         ]);
     }
 
+    public function test_pos_cash_payment_records_received_amount_and_change_without_inflating_cash_sales(): void
+    {
+        $user = User::factory()->create();
+        $session = $this->openSession($user);
+        $product = $this->product();
+        app(InventoryService::class)->setOnHand($product, 5, reason: 'Carga inicial');
+
+        $order = app(PosSaleService::class)->sell(
+            $session,
+            $user->id,
+            [['product_id' => $product->id, 'quantity' => 1]],
+            $this->cashMethod()->id,
+            [],
+            ['cash_received_amount' => 2000],
+        );
+
+        $payment = $order->payments()->firstOrFail();
+        $this->assertSame(1250, $payment->amount);
+        $this->assertSame(2000, $payment->metadata['cash_received_amount']);
+        $this->assertSame(750, $payment->metadata['change_amount']);
+        $this->assertDatabaseHas('pos_cash_movements', [
+            'pos_cash_session_id' => $session->id,
+            'payment_id' => $payment->id,
+            'type' => 'sale',
+            'amount' => 1250,
+        ]);
+    }
+
+    public function test_pos_cash_payment_rejects_tender_below_sale_total_without_creating_order(): void
+    {
+        $user = User::factory()->create();
+        $session = $this->openSession($user);
+        $product = $this->product();
+        app(InventoryService::class)->setOnHand($product, 5, reason: 'Carga inicial');
+
+        try {
+            app(PosSaleService::class)->sell(
+                $session,
+                $user->id,
+                [['product_id' => $product->id, 'quantity' => 1]],
+                $this->cashMethod()->id,
+                [],
+                ['cash_received_amount' => 1000],
+            );
+            $this->fail('Expected insufficient cash tender validation.');
+        } catch (ValidationException) {
+            $this->assertDatabaseCount('orders', 0);
+            $this->assertDatabaseCount('payments', 0);
+        }
+    }
+
     public function test_pos_sale_supports_variant_inventory_and_uses_variant_price(): void
     {
         $user = User::factory()->create();

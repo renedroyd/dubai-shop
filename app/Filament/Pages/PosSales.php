@@ -190,7 +190,9 @@ class PosSales extends Page
             ->where('currency', $session->currency)
             ->when(trim($this->search) !== '', fn (Builder $query) => $query->where(fn (Builder $search) => $search
                 ->where('name', 'like', '%'.trim($this->search).'%')
-                ->orWhere('sku', 'like', '%'.trim($this->search).'%')))
+                ->orWhere('sku', 'like', '%'.trim($this->search).'%')
+                ->orWhere('barcode', 'like', '%'.trim($this->search).'%')
+                ->orWhereHas('variants', fn (Builder $variants) => $variants->where('sku', 'like', '%'.trim($this->search).'%')->orWhere('barcode', 'like', '%'.trim($this->search).'%'))))
             ->when($this->categoryId, fn (Builder $query) => $query->where('category_id', $this->categoryId))
             ->with([
                 'category:id,name',

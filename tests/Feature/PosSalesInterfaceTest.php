@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Filament\Pages\PosSales;
+use App\Models\AdminRole;
 use App\Models\PaymentMethod;
 use App\Models\PosLocation;
 use App\Models\PosTerminal;
@@ -24,6 +25,7 @@ class PosSalesInterfaceTest extends TestCase
     {
         $user = User::factory()->create();
         $user->update(['admin_access_enabled' => true]);
+        $user->roles()->attach(AdminRole::query()->where('slug', 'pos-cashier')->firstOrFail());
         $user->warehouseAccesses()->create([
             'warehouse_id' => Warehouse::primary()->id,
             'permissions' => WarehouseUserAccess::PERMISSIONS,

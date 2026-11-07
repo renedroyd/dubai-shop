@@ -10,17 +10,33 @@ use Illuminate\Validation\ValidationException;
 class PosTerminal extends Model
 {
     protected $fillable = [
-        'pos_location_id', 'warehouse_id', 'code', 'name', 'notes', 'receipt_width', 'receipt_copies', 'printer_name', 'cash_drawer_enabled', 'cash_drawer_pin', 'assigned_cashier_ids', 'cash_limit_amount', 'supervised_closing', 'is_active',
+        'pos_location_id', 'warehouse_id', 'code', 'name', 'notes', 'receipt_width', 'receipt_copies', 'printer_name', 'cash_drawer_enabled', 'cash_drawer_pin', 'assigned_cashier_ids', 'cash_limits', 'supervised_closing', 'is_active',
     ];
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean', 'receipt_copies' => 'integer', 'cash_drawer_enabled' => 'boolean', 'cash_drawer_pin' => 'integer', 'assigned_cashier_ids' => 'array', 'cash_limit_amount' => 'integer', 'supervised_closing' => 'boolean'];
+        return ['is_active' => 'boolean', 'receipt_copies' => 'integer', 'cash_drawer_enabled' => 'boolean', 'cash_drawer_pin' => 'integer', 'assigned_cashier_ids' => 'array', 'cash_limits' => 'array', 'supervised_closing' => 'boolean'];
+    }
+
+    public function cashLimitFor(string $currency): ?int
+    {
+        $limits = $this->cash_limits ?? [];
+        $amount = $limits[$currency] ?? null;
+
+        return $amount === null || $amount === '' ? null : max(0, (int) $amount);
     }
 
     protected static function booted(): void
     {
         static::saving(function (self $terminal): void {
+            foreach (($terminal->cash_limits ?? []) as $currency => $amount) {
+                if (! in_array($currency, ['CUP', 'USD', 'EUR'], true)
+                    || ($amount !== null && $amount !== '' && (! is_numeric($amount) || (int) $amount < 0 || (float) $amount !== (float) (int) $amount))) {
+                    throw ValidationException::withMessages([
+                        'cash_limits' => __('Configura límites no negativos en centavos para CUP, USD o EUR.'),
+                    ]);
+                }
+            }
             $duplicateCode = self::query()
                 ->where('pos_location_id', $terminal->pos_location_id)
                 ->where('code', $terminal->code)

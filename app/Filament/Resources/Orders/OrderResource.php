@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Orders;
 
 use App\Filament\Resources\Orders\Pages\ListOrders;
 use App\Models\Order;
+use App\Models\User;
 use App\Models\PosCashSession;
 use App\Services\Orders\OrderInventoryService;
 use App\Services\Shipping\ShipmentService;
@@ -83,6 +84,9 @@ class OrderResource extends Resource
                             ->searchable()->required(),
                         TextInput::make('quantity')->label(__('Cantidad'))->numeric()->integer()->minValue(1)->required(),
                     ])->columns(2)->minItems(1)->required(),
+                    Select::make('approved_by')->label(__('Autorizado por'))
+                        ->options(User::query()->get()->filter(fn (User $user): bool => $user->id !== auth()->id() && $user->hasAdminPermission('pos_refunds.approve'))->pluck('name', 'id')->all())
+                        ->searchable()->required(),
                     Textarea::make('reason')->label(__('Motivo de la devolución'))->required()->maxLength(1000),
                 ])
                 ->action(function (Order $record, array $data): void {
@@ -95,7 +99,7 @@ class OrderResource extends Resource
                         ->firstOrFail();
 
                     app(PosRefundService::class)->refund(
-                        $record, $session, auth()->id(), $data['items'], $data['reason'],
+                        $record, $session, auth()->id(), $data['items'], $data['reason'], (int) $data['approved_by'],
                     );
                 }),
             Action::make('printReceipt')->label(__('Recibo POS'))->icon('heroicon-o-printer')

@@ -285,7 +285,8 @@ class PosSaleTest extends TestCase
         } catch (ValidationException) {
             $this->assertSame(3, $inventory->fresh()->quantity_on_hand);
             $this->assertSame(0, $inventory->fresh()->quantity_reserved);
-            $this->assertDatabaseCount('inventory_movements', 2);
+            $this->assertDatabaseCount('inventory_movements', 3);
+            $this->assertDatabaseHas('inventory_movements', ['reference_type' => Order::class, 'reference_id' => $order->id, 'type' => 'sale', 'quantity_delta' => -2]);
         }
     }
 

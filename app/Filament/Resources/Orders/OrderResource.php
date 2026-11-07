@@ -31,6 +31,17 @@ class OrderResource extends Resource
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-shopping-bag';
     protected static ?int $navigationSort = 1;
 
+    public static function getEloquentQuery(): Builder
+    {
+        $warehouseIds = auth()->user()?->warehouseIdsWithPermission('view') ?? [];
+
+        return parent::getEloquentQuery()->where(function (Builder $query) use ($warehouseIds): void {
+            $query->where(fn (Builder $pos) => $pos->where('channel', 'pos')->whereIn('pos_warehouse_id', $warehouseIds))
+                ->orWhere(fn (Builder $web) => $web->where('channel', '!=', 'pos')
+                    ->whereDoesntHave('items.inventory', fn (Builder $inventory) => $inventory->whereNotIn('warehouse_id', $warehouseIds)));
+        });
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([]);

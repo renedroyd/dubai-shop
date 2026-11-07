@@ -46,6 +46,7 @@ class Order extends Model
         return $query->where(function (Builder $orders) use ($warehouseIds): void {
             $orders->where(fn (Builder $pos) => $pos->where('channel', 'pos')->whereIn('pos_warehouse_id', $warehouseIds))
                 ->orWhere(fn (Builder $web) => $web->where('channel', '!=', 'pos')
+                    ->whereHas('items.inventory')
                     ->whereDoesntHave('items.inventory', fn (Builder $inventory) => $inventory->whereNotIn('warehouse_id', $warehouseIds)));
         });
     }

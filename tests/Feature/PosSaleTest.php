@@ -479,7 +479,7 @@ class PosSaleTest extends TestCase
     {
         $user = User::factory()->create();
         $session = $this->openSession($user);
-        $session->terminal->update(['cash_limit_amount' => 6000]);
+        $session->terminal->update(['cash_limits' => ['CUP' => 6000]]);
         $product = $this->product();
         app(InventoryService::class)->setOnHand($product, 5, reason: 'Carga inicial');
 
@@ -497,7 +497,7 @@ class PosSaleTest extends TestCase
         Storage::fake('local');
         $user = User::factory()->create();
         $session = $this->openSession($user, 'USD');
-        $session->terminal->update(['cash_limit_amount' => 0]);
+        $session->terminal->update(['cash_limits' => ['USD' => 0]]);
         $product = $this->product('USD');
         $inventory = app(InventoryService::class)->setOnHand($product, 3, reason: 'Carga inicial');
         $zelle = PaymentMethod::query()->where('driver', 'zelle_manual')->firstOrFail();

@@ -42,6 +42,17 @@ class WarehouseTransferTest extends TestCase
         ]);
     }
 
+    private function grantTransferAccess(User $user, Warehouse ...$warehouses): void
+    {
+        $user->update(['admin_access_enabled' => true]);
+        foreach ($warehouses as $warehouse) {
+            $user->warehouseAccesses()->create([
+                'warehouse_id' => $warehouse->id,
+                'permissions' => ['view', 'transfers.request', 'transfers.approve'],
+            ]);
+        }
+    }
+
     private function bin(Warehouse $warehouse, string $code): WarehouseLocation
     {
         return WarehouseLocation::query()->create([

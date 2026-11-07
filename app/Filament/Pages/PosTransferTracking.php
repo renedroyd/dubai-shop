@@ -65,11 +65,13 @@ class PosTransferTracking extends Page
             ->limit(30)
             ->get();
 
-        $incidentEvents = WarehouseTransferEvent::query()
+        $incidentQuery = WarehouseTransferEvent::query()
             ->whereIn('event', ['damage_reported', 'rejected'])
             ->whereHas('transfer', fn (Builder $query) => $query
                 ->whereIn('source_warehouse_id', $warehouseIds)
-                ->whereIn('destination_warehouse_id', $warehouseIds))
+                ->whereIn('destination_warehouse_id', $warehouseIds));
+        $incidentCount = (clone $incidentQuery)->count();
+        $incidentEvents = $incidentQuery
             ->with(['transfer:id,code,source_warehouse_id,destination_warehouse_id,status', 'transfer.sourceWarehouse:id,name', 'transfer.destinationWarehouse:id,name', 'user:id,name'])
             ->orderByDesc('created_at')
             ->limit(20)
@@ -88,6 +90,7 @@ class PosTransferTracking extends Page
             'statusCounts' => $statusCounts,
             'recentTransfers' => $recentTransfers,
             'incidentEvents' => $incidentEvents,
+            'incidentCount' => $incidentCount,
             'warehouseMetrics' => $warehouseMetrics,
             'activeCount' => (int) $statusCounts->only([
                 WarehouseTransfer::STATUS_PENDING_APPROVAL,

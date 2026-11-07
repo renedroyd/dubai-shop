@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Storefront;
 
 use App\Http\Controllers\Controller;
 use App\Models\CustomerAddress;
+use App\Models\PosLoyaltyWallet;
 use App\Services\Shipping\ShippingRateService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,8 +18,14 @@ class CustomerAccountController extends Controller
         abort_if($request->user()->is_admin, 403);
 
         $orders = $request->user()->orders()->with('items')->latest('placed_at')->paginate(10);
+        $loyaltyWallets = PosLoyaltyWallet::query()->where('user_id', $request->user()->id)->orderBy('currency')->get();
+        $loyaltyWallets->each(function (PosLoyaltyWallet $wallet): void {
+            $wallet->setAttribute('available_points', $wallet->availablePoints());
+            $wallet->setAttribute('expiring_points_30_days', $wallet->expiringPointsWithin(30));
+            $wallet->setRelation('recentEntries', $wallet->entries()->latest()->limit(6)->get());
+        });
 
-        return view('storefront.customer.dashboard', compact('orders'));
+        return view('storefront.customer.dashboard', compact('orders', 'loyaltyWallets'));
     }
 
     public function addresses(Request $request): View

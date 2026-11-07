@@ -301,10 +301,19 @@ PR #71 integrado en `main`. Dashboard de estados, actividad, incidencias y conte
 - Los puntos se consumen por lotes conservando su fecha de vencimiento. Si se rechaza el pago Zelle, se restituyen los puntos reservados con su vencimiento original.
 - El siguiente subbloque POS-17C concilia acumulaciones y canjes cuando se procesan devoluciones.
 
-## POS-17C — conciliación de puntos en devoluciones (en revisión)
+## POS-17C — conciliación de puntos en devoluciones (integrado mediante PR #77)
 
 - Las devoluciones parciales revierten proporcionalmente los puntos ganados y restituyen proporcionalmente los puntos canjeados.
 - La proporción se calcula sobre el importe neto efectivamente pagado por la orden; al completar la devolución se revierte/restaura el 100 %.
 - Cada movimiento de devolución conserva la referencia a su movimiento original, el aprobador, la devolución y el vencimiento de los puntos.
 - Si los puntos ganados ya fueron consumidos antes de la devolución, el ledger registra el saldo negativo correspondiente; las futuras acumulaciones compensan ese saldo y el terminal no permite canjear un saldo negativo.
 - Los reembolsos monetarios siguen distribuyéndose entre los medios de pago originales y no se modifican por la conciliación de puntos.
+
+## POS-17D — administración y consulta del programa de fidelización (en revisión)
+
+- Configuración Filament por moneda: acumulación, valor de canje, mínimo, porcentaje máximo y vencimiento.
+- Permisos separados para consultar/editar las reglas y para realizar ajustes manuales.
+- Ajustes positivos y negativos con motivo obligatorio, actor identificado y movimientos inmutables; los ajustes negativos se distribuyen por lotes sin perder fechas de vencimiento.
+- El panel de cliente muestra saldos independientes, movimientos recientes, deuda por compensar y puntos que vencen en los próximos 30 días.
+- El terminal POS también advierte al cajero cuando el cliente seleccionado tiene puntos próximos a vencer.
+- Los ajustes negativos manuales no pueden reducir un saldo disponible por debajo de cero.

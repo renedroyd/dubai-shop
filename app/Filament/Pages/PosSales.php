@@ -561,6 +561,30 @@ class PosSales extends Page
         return max(0, $balance);
     }
 
+    public function loyaltyPointDebt(): int
+    {
+        $session = $this->currentSession();
+        if (! $this->customerUserId || ! $session) return 0;
+
+        $balance = PosLoyaltyWallet::query()
+            ->where('user_id', $this->customerUserId)
+            ->where('currency', $session->currency)
+            ->first()?->availablePoints() ?? 0;
+
+        return max(0, -$balance);
+    }
+
+    public function loyaltyExpiringPoints(): int
+    {
+        $session = $this->currentSession();
+        if (! $this->customerUserId || ! $session) return 0;
+
+        return (int) (PosLoyaltyWallet::query()
+            ->where('user_id', $this->customerUserId)
+            ->where('currency', $session->currency)
+            ->first()?->expiringPointsWithin(30) ?? 0);
+    }
+
     public function loyaltyRedemptionPreview(): array
     {
         $session = $this->currentSession();

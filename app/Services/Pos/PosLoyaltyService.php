@@ -138,6 +138,7 @@ class PosLoyaltyService
             }
 
             $credits = $wallet->entries()
+                ->whereIn('type', ['earn', 'manual_adjustment'])
                 ->where('points_delta', '>', 0)
                 ->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))
                 ->orderByRaw('CASE WHEN expires_at IS NULL THEN 1 ELSE 0 END')
@@ -326,6 +327,102 @@ class PosLoyaltyService
             }
 
             $wallet->update(['points_balance' => $wallet->availablePoints()]);
+        });
+    }
+
+
+    public function adjustWallet(int $userId, string $currency, int $pointsDelta, string $reason, int $actorId): PosLoyaltyEntry
+    {
+        return DB::transaction(function () use ($userId, $currency, $pointsDelta, $reason, $actorId): PosLoyaltyEntry {
+            $actor = \App\Models\User::query()->findOrFail($actorId);
+            $customer = \App\Models\User::query()
+                ->whereKey($userId)
+                ->where('is_admin', false)
+                ->where('admin_access_enabled', false)
+                ->first();
+
+            if (! $customer) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['customerUserId' => 'Selecciona una cuenta de cliente válida.']);
+            }
+
+            if (! $actor->hasAdminPermission('pos_loyalty.adjust')) {
+                throw new \Illuminate\Auth\Access\AuthorizationException('No tienes permiso para ajustar puntos de fidelización.');
+            }
+            if (! in_array($currency, ['CUP', 'USD', 'EUR'], true) || $pointsDelta === 0 || trim($reason) === '') {
+                throw \Illuminate\Validation\ValidationException::withMessages(['adjustment' => 'Indica una moneda, un ajuste distinto de cero y un motivo obligatorio.']);
+            }
+
+            $wallet = PosLoyaltyWallet::query()->firstOrCreate(
+                ['user_id' => $userId, 'currency' => $currency],
+                ['points_balance' => 0],
+            );
+            $wallet = PosLoyaltyWallet::query()->whereKey($wallet->id)->lockForUpdate()->firstOrFail();
+            $balanceBefore = $wallet->availablePoints();
+
+            if ($pointsDelta < 0 && $balanceBefore + $pointsDelta < 0) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['pointsDelta' => 'El ajuste no puede reducir el saldo disponible por debajo de cero.']);
+            }
+
+            $adjustmentKey = 'manual-loyalty-adjustment:'.\Illuminate\Support\Str::uuid();
+            $entries = collect();
+
+            if ($pointsDelta > 0) {
+                $entries->push($wallet->entries()->create([
+                    'actor_id' => $actorId,
+                    'type' => 'manual_adjustment',
+                    'points_delta' => $pointsDelta,
+                    'idempotency_key' => $adjustmentKey,
+                    'metadata' => [
+                        'reason' => trim($reason),
+                        'balance_before' => $balanceBefore,
+                        'balance_after' => $balanceBefore + $pointsDelta,
+                        'currency' => $currency,
+                    ],
+                ]));
+            } else {
+                $remaining = abs($pointsDelta);
+                $credits = $wallet->entries()
+                    ->whereIn('type', ['earn', 'manual_adjustment'])
+                    ->where('points_delta', '>', 0)
+                    ->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+                    ->orderByRaw('CASE WHEN expires_at IS NULL THEN 1 ELSE 0 END')
+                    ->orderBy('expires_at')
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->get();
+
+                foreach ($credits as $credit) {
+                    $consumed = (int) $wallet->entries()->where('metadata->source_entry_id', $credit->id)->sum('points_delta');
+                    $availableFromCredit = max(0, (int) $credit->points_delta + $consumed);
+                    $take = min($availableFromCredit, $remaining);
+                    if ($take <= 0) continue;
+
+                    $entries->push($wallet->entries()->create([
+                        'actor_id' => $actorId,
+                        'type' => 'manual_adjustment',
+                        'points_delta' => -$take,
+                        'idempotency_key' => $adjustmentKey.':'.$credit->id,
+                        'expires_at' => $credit->expires_at,
+                        'metadata' => [
+                            'source_entry_id' => $credit->id,
+                            'reason' => trim($reason),
+                            'balance_before' => $balanceBefore,
+                            'balance_after' => $balanceBefore + $pointsDelta,
+                            'currency' => $currency,
+                        ],
+                    ]));
+                    $remaining -= $take;
+                    if ($remaining === 0) break;
+                }
+
+                if ($remaining > 0) {
+                    throw \Illuminate\Validation\ValidationException::withMessages(['pointsDelta' => 'No fue posible asignar el ajuste a los lotes de puntos disponibles.']);
+                }
+            }
+
+            $wallet->update(['points_balance' => $wallet->availablePoints()]);
+
+            return $entries->first();
         });
     }
 

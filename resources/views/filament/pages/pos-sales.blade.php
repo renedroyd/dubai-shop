@@ -248,6 +248,12 @@
                                             <span class="font-semibold text-gray-700 dark:text-gray-200">{{ __('Puntos disponibles') }}</span>
                                             <span class="font-bold text-amber-700 dark:text-amber-300">{{ number_format($this->loyaltyAvailablePoints()) }}</span>
                                         </div>
+                                        @if ($this->loyaltyPointDebt() > 0)
+                                            <p class="text-[11px] text-amber-700 dark:text-amber-300">{{ __('Saldo por compensar: :points puntos. No se puede canjear hasta compensarlo.', ['points' => number_format($this->loyaltyPointDebt())]) }}</p>
+                                        @endif
+                                            @if ($this->loyaltyExpiringPoints() > 0)
+                                                <p class="text-[11px] font-medium text-amber-700 dark:text-amber-300">{{ __('Aviso: :points puntos de este cliente vencen en los próximos 30 días.', ['points' => number_format($this->loyaltyExpiringPoints())]) }}</p>
+                                            @endif
                                         @if ($this->loyaltyAvailablePoints() >= 100)
                                             <label class="block text-xs font-medium text-gray-600 dark:text-gray-300">{{ __('Puntos que deseas canjear (mínimo 100)') }}
                                                 <input type="number" min="0" step="1" wire:model.live.debounce.300ms="loyaltyPointsToRedeem" class="fi-input mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">

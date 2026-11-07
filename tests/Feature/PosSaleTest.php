@@ -66,6 +66,50 @@ class PosSaleTest extends TestCase
         return PaymentMethod::query()->where('driver', 'cash_on_delivery')->where('is_enabled', true)->firstOrFail();
     }
 
+    public function test_pos_sale_can_be_linked_to_a_registered_customer_account(): void
+    {
+        $cashier = User::factory()->create();
+        $customer = User::factory()->create(['name' => 'Cliente Registrado', 'email' => 'cliente-pos@example.com', 'is_admin' => false, 'admin_access_enabled' => false]);
+        $session = $this->openSession($cashier);
+        $product = $this->product();
+        app(InventoryService::class)->setOnHand($product, 5, reason: 'Carga inicial');
+
+        $order = app(PosSaleService::class)->sell(
+            $session,
+            $cashier->id,
+            [['product_id' => $product->id, 'quantity' => 1]],
+            $this->cashMethod()->id,
+            ['user_id' => $customer->id, 'name' => 'Nombre que no debe sustituir la cuenta', 'phone' => '555-0100'],
+        );
+
+        $this->assertSame($customer->id, $order->user_id);
+        $this->assertSame('Cliente Registrado', $order->customer_name);
+        $this->assertSame('cliente-pos@example.com', $order->customer_email);
+        $this->assertSame($customer->id, $order->fresh()->user->id);
+    }
+
+    public function test_pos_sale_rejects_linking_an_administrator_as_a_customer(): void
+    {
+        $cashier = User::factory()->create();
+        $admin = User::factory()->create(['is_admin' => true]);
+        $session = $this->openSession($cashier);
+        $product = $this->product();
+        app(InventoryService::class)->setOnHand($product, 5, reason: 'Carga inicial');
+
+        try {
+            app(PosSaleService::class)->sell(
+                $session,
+                $cashier->id,
+                [['product_id' => $product->id, 'quantity' => 1]],
+                $this->cashMethod()->id,
+                ['user_id' => $admin->id],
+            );
+            $this->fail('Expected invalid customer account validation.');
+        } catch (ValidationException) {
+            $this->assertDatabaseCount('orders', 0);
+        }
+    }
+
     public function test_pos_sale_creates_shared_order_payment_and_audited_stock_movement(): void
     {
         $user = User::factory()->create();

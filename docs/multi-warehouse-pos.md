@@ -23,16 +23,12 @@
 - Clave única de inventario compuesta por almacén y clave de producto/variante.
 - Campo de cantidad bloqueada; disponibilidad = físico - reservado - bloqueado.
 - Servicio de inventario compatible con las llamadas existentes: usa el almacén principal por defecto y admite indicar un almacén explícito.
-- Carrito y checkout siguen consultando el almacén principal hasta que se implemente la política de abastecimiento web.
+- El abastecimiento de la tienda online se define ahora en POS-5: consulta almacenes activos habilitados para web y respeta su prioridad.
 - Relaciones Eloquent para consultar existencias por almacén.
 
-### No incluido todavía
+### Evolución del núcleo
 
-- Saldos por ubicación física y asignación de unidades a posiciones.
-- Transferencias, aprobaciones, despacho, tránsito y recepción.
-- Reglas de abastecimiento de tienda online.
-- Terminales, cajas y ventas POS.
-- Permisos por almacén.
+Los saldos por ubicación (POS-3), transferencias (POS-4) y abastecimiento web (POS-5) ya están integrados. Los terminales y su asignación de almacén se desarrollan en POS-6; las ventas y cajas corresponden a POS-7; los permisos por almacén y la aceptación integral corresponden a POS-8.
 
 ## Modelo de datos previsto
 

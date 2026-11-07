@@ -67,7 +67,7 @@ class InventoryResource extends Resource
                 ->color(fn (Inventory $record): string => $record->available_quantity === 0 ? 'danger' : ($record->available_quantity <= ($record->minimum_stock_quantity ?? 5) ? 'warning' : 'success')),
             TextColumn::make('updated_at')->label(__('Actualizado'))->dateTime()->sortable(),
         ])->filters([
-            Filter::make('low_stock')->label(__('Stock bajo'))->query(fn (Builder $query): Builder => $query->whereRaw('(quantity_on_hand - quantity_reserved - quantity_blocked) <= COALESCE(minimum_stock_quantity, 5)'),
+            Filter::make('low_stock')->label(__('Stock bajo'))->query(fn (Builder $query): Builder => $query->whereRaw('(quantity_on_hand - quantity_reserved - quantity_blocked) <= COALESCE(minimum_stock_quantity, 5)'),),
         ])->defaultSort('updated_at', 'desc')->recordActions([
             Action::make('configureCosts')->label(__('Configurar costo y precio mínimo'))->icon('heroicon-o-currency-dollar')
                 ->authorize(fn (Inventory $record): bool => (auth()->user()?->hasAdminPermission('inventory_costs.update') ?? false)

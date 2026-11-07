@@ -22,4 +22,23 @@ class PosLoyaltyWallet extends Model
     {
         return (int) $this->entries()->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))->sum('points_delta');
     }
+
+    public function expiringPointsWithin(int $days = 30): int
+    {
+        $credits = $this->entries()
+            ->where('points_delta', '>', 0)
+            ->whereNotNull('expires_at')
+            ->whereBetween('expires_at', [now(), now()->addDays($days)])
+            ->orderBy('expires_at')
+            ->get();
+
+        return (int) $credits->sum(function (PosLoyaltyEntry $credit): int {
+            $consumed = (int) $this->entries()
+                ->where('metadata->source_entry_id', $credit->id)
+                ->sum('points_delta');
+
+            return max(0, (int) $credit->points_delta + $consumed);
+        });
+    }
+
 }

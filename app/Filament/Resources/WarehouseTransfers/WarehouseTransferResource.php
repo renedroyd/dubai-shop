@@ -33,11 +33,20 @@ class WarehouseTransferResource extends Resource
     public static function getModelLabel(): string { return __('transferencia'); }
     public static function getPluralModelLabel(): string { return __('transferencias'); }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        $warehouseIds = auth()->user()?->warehouseIdsWithPermission('view') ?? [];
+
+        return parent::getEloquentQuery()
+            ->whereIn('source_warehouse_id', $warehouseIds)
+            ->whereIn('destination_warehouse_id', $warehouseIds);
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
             Select::make('source_warehouse_id')->label(__('Almacén de origen'))
-                ->options(fn () => Warehouse::query()->where('is_active', true)->pluck('name', 'id'))
+                ->options(fn () => Warehouse::query()->where('is_active', true)->whereIn('id', auth()->user()?->warehouseIdsWithPermission('transfers.request') ?? [])->pluck('name', 'id'))
                 ->searchable()->required(),
             Select::make('destination_warehouse_id')->label(__('Almacén de destino'))
                 ->options(fn () => Warehouse::query()->where('is_active', true)->pluck('name', 'id'))
@@ -50,11 +59,11 @@ class WarehouseTransferResource extends Resource
             Textarea::make('notes')->label(__('Notas'))->rows(2),
             Repeater::make('items')->label(__('Productos a transferir'))->minItems(1)->schema([
                 Select::make('inventory_id')->label(__('Producto / variante'))
-                    ->options(fn () => Inventory::query()->with('product')->get()->mapWithKeys(fn (Inventory $inventory) => [
+                    ->options(fn () => Inventory::query()->whereIn('warehouse_id', auth()->user()?->warehouseIdsWithPermission('transfers.request') ?? [])->with('product')->get()->mapWithKeys(fn (Inventory $inventory) => [
                         $inventory->id => ($inventory->product?->name ?? $inventory->stock_key).' — '.$inventory->available_quantity.' '.__('disponibles'),
                     ]))->searchable()->required(),
                 Select::make('source_location_id')->label(__('Ubicación de origen'))
-                    ->options(fn () => WarehouseLocation::query()->where('is_active', true)->get()->mapWithKeys(fn (WarehouseLocation $location) => [
+                    ->options(fn () => WarehouseLocation::query()->where('is_active', true)->whereIn('warehouse_id', auth()->user()?->warehouseIdsWithPermission('transfers.request') ?? [])->get()->mapWithKeys(fn (WarehouseLocation $location) => [
                         $location->id => $location->warehouse->name.' / '.$location->code.' — '.$location->name,
                     ]))->searchable()->required(),
                 Select::make('destination_location_id')->label(__('Ubicación de destino'))

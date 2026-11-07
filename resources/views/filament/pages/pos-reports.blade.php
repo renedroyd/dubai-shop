@@ -40,6 +40,22 @@
         </section>
 
         <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <h2 class="mb-3 text-base font-semibold">{{ __('Devoluciones POS por almacén y moneda') }}</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead><tr class="border-b text-left"><th class="py-2">{{ __('Almacén') }}</th><th>{{ __('Moneda') }}</th><th>{{ __('Devoluciones') }}</th><th class="text-right">{{ __('Total reembolsado') }}</th></tr></thead>
+                    <tbody>
+                        @forelse ($refunds as $refund)
+                            <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-2">{{ $refund->warehouse_name }}</td><td>{{ $refund->currency }}</td><td>{{ $refund->refunds_count }}</td><td class="text-right tabular-nums">{{ number_format($refund->total_amount / 100, 2) }}</td></tr>
+                        @empty
+                            <tr><td colspan="4" class="py-4 text-center text-gray-500">{{ __('No hay devoluciones en el período seleccionado.') }}</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
             <h2 class="mb-3 text-base font-semibold">{{ __('Sesiones de caja y arqueos') }}</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">

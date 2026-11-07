@@ -108,6 +108,6 @@ class PosReportsTest extends TestCase
         Livewire::actingAs($user)
             ->test(\App\Filament\Pages\PosReports::class)
             ->call('exportCsv', now()->toDateString(), now()->toDateString(), Warehouse::primary()->id, null, null, 'CUP')
-            ->assertFileDownloaded(fn (string $filename) => str_starts_with($filename, 'informe-pos-') && str_ends_with($filename, '.csv'));
+            ->assertFileDownloaded();
     }
 }

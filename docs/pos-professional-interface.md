@@ -171,3 +171,8 @@ Todos los bloques POS-1 a POS-16 están integrados en `main` (PR #49–69). El C
 - Conteos entrantes/salientes por almacén.
 - Requiere `pos_reports.view` y limita resultados a transferencias cuyos dos almacenes están dentro del alcance `reports.view` del usuario.
 - No modifica reglas de aprobación, stock ni el flujo de despacho/recepción.
+
+
+### POS-16D — indicadores operativos por establecimiento (en implementación)
+
+Dashboard filtrable por período que agrupa resultados por establecimiento: pedidos y ventas por moneda, reembolsos por moneda, terminales activos, sesiones de caja, cajas abiertas y cierres pendientes de aprobación. La autorización se calcula a partir de los almacenes accesibles con `reports.view`; no se exponen establecimientos ajenos al ámbito del usuario ni se agregan importes de monedas diferentes.

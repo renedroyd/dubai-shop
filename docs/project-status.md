@@ -107,7 +107,7 @@ Las Fases 1–16 y las mejoras PR #29–37 están integradas. La entrega PR #38 
 
 - POS-1 a POS-10 integrados en main.
 - POS-11 integrado mediante PR #56: búsqueda por nombre/correo/teléfono guardado, alta rápida, asociación de ventas, historial limitado por almacén y clientes frecuentes.
-- POS-1 a POS-16 integrados en main. POS-16C está en revisión en `feature/pos-16c-transfer-monitoring`.
+- POS-1 a POS-16 integrados en main. POS-16C integrado mediante PR #71. POS-16D está en implementación en `feature/pos-16d-location-metrics`.
 - POS-14A y POS-14B (PR #65–66), POS-15 (PR #67) y POS-16A/16B (PR #68–69) están integrados en main.
 - POS-13 (PR #61–63): autorización por separado para procesar/aprobar devoluciones; reembolsos por los medios originales con distribución proporcional efectivo/Zelle; solo efectivo afecta caja; descuentos respetados; stock devuelto vendible, en cuarentena o desechado; cambios vinculados y diferencia neta; búsqueda de ventas por número, cliente, fecha, terminal y almacén.
 - Los PR #61, #62 y #63 superaron PHP 8.4, PHP 8.5 y Frontend assets antes de integrarse.
@@ -262,3 +262,15 @@ Cada nueva fase se desarrolla en una rama independiente. Antes de implementar, r
 - Alcance limitado a transferencias donde el usuario tiene `reports.view` en ambos almacenes, además del permiso `pos_reports.view`.
 - Reutiliza eventos existentes de rechazo y daños; no altera stock, aprobación, despacho ni recepción.
 - PR #71: `feature/pos-16c-transfer-monitoring`; CI de PHP 8.4, PHP 8.5 y Frontend assets validado en el head inicial. Requiere sincronizar con `main` y repetir CI antes de integrar.
+
+
+## POS-16C — seguimiento de transferencias e incidencias (integrado)
+
+PR #71 integrado en `main`. Dashboard de estados, actividad, incidencias y conteos por almacén, con autorización por `pos_reports.view` y `reports.view` en ambos almacenes.
+
+## POS-16D — indicadores por establecimiento (en implementación)
+
+- Resumen de ventas y pedidos por moneda, sin mezclar ni convertir CUP/USD/EUR.
+- Reembolsos netos por moneda, terminales activos, cajas abiertas y cierres pendientes.
+- Sesiones de caja dentro del período seleccionado.
+- Visibilidad limitada a establecimientos que tengan terminales asociados a almacenes autorizados para `reports.view`.

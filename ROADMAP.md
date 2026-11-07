@@ -191,7 +191,7 @@ El POS funcionará siempre conectado al servidor. No se desarrollará modo offli
 13. **POS-13 — Devoluciones y cambios:** integrado en PR #61–63. Incluye autorización por dos usuarios, reembolsos distribuidos entre los medios originales, respeto de descuentos, cuarentena/descarte de artículos y registro vinculado de cambios con diferencia neta.
 14. **POS-14 — Impresión y periféricos:** integrado en PR #65–66. Recibos térmicos 58/80 mm, 1–3 copias, códigos de barras, lector tipo teclado e impresión USB/red y gaveta ESC/POS mediante QZ Tray.
 15. **POS-15 — Dashboard e informes avanzados:** integrado en PR #67. Filtros por fecha/almacén/terminal/cajero/moneda; ventas por dimensión; pagos netos por método; margen con costo histórico; diferencias de caja; reembolsos; comparativas y exportación CSV.
-16. **POS-16 — Operación comercial avanzada:** POS-16A/B integrados en PR #68–69: asignación de cajeros y turnos, cierres supervisados, límites de efectivo, umbrales configurables de stock bajo y solicitudes de reposición. POS-16C en implementación en PR #71: seguimiento de transferencias e incidencias.
+16. **POS-16 — Operación comercial avanzada:** POS-16A/B integrados en PR #68–69; POS-16C integrado en PR #71: seguimiento de transferencias e incidencias. POS-16D en implementación: indicadores operativos por establecimiento.
 
 El POS permanece exclusivamente online, sin modo offline ni sincronización diferida. Las ventas usan el almacén asignado al terminal. El flujo de pagos integrado admite efectivo, Zelle manual en USD y pagos mixtos; cada entrega mantiene la autorización por almacén, integridad transaccional, auditoría y pruebas automatizadas. Cada bloque se desarrolla en una rama propia.
 
@@ -295,6 +295,11 @@ Rama `feature/pos-16b-stock-alerts-replenishment`. Cada existencia por almacén 
 Los bloques funcionales POS-1 a POS-16 están integrados en `main` mediante ramas y PR independientes. El CI posterior a la integración de POS-16B (PR #69) finalizó correctamente en PHP 8.4, PHP 8.5 y Frontend assets. La aceptación física pendiente incluye instalación y prueba de QZ Tray, impresoras térmicas y gavetas en cada puesto, así como pruebas operativas de cajeros, arqueos, límites y reposición en los almacenes reales. Esto no equivale a aceptación de producción de la tienda completa; la Fase 17 continúa separada y pendiente.
 
 
-### POS-16C — Seguimiento de transferencias e incidencias (en implementación)
+### POS-16C — Seguimiento de transferencias e incidencias (integrado en PR #71)
 
 PR #71 / rama `feature/pos-16c-transfer-monitoring`. Dashboard Filament con conteos por estado, transferencias activas/en tránsito, últimas 30 transferencias, actor/fecha del último evento, incidencias de rechazos/daños y conteos entrantes/salientes por almacén. El acceso exige `pos_reports.view` y limita las consultas a transferencias donde el usuario tiene `reports.view` en ambos almacenes. Reutiliza estados/eventos existentes sin cambiar reglas de aprobación ni movimientos de inventario.
+
+
+### POS-16D — Indicadores operativos por establecimiento (en implementación)
+
+Rama `feature/pos-16d-location-metrics`. Resumen por establecimiento de ventas/pedidos y reembolsos separados por moneda, terminales activos, cajas abiertas, cierres pendientes de aprobación y sesiones del período. Solo incluye establecimientos con terminales asociados a almacenes para los que el usuario posee `reports.view`; requiere `pos_reports.view`. No realiza conversiones monetarias ni altera ventas o caja.

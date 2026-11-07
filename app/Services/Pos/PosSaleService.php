@@ -52,6 +52,11 @@ class PosSaleService
                 throw new AuthorizationException('No tienes permiso para vender desde este almacén.');
             }
 
+            $assignedCashierIds = array_map('intval', $terminal->assigned_cashier_ids ?? []);
+            if ($assignedCashierIds !== [] && ! in_array($cashierId, $assignedCashierIds, true)) {
+                throw new AuthorizationException('No estás asignado a este terminal POS.');
+            }
+
             if (! $terminal?->is_active || ! $terminal->location?->is_active || ! $warehouse?->is_active) {
                 throw ValidationException::withMessages(['terminal' => 'El terminal, establecimiento y almacén deben permanecer activos.']);
             }
@@ -199,6 +204,22 @@ class PosSaleService
                     $cashReceived = $total;
                 }
             }
+            $cashCollectedAmount = $method->driver === 'cash_on_delivery' ? $cashAmount : 0;
+            if ($cashCollectedAmount > 0 && $terminal->cash_limit_amount !== null) {
+                $cashTotals = $lockedSession->movements()
+                    ->selectRaw("COALESCE(SUM(CASE WHEN type IN (?, ?) THEN amount ELSE 0 END), 0) as cash_in", [
+                        PosCashMovement::TYPE_CASH_IN, PosCashMovement::TYPE_SALE,
+                    ])
+                    ->selectRaw("COALESCE(SUM(CASE WHEN type IN (?, ?) THEN amount ELSE 0 END), 0) as cash_out", [
+                        PosCashMovement::TYPE_CASH_OUT, PosCashMovement::TYPE_REFUND,
+                    ])->first();
+                $availableCash = (int) $lockedSession->opening_cash_amount + (int) $cashTotals->cash_in - (int) $cashTotals->cash_out;
+
+                if ($availableCash + $cashCollectedAmount > $terminal->cash_limit_amount) {
+                    throw ValidationException::withMessages(['paymentDetails' => 'La venta supera el límite de efectivo configurado para este terminal. Registra una salida de efectivo autorizada antes de continuar.']);
+                }
+            }
+
             $zelleMethod = $isMixed
                 ? PaymentMethod::query()->where('driver', 'zelle_manual')->where('is_enabled', true)->first()
                 : null;

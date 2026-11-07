@@ -32,6 +32,10 @@ class InventoryService
 
         $warehouse ??= Warehouse::primary();
 
+        if ($userId !== null && ! User::query()->findOrFail($userId)->hasWarehousePermission($warehouse->id, 'inventory.manage')) {
+            throw new AuthorizationException('No tienes permiso para gestionar inventario en este almacén.');
+        }
+
         if (! $warehouse->is_active) {
             throw new InvalidArgumentException('No se puede modificar el inventario de un almacén inactivo.');
         }

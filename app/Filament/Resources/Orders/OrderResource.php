@@ -39,6 +39,8 @@ class OrderResource extends Resource
             TextColumn::make('number')->label(__('Pedido'))->searchable()->sortable(),
             TextColumn::make('channel')->label(__('Canal'))->badge(),
             TextColumn::make('posTerminal.code')->label(__('Terminal'))->placeholder('—'),
+            TextColumn::make('channel')->label(__('Canal'))->badge(),
+            TextColumn::make('posTerminal.code')->label(__('Terminal'))->placeholder('—'),
             TextColumn::make('customer_name')->label(__('Cliente'))->searchable(),
             TextColumn::make('customer_email')->label(__('Correo'))->searchable(),
             TextColumn::make('total_amount')->label(__('Total del pedido'))->formatStateUsing(fn ($state, Order $record) => number_format($state / 100, 2).' '.$record->currency),
@@ -56,6 +58,14 @@ class OrderResource extends Resource
                 Order::STATUS_CANCELLED => __('Cancelado'),
             ]),
         ])->defaultSort('placed_at', 'desc')->recordActions([
+            Action::make('printReceipt')->label(__('Recibo POS'))->icon('heroicon-o-printer')
+                ->authorize('view')
+                ->visible(fn (Order $record): bool => $record->channel === 'pos')
+                ->modalHeading(fn (Order $record): string => __('Recibo').' '.$record->number)
+                ->modalContent(fn (Order $record) => view('filament.pos.receipt', [
+                    'order' => $record->load(['items', 'payments.method', 'posTerminal.location', 'cashier']),
+                ]))
+                ->modalSubmitAction(false)->modalCancelActionLabel(__('Cerrar')),
             Action::make('details')->label(__('Ver pedido'))->icon('heroicon-o-eye')
                 ->authorize('view')
                 ->modalHeading(fn (Order $record): string => __('Pedido').' '.$record->number)

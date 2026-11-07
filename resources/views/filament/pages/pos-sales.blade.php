@@ -198,51 +198,19 @@
                         <div class="space-y-3 border-t border-gray-200 p-4 dark:border-gray-800">
                             <div class="flex items-center justify-between text-sm text-gray-500"><span>{{ __('Subtotal') }}</span><span class="font-semibold text-gray-950 dark:text-white">{{ $this->formatMoney($this->cartSubtotal(), $session->currency) }}</span></div>
                             <div class="flex items-center justify-between border-t border-dashed border-gray-200 pt-3 text-base font-bold dark:border-gray-700"><span>{{ __('Total a cobrar') }}</span><span class="text-xl text-amber-600 dark:text-amber-400">{{ $this->formatMoney($this->cartSubtotal(), $session->currency) }}</span></div>
-                            <div class="space-y-2 rounded-xl border border-gray-200 p-3 dark:border-gray-700">
-                                <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300">{{ __('Cliente (opcional)') }}</label>
-                                <input wire:model.live.debounce.300ms="customerSearch" placeholder="{{ __('Buscar cliente por nombre o correo') }}" class="fi-input w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
-                                @if ($this->customerMatches()->isNotEmpty())
-                                    <div class="max-h-40 space-y-1 overflow-y-auto">
-                                        @foreach ($this->customerMatches() as $customer)
-                                            <button type="button" wire:click="selectCustomer({{ $customer->id }})" class="flex w-full items-center justify-between rounded-lg px-2 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-800">
-                                                <span><span class="block font-medium">{{ $customer->name }}</span><span class="text-xs text-gray-500">{{ $customer->email }}</span></span>
-                                                <span class="text-xs text-amber-600">{{ __('Seleccionar') }}</span>
-                                            </button>
-                                        @endforeach
-                                    </div>
-                                @endif
-                                @if ($this->frequentCustomers()->isNotEmpty())
-                                    <div class="space-y-1 border-t border-gray-100 pt-2 dark:border-gray-700">
-                                        <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{{ __('Clientes frecuentes · últimos 90 días') }}</p>
-                                        @foreach ($this->frequentCustomers() as $frequentCustomer)
-                                            <button type="button" wire:click="selectCustomer({{ $frequentCustomer->id }})" class="flex w-full justify-between rounded-lg px-2 py-1.5 text-left text-xs hover:bg-gray-100 dark:hover:bg-gray-800">
-                                                <span>{{ $frequentCustomer->name }}</span><span class="text-gray-500">{{ $frequentCustomer->pos_orders_count }} {{ __('ventas') }}</span>
-                                            </button>
-                                        @endforeach
-                                    </div>
-                                @endif
-                                @if ($customerUserId)
-                                    <div class="flex items-center justify-between rounded-lg bg-amber-50 p-2 text-xs dark:bg-amber-500/10">
-                                        <span class="font-medium">{{ __('Cuenta vinculada') }} · {{ $customerEmail }}</span>
-                                        <button type="button" wire:click="clearCustomer" class="font-semibold text-amber-700 dark:text-amber-300">{{ __('Quitar') }}</button>
-                                    </div>
-                                    @if ($this->customerHistory()->isNotEmpty())
-                                        <div class="space-y-1 border-t border-gray-100 pt-2 dark:border-gray-700">
-                                            <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{{ __('Últimas compras') }}</p>
-                                            @foreach ($this->customerHistory() as $historyOrder)
-                                                <div class="flex items-center justify-between gap-2 text-xs">
-                                                    <span class="truncate">{{ $historyOrder->number }} · {{ $historyOrder->placed_at?->format('d/m/Y') }}</span>
-                                                    <span class="font-medium">{{ $this->formatMoney((int) $historyOrder->total_amount, $historyOrder->currency) }}</span>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                @else
-                                    <input wire:model="customerName" placeholder="{{ __('Nombre del cliente ocasional') }}" class="fi-input w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
-                                    <input wire:model="customerPhone" placeholder="{{ __('Teléfono') }}" class="fi-input w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
-                                    <input wire:model="customerEmail" type="email" placeholder="{{ __('Correo electrónico') }}" class="fi-input w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
-                                @endif
+                            <div class="space-y-2">
+                                <label class="block text-xs font-medium text-gray-500">{{ __('Cliente (opcional)') }}</label>
+                                <input wire:model="customerName" placeholder="{{ __('Nombre del cliente') }}" class="fi-input w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                                <input wire:model="customerPhone" placeholder="{{ __('Teléfono') }}" class="fi-input w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                                <input wire:model="customerEmail" type="email" placeholder="{{ __('Correo electrónico') }}" class="fi-input w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
                             </div>
+                            <label class="block text-xs font-medium text-gray-500">{{ __('Método de cobro') }}
+                                <select wire:model="paymentMethodId" class="fi-input mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                                    @foreach ($this->paymentMethods() as $method)
+                                        <option value="{{ $method->id }}">{{ $method->name }}</option>
+                                    @endforeach
+                                </select>
+                            </label>
                             <label class="block text-xs font-medium text-gray-500">{{ __('Método de cobro') }}
                                 <select wire:model="paymentMethodId" class="fi-input mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
                                     @foreach ($this->paymentMethods() as $method)

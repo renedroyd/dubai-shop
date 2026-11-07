@@ -5,6 +5,8 @@ namespace App\Filament\Pages;
 use App\Models\Category;
 use App\Models\Inventory;
 use App\Models\PaymentMethod;
+use App\Models\Order;
+use App\Models\User;
 use App\Models\PosCashMovement;
 use App\Models\PosCashSession;
 use App\Models\PosTerminal;
@@ -43,6 +45,8 @@ class PosSales extends Page
     public string $zelleReference = '';
     public string $zelleTransferDate = '';
     public $zelleProof = null;
+    public string $customerSearch = '';
+    public ?int $customerUserId = null;
     public string $customerName = '';
     public string $customerPhone = '';
     public string $customerEmail = '';
@@ -301,12 +305,70 @@ class PosSales extends Page
         unset($this->cart[$key]);
     }
 
-    public function clearCart(): void
+    public function customerMatches(): Collection
     {
-        $this->cart = [];
+        $term = trim($this->customerSearch);
+        if (mb_strlen($term) < 2) return collect();
+
+        return User::query()
+            ->where('is_admin', false)
+            ->where('admin_access_enabled', false)
+            ->where(fn (Builder $query) => $query->where('name', 'like', '%'.$term.'%')->orWhere('email', 'like', '%'.$term.'%'))
+            ->orderBy('name')->limit(8)->get(['id', 'name', 'email']);
+    }
+
+    public function frequentCustomers(): Collection
+    {
+        $session = $this->currentSession();
+        if (! $session) return collect();
+
+        return User::query()
+            ->where('is_admin', false)
+            ->where('admin_access_enabled', false)
+            ->withCount(['orders as pos_orders_count' => fn (Builder $query) => $query
+                ->where('channel', 'pos')
+                ->where('pos_warehouse_id', $session->terminal->warehouse_id)
+                ->where('placed_at', '>=', now()->subDays(90))])
+            ->having('pos_orders_count', '>', 0)
+            ->orderByDesc('pos_orders_count')->orderBy('name')->limit(5)
+            ->get(['id', 'name', 'email']);
+    }
+
+    public function selectCustomer(int $userId): void
+    {
+        $customer = User::query()->whereKey($userId)
+            ->where('is_admin', false)->where('admin_access_enabled', false)
+            ->firstOrFail(['id', 'name', 'email']);
+
+        $this->customerUserId = $customer->id;
+        $this->customerSearch = $customer->name;
+        $this->customerName = $customer->name;
+        $this->customerEmail = $customer->email;
+    }
+
+    public function clearCustomer(): void
+    {
+        $this->customerUserId = null;
+        $this->customerSearch = '';
         $this->customerName = '';
         $this->customerPhone = '';
         $this->customerEmail = '';
+    }
+
+    public function customerHistory(): Collection
+    {
+        if (! $this->customerUserId || ! auth()->user()) return collect();
+
+        return Order::query()->accessibleTo(auth()->user())
+            ->where('user_id', $this->customerUserId)
+            ->latest('placed_at')->limit(5)
+            ->get(['id', 'number', 'channel', 'currency', 'total_amount', 'status', 'payment_status', 'placed_at']);
+    }
+
+    public function clearCart(): void
+    {
+        $this->cart = [];
+        $this->clearCustomer();
     }
 
     public function cartItems(): array

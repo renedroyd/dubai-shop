@@ -174,15 +174,6 @@ class PosSaleService
                 throw ValidationException::withMessages(['paymentDetails' => 'El método Zelle manual no está habilitado.']);
             }
 
-            $customerUserId = filled($customer['user_id'] ?? null) ? (int) $customer['user_id'] : null;
-            $customerUser = $customerUserId
-                ? User::query()->whereKey($customerUserId)->where('is_admin', false)->where('admin_access_enabled', false)->lockForUpdate()->first()
-                : null;
-
-            if ($customerUserId !== null && ! $customerUser) {
-                throw ValidationException::withMessages(['customer.user_id' => 'El cliente seleccionado no existe o no es una cuenta de cliente válida.']);
-            }
-
             $order = Order::withoutEvents(fn () => Order::query()->create([
                 'number' => 'POS-'.now()->format('Ymd').'-'.Str::upper(Str::random(8)),
                 'channel' => 'pos',
@@ -191,9 +182,9 @@ class PosSaleService
                 'pos_cash_session_id' => $lockedSession->id,
                 'cashier_id' => $cashierId,
                 'public_token_hash' => hash('sha256', Str::random(64)),
-                'user_id' => $customerUser?->id,
-                'customer_name' => $customerUser?->name ?: (trim((string) ($customer['name'] ?? '')) ?: 'Consumidor final'),
-                'customer_email' => $customerUser?->email ?: trim((string) ($customer['email'] ?? '')),
+                'user_id' => null,
+                'customer_name' => trim((string) ($customer['name'] ?? '')) ?: 'Consumidor final',
+                'customer_email' => trim((string) ($customer['email'] ?? '')),
                 'customer_phone' => trim((string) ($customer['phone'] ?? '')) ?: 'N/A',
                 'shipping_address' => 'Venta en establecimiento',
                 'shipping_city' => $terminal->location->name,

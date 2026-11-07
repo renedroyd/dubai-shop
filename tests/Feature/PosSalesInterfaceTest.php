@@ -123,26 +123,6 @@ class PosSalesInterfaceTest extends TestCase
         ]);
     }
 
-    public function test_cashier_can_search_and_select_a_registered_customer(): void
-    {
-        $user = $this->cashier();
-        $customer = User::factory()->create([
-            'name' => 'Cliente Frecuente',
-            'email' => 'frecuente@example.com',
-            'is_admin' => false,
-            'admin_access_enabled' => false,
-        ]);
-
-        Livewire::actingAs($user)
-            ->test(PosSales::class)
-            ->set('customerSearch', 'frecuente')
-            ->assertSee('Cliente Frecuente')
-            ->call('selectCustomer', $customer->id)
-            ->assertSet('customerUserId', $customer->id)
-            ->assertSet('customerName', 'Cliente Frecuente')
-            ->assertSet('customerEmail', 'frecuente@example.com');
-    }
-
     public function test_cashier_can_register_a_sale_through_the_professional_interface_using_existing_services(): void
     {
         $user = $this->cashier();

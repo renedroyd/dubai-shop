@@ -27,7 +27,7 @@ class SalesTrendChart extends ChartWidget
         $start = now()->subDays(29)->startOfDay();
         $end = now()->endOfDay();
 
-        $sales = Order::query()
+        $sales = Order::query()->accessibleTo(auth()->user())
             ->where('payment_status', 'paid')
             ->whereBetween('placed_at', [$start, $end])
             ->selectRaw('currency, DATE(placed_at) as sale_date, SUM(total_amount) as total')

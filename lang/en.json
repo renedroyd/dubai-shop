@@ -605,5 +605,7 @@
   "Uno de los artículos no pertenece a esta venta.": "One of the items does not belong to this sale.",
   "El importe acumulado de las devoluciones no puede superar el pago original.": "The cumulative refund amount cannot exceed the original payment.",
   "No se encontró la distribución original del stock. No se puede devolver esta línea con seguridad.": "The original stock allocation was not found. This line cannot be safely returned.",
-  "La cantidad devuelta no coincide con la distribución original del inventario.": "The returned quantity does not match the original inventory allocation."
+  "La cantidad devuelta no coincide con la distribución original del inventario.": "The returned quantity does not match the original inventory allocation.",
+  "Devoluciones y reembolsos": "Returns and refunds",
+  "Procesado por": "Processed by"
 }

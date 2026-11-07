@@ -17,6 +17,11 @@ class InventoryMovement extends Model
         return ['quantity_delta' => 'integer', 'metadata' => 'array'];
     }
 
+    public function scopeAccessibleTo(Builder $query, User $user): Builder
+    {
+        return $query->whereHas('inventory', fn (Builder $inventory) => $inventory->whereIn('warehouse_id', $user->warehouseIdsWithPermission('view')));
+    }
+
     public function inventory(): BelongsTo
     {
         return $this->belongsTo(Inventory::class);

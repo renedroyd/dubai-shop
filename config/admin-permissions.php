@@ -25,6 +25,7 @@ use App\Models\WarehouseTransfer;
 use App\Models\WarehouseTransferRule;
 use App\Models\PosLocation;
 use App\Models\PosTerminal;
+use App\Models\PosCashSession;
 
 return [
     'model_resources' => [
@@ -51,7 +52,8 @@ return [
         WarehouseTransfer::class => 'warehouse_transfers',
         WarehouseTransferRule::class => 'warehouse_transfer_rules',
         PosLocation::class => 'pos_locations',
-        PosTerminal::class => 'pos_terminals',\n        PosCashSession::class => 'pos_cash_sessions',
+        PosTerminal::class => 'pos_terminals',
+        PosCashSession::class => 'pos_cash_sessions',\n        PosCashSession::class => 'pos_cash_sessions',
     ],
 
     'permissions' => [

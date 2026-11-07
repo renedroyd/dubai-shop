@@ -165,6 +165,10 @@ class AppServiceProvider extends ServiceProvider
 
                 if ($warehouseIds !== null) {
                     $warehouseIds = array_values(array_unique(array_filter(array_map('intval', $warehouseIds))));
+                    if ($warehouseIds === []) {
+                        return false;
+                    }
+
                     $permission = match ($resource) {
                         'inventories', 'inventory_movements', 'inventory_location_balances' =>
                             $actions[$ability] === 'view' ? 'view' : 'inventory.manage',

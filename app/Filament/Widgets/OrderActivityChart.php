@@ -26,7 +26,7 @@ class OrderActivityChart extends ChartWidget
         $start = now()->subDays(13)->startOfDay();
         $end = now()->endOfDay();
 
-        $orders = Order::query()
+        $orders = Order::query()->accessibleTo(auth()->user())
             ->whereBetween('placed_at', [$start, $end])
             ->selectRaw('DATE(placed_at) as order_date, COUNT(*) as total')
             ->groupBy('order_date')

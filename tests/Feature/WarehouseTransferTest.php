@@ -215,4 +215,36 @@ class WarehouseTransferTest extends TestCase
         $this->assertSame(10, $data['inventory']->fresh()->quantity_on_hand);
         $this->assertSame(0, $data['transfer']->items()->first()->quantity_dispatched);
     }
+
+    public function test_replenishment_request_uses_existing_transfer_approval_flow_without_moving_stock(): void
+    {
+        $source = Warehouse::primary();
+        $destination = $this->warehouse('RESTOCK-'.strtoupper(uniqid()));
+        $product = $this->product();
+        $inventory = app(InventoryService::class)->setOnHand($product, 15, reason: 'Stock disponible', warehouse: $source);
+        $sourceLocation = $source->locations()->where('type', WarehouseLocation::TYPE_UNASSIGNED)->firstOrFail();
+        $destinationLocation = $this->bin($destination, 'RESTOCK-BIN-'.strtoupper(uniqid()));
+        $requester = User::factory()->create();
+        $this->grantTransferAccess($requester, $source, $destination);
+
+        $transfer = app(WarehouseTransferService::class)->create(
+            $source,
+            $destination,
+            [[
+                'inventory_id' => $inventory->id,
+                'source_location_id' => $sourceLocation->id,
+                'destination_location_id' => $destinationLocation->id,
+                'quantity' => 7,
+            ]],
+            $requester->id,
+            'Reposición por umbral de stock bajo',
+            'replenishment',
+        );
+
+        $this->assertSame('replenishment', $transfer->transfer_type);
+        $this->assertSame(WarehouseTransfer::STATUS_PENDING_APPROVAL, $transfer->status);
+        $this->assertSame(15, $inventory->fresh()->quantity_on_hand);
+        $this->assertSame(7, $transfer->items()->first()->quantity_requested);
+    }
+
 }

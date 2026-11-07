@@ -53,7 +53,8 @@ return [
         WarehouseTransferRule::class => 'warehouse_transfer_rules',
         PosLocation::class => 'pos_locations',
         PosTerminal::class => 'pos_terminals',
-        PosCashSession::class => 'pos_cash_sessions',\n        PosCashSession::class => 'pos_cash_sessions',
+        PosCashSession::class => 'pos_cash_sessions',
+        PosCashSession::class => 'pos_cash_sessions',
     ],
 
     'permissions' => [

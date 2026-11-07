@@ -54,7 +54,7 @@ class PosRefundService
 
             $payments = Payment::query()
                 ->where('order_id', $lockedOrder->id)
-                ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_PARTIALLY_REFUNDED])
+                ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_PARTIALLY_REFUNDED, Payment::STATUS_REFUNDED])
                 ->orderBy('id')->lockForUpdate()->get();
 
             if ($payments->isEmpty() || $payments->contains(fn (Payment $payment): bool => ! in_array($payment->driver, ['cash_on_delivery', 'zelle_manual'], true))) {
@@ -102,19 +102,49 @@ class PosRefundService
             }
 
             $alreadyRefundedAmount = (int) PosRefund::query()
-                ->where('payment_id', $payment->id)
+                ->where('order_id', $lockedOrder->id)
                 ->where('status', 'completed')
                 ->sum('amount');
+            $originalPaidAmount = (int) $payments->sum('amount');
 
-            if ($refundAmount <= 0 || $alreadyRefundedAmount + $refundAmount > $payment->amount) {
-                throw ValidationException::withMessages(['amount' => 'El importe acumulado de las devoluciones no puede superar el pago original.']);
+            if ($refundAmount <= 0 || $alreadyRefundedAmount + $refundAmount > $originalPaidAmount) {
+                throw ValidationException::withMessages(['amount' => 'El importe acumulado de las devoluciones no puede superar los pagos originales.']);
+            }
+
+            $paymentAllocations = [];
+            $remainingRefund = $refundAmount;
+            foreach ($payments as $index => $paymentPart) {
+                $alreadyForPayment = (int) \App\Models\PosRefundPayment::query()->where('payment_id', $paymentPart->id)->sum('amount');
+                $available = max(0, (int) $paymentPart->amount - $alreadyForPayment);
+                $target = $index === $payments->count() - 1
+                    ? $remainingRefund
+                    : intdiv($refundAmount * (int) $paymentPart->amount, max(1, $originalPaidAmount));
+                $allocated = min($available, $target, $remainingRefund);
+                $paymentAllocations[] = ['payment' => $paymentPart, 'amount' => $allocated];
+                $remainingRefund -= $allocated;
+            }
+            if ($remainingRefund > 0) {
+                foreach ($paymentAllocations as $index => $allocation) {
+                    $part = $allocation['payment'];
+                    $alreadyForPayment = (int) \App\Models\PosRefundPayment::query()->where('payment_id', $part->id)->sum('amount');
+                    $available = max(0, (int) $part->amount - $alreadyForPayment - $allocation['amount']);
+                    $extra = min($available, $remainingRefund);
+                    $paymentAllocations[$index]['amount'] += $extra;
+                    $remainingRefund -= $extra;
+                    if ($remainingRefund === 0) break;
+                }
+            }
+            if ($remainingRefund > 0) {
+                throw ValidationException::withMessages(['amount' => 'No se pudo distribuir el reembolso entre los pagos originales.']);
             }
 
             $refund = PosRefund::query()->create([
                 'order_id' => $lockedOrder->id,
-                'payment_id' => $payment->id,
+                'payment_id' => $payments->first()->id,
                 'pos_cash_session_id' => $lockedSession->id,
                 'processed_by' => $cashierId,
+                'approved_by' => $approver->id,
+                'approved_at' => now(),
                 'amount' => $refundAmount,
                 'currency' => $lockedOrder->currency,
                 'status' => 'completed',
@@ -216,41 +246,57 @@ class PosRefundService
                 ]);
             }
 
-            $newPaymentStatus = $alreadyRefundedAmount + $refundAmount === (int) $payment->amount
-                ? Payment::STATUS_REFUNDED
-                : Payment::STATUS_PARTIALLY_REFUNDED;
+            $cashRefundAmount = 0;
+            foreach ($paymentAllocations as $allocation) {
+                $paymentPart = $allocation['payment'];
+                $partAmount = (int) $allocation['amount'];
+                if ($partAmount <= 0) continue;
 
-            $previousPaymentStatus = $payment->status;
-            $payment->update([
-                'status' => $newPaymentStatus,
-                'reviewed_by' => $cashierId,
-                'reviewed_at' => now(),
-                'review_note' => 'Reembolso POS '.$refund->id.': '.trim($reason),
-            ]);
+                \App\Models\PosRefundPayment::query()->create([
+                    'pos_refund_id' => $refund->id,
+                    'payment_id' => $paymentPart->id,
+                    'driver' => $paymentPart->driver,
+                    'amount' => $partAmount,
+                    'currency' => $paymentPart->currency,
+                    'reference' => $paymentPart->driver === 'zelle_manual' ? $paymentPart->reference : null,
+                ]);
 
-            PaymentEvent::query()->create([
-                'payment_id' => $payment->id,
-                'from_status' => $previousPaymentStatus,
-                'to_status' => $newPaymentStatus,
-                'actor_id' => $cashierId,
-                'note' => 'Reembolso POS '.$refund->id.': '.trim($reason),
-                'metadata' => ['refund_id' => $refund->id, 'amount' => $refundAmount, 'cash_session_id' => $lockedSession->id],
-            ]);
+                $alreadyForPayment = (int) \App\Models\PosRefundPayment::query()->where('payment_id', $paymentPart->id)->sum('amount');
+                $newPaymentStatus = $alreadyForPayment >= (int) $paymentPart->amount
+                    ? Payment::STATUS_REFUNDED
+                    : Payment::STATUS_PARTIALLY_REFUNDED;
+                $previousPaymentStatus = $paymentPart->status;
+                $paymentPart->update(['status' => $newPaymentStatus, 'reviewed_by' => $approver->id, 'reviewed_at' => now()]);
+                PaymentEvent::query()->create([
+                    'payment_id' => $paymentPart->id,
+                    'from_status' => $previousPaymentStatus,
+                    'to_status' => $newPaymentStatus,
+                    'actor_id' => $approver->id,
+                    'note' => 'Reembolso POS '.$refund->id.' aprobado por '.$approver->name,
+                    'metadata' => ['refund_id' => $refund->id, 'amount' => $partAmount, 'refund_driver' => $paymentPart->driver],
+                ]);
 
-            $lockedOrder->update(['payment_status' => $newPaymentStatus]);
+                if ($paymentPart->driver === 'cash_on_delivery') {
+                    $cashRefundAmount += $partAmount;
+                    $lockedSession->movements()->create([
+                        'payment_id' => $paymentPart->id,
+                        'pos_refund_id' => $refund->id,
+                        'user_id' => $cashierId,
+                        'type' => PosCashMovement::TYPE_REFUND,
+                        'amount' => $partAmount,
+                        'currency' => $paymentPart->currency,
+                        'reference' => (string) $refund->id,
+                        'note' => trim($reason),
+                        'metadata' => ['approved_by' => $approver->id, 'original_payment_id' => $paymentPart->id],
+                    ]);
+                }
+            }
 
-            $lockedSession->movements()->create([
-                'payment_id' => $payment->id,
-                'pos_refund_id' => $refund->id,
-                'user_id' => $cashierId,
-                'type' => PosCashMovement::TYPE_REFUND,
-                'amount' => $refundAmount,
-                'currency' => $lockedOrder->currency,
-                'reference' => (string) $refund->id,
-                'note' => trim($reason),
-            ]);
+            $totalRefundedForOrder = (int) PosRefund::query()->where('order_id', $lockedOrder->id)->where('status', 'completed')->sum('amount');
+            $lockedOrder->update(['payment_status' => $totalRefundedForOrder >= $originalPaidAmount
+                ? Payment::STATUS_REFUNDED : Payment::STATUS_PARTIALLY_REFUNDED]);
 
-            return $refund->load(['items.orderItem', 'payment', 'session', 'processor']);
+            return $refund->load(['items.orderItem', 'payment', 'payments.payment', 'session', 'processor', 'approver']);
         });
     }
 }

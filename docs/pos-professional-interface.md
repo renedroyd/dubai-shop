@@ -150,9 +150,19 @@ PR #61, #62 y #63 integran los bloques de devoluciones/reembolsos, disposición 
 - Un usuario con permiso `pos_cash_sessions.approve_close` y acceso operativo al almacén debe aprobar el cierre. El solicitante no puede aprobar su propia solicitud. Se auditan solicitante, aprobador, importes y diferencia.
 - Las sesiones pendientes de aprobación no se consideran cierres definitivos en los informes de diferencias de caja.
 
-## POS-16B — alertas de inventario y reposición (en implementación)
+## POS-16B — alertas de inventario y reposición (integrado en main)
 
 - Umbral mínimo configurable por existencia de producto/variante y almacén; si no se define, se usa 5 unidades.
 - Alertas de existencias disponibles bajas, restando reservas y bloqueos.
 - Solicitudes de reposición desde la existencia con stock bajo, seleccionando origen, ubicaciones y cantidad; se crean como transferencias `replenishment` con las reglas de aprobación ya configuradas.
 - Crear la solicitud no mueve ni reserva inventario. El stock se descuenta únicamente al despachar una transferencia aprobada.
+
+
+## POS-16C — seguimiento de transferencias e incidencias (en implementación)
+
+- Página Filament de seguimiento con totales por estado y resumen de transferencias activas/en tránsito.
+- Últimas 30 transferencias con origen, destino, tipo, solicitante, fecha y último evento registrado.
+- Panel de incidencias recientes para transferencias rechazadas y unidades dañadas.
+- Conteo de transferencias entrantes y salientes por almacén.
+- Acceso limitado a usuarios con `pos_reports.view` y `reports.view` en los dos almacenes implicados.
+- No duplica ni modifica la lógica existente de aprobaciones, despacho, recepción o inventario.

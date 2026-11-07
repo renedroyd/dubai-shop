@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\User;
 use App\Models\Warehouse;
+use App\Models\WarehouseUserAccess;
 use App\Services\Inventory\InventoryService;
 use App\Services\Pos\PosCashSessionService;
 use App\Services\Pos\PosSaleService;

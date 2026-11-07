@@ -176,3 +176,8 @@ Todos los bloques POS-1 a POS-16 están integrados en `main` (PR #49–69). El C
 ### POS-16D — indicadores operativos por establecimiento (en implementación)
 
 Dashboard filtrable por período que agrupa resultados por establecimiento: pedidos y ventas por moneda, reembolsos por moneda, terminales activos, sesiones de caja, cajas abiertas y cierres pendientes de aprobación. La autorización se calcula a partir de los almacenes accesibles con `reports.view`; no se exponen establecimientos ajenos al ámbito del usuario ni se agregan importes de monedas diferentes.
+
+
+### Corrección POS — límites de efectivo por moneda
+
+Los límites de efectivo se configuran independientemente para CUP, USD y EUR en cada terminal. El servicio valida el fondo inicial, entradas manuales y ventas que realmente cobran efectivo contra el límite de la moneda de la sesión. Los pagos exclusivamente Zelle no afectan el límite. Los valores existentes de `cash_limit_amount` se migran a CUP, la moneda predeterminada inicial del POS; el administrador puede ajustar USD/EUR desde la configuración del terminal.

@@ -4,6 +4,7 @@ namespace App\Services\Payments;
 
 use App\Models\Order;
 use App\Models\Payment;
+use App\Services\Orders\OrderInventoryService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -19,6 +20,9 @@ class PaymentStatusService
                 throw ValidationException::withMessages(['payment' => 'Este pago ya no está disponible para aprobación.']);
             }
 
+            if ($order->channel === 'pos') {
+                app(OrderInventoryService::class)->fulfill($order);
+            }
             $from = $lockedPayment->status;
             $lockedPayment->update([
                 'status' => Payment::STATUS_PAID,
@@ -52,6 +56,10 @@ class PaymentStatusService
                 throw ValidationException::withMessages(['payment' => 'Este pago ya no está disponible para rechazo.']);
             }
 
+            if ($order->channel === 'pos') {
+                app(OrderInventoryService::class)->release($order);
+                $order->update(['status' => Order::STATUS_CANCELLED, 'cancelled_at' => now()]);
+            }
             $from = $lockedPayment->status;
             $lockedPayment->update([
                 'status' => Payment::STATUS_REJECTED,

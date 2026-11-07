@@ -206,16 +206,31 @@
                             </div>
                             <label class="block text-xs font-medium text-gray-500">{{ __('Método de cobro') }}
                                 <select wire:model="paymentMethodId" class="fi-input mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
-                                    @foreach ($methods as $method)
+                                    @foreach ($this->paymentMethods() as $method)
                                         <option value="{{ $method->id }}">{{ $method->name }}</option>
                                     @endforeach
                                 </select>
                             </label>
+                            @if ($this->selectedPaymentMethod()?->driver === 'cash_on_delivery')
                             <label class="block text-xs font-medium text-gray-500">{{ __('Efectivo recibido (opcional; vacío = importe exacto)') }}
                                 <input type="number" min="0.01" step="0.01" wire:model="cashReceivedAmount" placeholder="{{ number_format($this->cartSubtotal() / 100, 2, '.', '') }}" class="fi-input mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
                                 @error('cashReceivedAmount') <p class="mt-1 text-sm text-danger-600">{{ $message }}</p> @enderror
                             </label>
-                            <button type="button" wire:click="completeSale" wire:confirm="{{ __('¿Confirmas el cobro y registro de esta venta?') }}" wire:loading.attr="disabled" @disabled(empty($cartItems) || $methods->isEmpty()) class="fi-btn fi-btn-color-primary w-full justify-center py-3 text-base font-bold disabled:opacity-50">
+                            @elseif ($this->selectedPaymentMethod()?->driver === 'zelle_manual')
+                                <div class="space-y-2 rounded-xl border border-amber-500/30 bg-amber-50/50 p-3 dark:bg-amber-500/5">
+                                    <p class="text-xs font-semibold text-amber-700 dark:text-amber-300">{{ __('Pago Zelle · requiere validación antes de entregar') }}</p>
+                                    <input wire:model="zelleSenderName" placeholder="{{ __('Nombre del remitente') }}" class="fi-input w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                                    <input wire:model="zelleReference" placeholder="{{ __('Referencia de transferencia') }}" class="fi-input w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                                    <input type="date" wire:model="zelleTransferDate" class="fi-input w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                                    <input type="file" wire:model="zelleProof" accept=".jpg,.jpeg,.png,.pdf" class="fi-input w-full text-sm">
+                                    @error('zelleSenderName') <p class="text-sm text-danger-600">{{ $message }}</p> @enderror
+                                    @error('zelleReference') <p class="text-sm text-danger-600">{{ $message }}</p> @enderror
+                                    @error('zelleTransferDate') <p class="text-sm text-danger-600">{{ $message }}</p> @enderror
+                                    @error('zelleProof') <p class="text-sm text-danger-600">{{ $message }}</p> @enderror
+                                    <p class="text-xs text-gray-500">{{ __('El inventario quedará reservado. No se considera pagado hasta su aprobación.') }}</p>
+                                </div>
+                            @endif
+                            <button type="button" wire:click="completeSale" wire:confirm="{{ __('¿Confirmas el cobro y registro de esta venta?') }}" wire:loading.attr="disabled" @disabled(empty($cartItems) || $this->paymentMethods()->isEmpty()) class="fi-btn fi-btn-color-primary w-full justify-center py-3 text-base font-bold disabled:opacity-50">
                                 <x-heroicon-o-banknotes class="h-5 w-5" /> {{ __('Cobrar :total', ['total' => $this->formatMoney($this->cartSubtotal(), $session->currency)]) }}
                             </button>
                             @error('cart') <p class="text-sm text-danger-600">{{ $message }}</p> @enderror

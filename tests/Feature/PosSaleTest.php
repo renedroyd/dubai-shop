@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Inventory;
+use App\Models\Payment;
+use App\Models\Order;
 use App\Models\PaymentMethod;
 use App\Models\PosCashSession;
 use App\Models\PosLocation;
@@ -17,6 +19,8 @@ use App\Services\Inventory\OnlineWarehouseFulfillmentService;
 use App\Services\Pos\PosCashSessionService;
 use App\Services\Pos\PosSaleService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
@@ -151,6 +155,55 @@ class PosSaleTest extends TestCase
             $this->assertDatabaseCount('orders', 0);
             $this->assertDatabaseCount('payments', 0);
         }
+    }
+
+    public function test_pos_zelle_sale_reserves_stock_until_payment_is_approved(): void
+    {
+        Storage::fake('local');
+        $user = User::factory()->create();
+        $session = $this->openSession($user, 'USD');
+        $product = $this->product('USD');
+        $inventory = app(InventoryService::class)->setOnHand($product, 5, reason: 'Carga inicial');
+        $method = PaymentMethod::query()->where('driver', 'zelle_manual')->firstOrFail();
+        $method->update(['is_enabled' => true]);
+        $order = app(PosSaleService::class)->sell($session, $user->id, [['product_id' => $product->id, 'quantity' => 2]], $method->id, [], [
+            'sender_name' => 'Cliente POS', 'reference' => 'ZELLE-POS-TEST',
+            'transfer_date' => now()->toDateString(),
+            'proof' => UploadedFile::fake()->create('proof.pdf', 40, 'application/pdf'),
+        ]);
+        $payment = $order->payments()->firstOrFail();
+        $this->assertSame(Order::STATUS_PENDING, $order->status);
+        $this->assertSame('awaiting_review', $order->payment_status);
+        $this->assertSame(Payment::STATUS_AWAITING_REVIEW, $payment->status);
+        $this->assertSame(2, $inventory->fresh()->quantity_reserved);
+        $this->assertSame(5, $inventory->fresh()->quantity_on_hand);
+        $this->assertDatabaseMissing('pos_cash_movements', ['payment_id' => $payment->id]);
+        Storage::disk('local')->assertExists($payment->proof_path);
+        app(\App\Services\Payments\PaymentStatusService::class)->approve($payment, $user->id, 'Verificado');
+        $this->assertSame(Order::STATUS_CONFIRMED, $order->fresh()->status);
+        $this->assertSame(0, $inventory->fresh()->quantity_reserved);
+        $this->assertSame(3, $inventory->fresh()->quantity_on_hand);
+    }
+
+    public function test_rejected_pos_zelle_payment_releases_stock_and_cancels_order(): void
+    {
+        Storage::fake('local');
+        $user = User::factory()->create();
+        $session = $this->openSession($user, 'USD');
+        $product = $this->product('USD');
+        $inventory = app(InventoryService::class)->setOnHand($product, 5, reason: 'Carga inicial');
+        $method = PaymentMethod::query()->where('driver', 'zelle_manual')->firstOrFail();
+        $method->update(['is_enabled' => true]);
+        $order = app(PosSaleService::class)->sell($session, $user->id, [['product_id' => $product->id, 'quantity' => 1]], $method->id, [], [
+            'sender_name' => 'Cliente POS', 'reference' => 'ZELLE-POS-REJECT',
+            'transfer_date' => now()->toDateString(),
+            'proof' => UploadedFile::fake()->create('proof.pdf', 40, 'application/pdf'),
+        ]);
+        $payment = $order->payments()->firstOrFail();
+        app(\App\Services\Payments\PaymentStatusService::class)->reject($payment, $user->id, 'No coincide la referencia');
+        $this->assertSame(Order::STATUS_CANCELLED, $order->fresh()->status);
+        $this->assertSame(0, $inventory->fresh()->quantity_reserved);
+        $this->assertSame(5, $inventory->fresh()->quantity_on_hand);
     }
 
     public function test_pos_sale_supports_variant_inventory_and_uses_variant_price(): void

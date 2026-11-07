@@ -22,6 +22,11 @@ class Inventory extends Model
         ];
     }
 
+    public function scopeAccessibleTo(Builder $query, User $user): Builder
+    {
+        return $query->whereIn('warehouse_id', $user->warehouseIdsWithPermission('view'));
+    }
+
     public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);

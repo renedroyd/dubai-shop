@@ -147,7 +147,7 @@ class PosCashSessionResource extends Resource
             Action::make('open')->label(__('Abrir caja'))->icon('heroicon-o-lock-open')->authorize('create')
                 ->form([
                     Select::make('pos_terminal_id')->label(__('Terminal'))
-                        ->options(fn () => PosTerminal::query()->where('is_active', true)->whereHas('location', fn ($q) => $q->where('is_active', true))->whereHas('warehouse', fn ($q) => $q->where('is_active', true))->whereIn('warehouse_id', auth()->user()?->warehouseIdsWithPermission('pos.operate') ?? [])->orderBy('name')->get()
+                        ->options(fn () => PosTerminal::query()->where('is_active', true)->whereHas('location', fn ($q) => $q->where('is_active', true))->whereHas('warehouse', fn ($q) => $q->where('is_active', true))->whereIn('warehouse_id', auth()->user()?->warehouseIdsWithPermission('pos.operate') ?? [])->whereDoesntHave('cashSessions', fn ($query) => $query->where('status', PosCashSession::STATUS_OPEN)->whereNull('closed_at'))->orderBy('name')->get()
                             ->filter(fn (PosTerminal $terminal): bool => empty($terminal->assigned_cashier_ids)
                                 || in_array((int) auth()->id(), array_map('intval', $terminal->assigned_cashier_ids), true))
                             ->pluck('name', 'id'))

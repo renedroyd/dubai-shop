@@ -34,6 +34,7 @@ class PosCashSession extends Model
     public function closer(): BelongsTo { return $this->belongsTo(User::class, 'closed_by'); }
     public function movements(): HasMany { return $this->hasMany(PosCashMovement::class, 'pos_cash_session_id'); }
     public function orders(): HasMany { return $this->hasMany(Order::class, 'pos_cash_session_id'); }
+    public function refunds(): HasMany { return $this->hasMany(PosRefund::class, 'pos_cash_session_id'); }
 
     public function isOpen(): bool
     {

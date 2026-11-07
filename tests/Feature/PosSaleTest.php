@@ -115,6 +115,26 @@ class PosSaleTest extends TestCase
         }
     }
 
+    public function test_pos_sale_aggregates_duplicate_lines_before_checking_available_stock(): void
+    {
+        $user = User::factory()->create();
+        $session = $this->openSession($user);
+        $product = $this->product();
+        $inventory = app(InventoryService::class)->setOnHand($product, 5, reason: 'Carga inicial');
+        $inventory->update(['quantity_reserved' => 2]);
+
+        $this->expectException(ValidationException::class);
+        app(PosSaleService::class)->sell(
+            $session,
+            $user->id,
+            [
+                ['product_id' => $product->id, 'quantity' => 2],
+                ['product_id' => $product->id, 'quantity' => 2],
+            ],
+            $this->cashMethod()->id,
+        );
+    }
+
     public function test_pos_sale_rejects_currency_mismatch_and_non_cash_methods(): void
     {
         $user = User::factory()->create();

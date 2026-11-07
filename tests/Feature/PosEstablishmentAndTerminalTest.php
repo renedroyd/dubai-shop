@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\PosLocation;
 use App\Models\PosTerminal;
 use App\Models\Warehouse;
-use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
@@ -101,7 +100,7 @@ class PosEstablishmentAndTerminalTest extends TestCase
 
         $this->assertSame(2, PosTerminal::query()->where('code', 'CAJA-01')->count());
 
-        $this->expectException(QueryException::class);
+        $this->expectException(ValidationException::class);
 
         PosTerminal::query()->create([
             'pos_location_id' => $first->id,

@@ -142,7 +142,7 @@ Objetivo: implementar promociones reales sin introducir ambigüedades contables.
 
 ## POS y multi almacén — entregas independientes
 
-<badge color="success">POS-1 a POS-5 integrados</badge> <badge color="info">POS-6 en desarrollo</badge>
+<badge color="success">POS-1 a POS-6 integrados</badge> <badge color="info">POS-7 en desarrollo</badge>
 
 El POS funcionará siempre conectado al servidor. No se desarrollará modo offline. Decisiones aprobadas: ubicaciones internas flexibles (área/pasillo/estantería/posición), existencias independientes por almacén y aprobación configurable de transferencias.
 
@@ -151,11 +151,11 @@ El POS funcionará siempre conectado al servidor. No se desarrollará modo offli
 3. **POS-3 — Existencias por ubicación:** saldos por posición, ajustes, conciliación y auditoría. Integrado en PR #41.
 4. **POS-4 — Transferencias:** reglas por almacén, tipo, cantidad y roles; aprobaciones múltiples, despacho, tránsito, recepción parcial y diferencias. Integrado en PR #42.
 5. **POS-5 — Abastecimiento web:** almacenes permitidos, prioridad, reservas, preferencia por un único almacén y distribución de respaldo. Integrado en PR #43.
-6. **POS-6 — Terminales:** establecimientos, terminales y asignación de almacén. En desarrollo.
-7. **POS-7 — Operación POS:** ventas integradas con Orders/Payments, cajas, arqueos, recibos y devoluciones.
+6. **POS-6 — Terminales:** establecimientos, terminales y asignación de almacén. Integrado en PR #44.
+7. **POS-7 — Operación POS:** ventas integradas con Orders/Payments, sesiones de caja, arqueos, recibos y devoluciones. En implementación: ventas de efectivo, movimientos y cierre/conciliación de caja; devoluciones pendientes.
 8. **POS-8 — Seguridad y aceptación:** permisos por almacén, informes y pruebas concurrentes web/POS.
 
-No habilitar ventas POS ni asignación de stock web a almacenes secundarios hasta completar las reglas de asignación, reservas y seguridad. Cada entrega se desarrolla en rama propia y se integra solo con aprobación explícita.
+El POS permanece conectado al servidor. Las ventas de la primera entrega usan el almacén asignado al terminal y un método de cobro en efectivo habilitado; la operación completa (devoluciones, permisos por almacén y aceptación integral) sigue pendiente. Cada entrega se desarrolla en rama propia y se integra solo con aprobación explícita.
 
 ## Cómo se acepta una fase
 

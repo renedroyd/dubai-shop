@@ -322,16 +322,28 @@ class PosSales extends Page
         $session = $this->currentSession();
         if (! $session) return collect();
 
+        $recentPosOrders = fn (Builder $query) => $query
+            ->where('channel', 'pos')
+            ->where('pos_warehouse_id', $session->terminal->warehouse_id)
+            ->where('placed_at', '>=', now()->subDays(90));
+
         return User::query()
             ->where('is_admin', false)
             ->where('admin_access_enabled', false)
-            ->withCount(['orders as pos_orders_count' => fn (Builder $query) => $query
-                ->where('channel', 'pos')
-                ->where('pos_warehouse_id', $session->terminal->warehouse_id)
-                ->where('placed_at', '>=', now()->subDays(90))])
-            ->having('pos_orders_count', '>', 0)
+            ->whereHas('orders', $recentPosOrders)
+            ->withCount(['orders as pos_orders_count' => $recentPosOrders])
             ->orderByDesc('pos_orders_count')->orderBy('name')->limit(5)
             ->get(['id', 'name', 'email']);
+    }
+
+    public function updatedCustomerSearch(string $value): void
+    {
+        if ($this->customerUserId && $value !== $this->customerName) {
+            $this->customerUserId = null;
+            $this->customerName = '';
+            $this->customerPhone = '';
+            $this->customerEmail = '';
+        }
     }
 
     public function selectCustomer(int $userId): void

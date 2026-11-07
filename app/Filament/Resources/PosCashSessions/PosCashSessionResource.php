@@ -71,7 +71,7 @@ class PosCashSessionResource extends Resource
         ])->defaultSort('opened_at', 'desc')->recordActions([
             Action::make('sell')->label(__('Registrar venta'))->icon('heroicon-o-shopping-cart')->color('success')
                 ->authorize('update')
-                ->visible(fn (PosCashSession $record): bool => $record->isOpen())
+                ->visible(fn (PosCashSession $record): bool => $record->isOpen() && self::isAssignedCashier($record))
                 ->form([
                     Repeater::make('items')->label(__('Productos'))->schema([
                         Select::make('product_id')->label(__('Producto'))
@@ -166,6 +166,13 @@ class PosCashSessionResource extends Resource
                     $data['shift_label'] ?? null,
                 )),
         ]);
+    }
+
+    private static function isAssignedCashier(PosCashSession $record): bool
+    {
+        $assignedIds = array_map('intval', $record->terminal?->assigned_cashier_ids ?? []);
+
+        return $assignedIds === [] || in_array((int) auth()->id(), $assignedIds, true);
     }
 
     public static function getPages(): array

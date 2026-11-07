@@ -17,6 +17,7 @@ use App\Models\ProductVariant;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -53,8 +54,19 @@ class PosSaleService
             }
 
             $method = PaymentMethod::query()->whereKey($paymentMethodId)->where('is_enabled', true)->first();
-            if (! $method || $method->driver !== 'cash_on_delivery') {
-                throw ValidationException::withMessages(['payment_method_id' => 'En esta versión del POS solo se admite un método de cobro inmediato en efectivo habilitado.']);
+            if (! $method || ! in_array($method->driver, ['cash_on_delivery', 'zelle_manual'], true)) {
+                throw ValidationException::withMessages(['payment_method_id' => 'Selecciona un método de pago POS habilitado.']);
+            }
+            $requiresReview = $method->driver === 'zelle_manual';
+            if ($requiresReview) {
+                $proof = $paymentDetails['proof'] ?? null;
+                if ($lockedSession->currency !== 'USD') {
+                    throw ValidationException::withMessages(['payment_method_id' => 'Zelle solo está disponible para ventas en USD.']);
+                }
+                if (! filled($paymentDetails['reference'] ?? null) || ! filled($paymentDetails['sender_name'] ?? null)
+                    || ! filled($paymentDetails['transfer_date'] ?? null) || ! is_object($proof) || ! method_exists($proof, 'getRealPath')) {
+                    throw ValidationException::withMessages(['paymentDetails' => 'Para registrar Zelle indica remitente, referencia, fecha y adjunta el comprobante.']);
+                }
             }
 
             $cashReceived = (int) ($paymentDetails['cash_received_amount'] ?? 0);
@@ -156,11 +168,11 @@ class PosSaleService
                 'shipping_amount' => 0,
                 'tax_amount' => 0,
                 'total_amount' => $subtotal,
-                'status' => Order::STATUS_CONFIRMED,
-                'payment_status' => 'paid',
+                'status' => $requiresReview ? Order::STATUS_PENDING : Order::STATUS_CONFIRMED,
+                'payment_status' => $requiresReview ? 'awaiting_review' : 'paid',
                 'placed_at' => now(),
-                'confirmed_at' => now(),
-                'inventory_processed_at' => now(),
+                'confirmed_at' => $requiresReview ? null : now(),
+                'inventory_processed_at' => $requiresReview ? null : now(),
             ]));
 
             foreach ($prepared as $line) {
@@ -187,6 +199,19 @@ class PosSaleService
                     continue;
                 }
 
+                if ($requiresReview) {
+                    $inventory->increment('quantity_reserved', $quantity);
+                    InventoryMovement::query()->create([
+                        'inventory_id' => $inventory->id,
+                        'user_id' => $cashierId,
+                        'type' => 'reservation',
+                        'quantity_delta' => -$quantity,
+                        'reason' => 'Reserva POS pendiente de validar Zelle '.$order->number,
+                        'reference_type' => Order::class,
+                        'reference_id' => $order->id,
+                        'metadata' => ['channel' => 'pos', 'terminal_id' => $terminal->id, 'order_item_id' => $orderItem->id],
+                    ]);
+                } else {
                 $remaining = $quantity;
                 $allocations = [];
                 foreach ($inventory->locationBalances as $balance) {
@@ -220,35 +245,43 @@ class PosSaleService
                     'reference_id' => $order->id,
                     'metadata' => ['channel' => 'pos', 'terminal_id' => $terminal->id, 'order_item_id' => $orderItem->id, 'location_allocations' => $allocations],
                 ]);
+                }
             }
 
+            $proofPath = $requiresReview ? Storage::disk('local')->putFile('payment-proofs/pos', $paymentDetails['proof']) : null;
             $payment = Payment::query()->create([
                 'order_id' => $order->id,
                 'payment_method_id' => $method->id,
                 'driver' => $method->driver,
-                'status' => Payment::STATUS_PAID,
+                'status' => $requiresReview ? Payment::STATUS_AWAITING_REVIEW : Payment::STATUS_PAID,
                 'amount' => $subtotal,
                 'currency' => $currency,
-                'reviewed_by' => $cashierId,
-                'reviewed_at' => now(),
-                'review_note' => 'Cobro registrado en terminal POS.',
+                'reference' => $requiresReview ? trim((string) $paymentDetails['reference']) : null,
+                'proof_path' => $proofPath,
+                'reviewed_by' => $requiresReview ? null : $cashierId,
+                'reviewed_at' => $requiresReview ? null : now(),
+                'review_note' => $requiresReview ? null : 'Cobro registrado en terminal POS.',
                 'metadata' => [
                     'channel' => 'pos',
                     'terminal_id' => $terminal->id,
-                    'cash_received_amount' => $cashReceived,
-                    'change_amount' => max(0, $cashReceived - $subtotal),
+                    'cash_session_id' => $lockedSession->id,
+                    'sender_name' => $requiresReview ? trim((string) $paymentDetails['sender_name']) : null,
+                    'transfer_date' => $requiresReview ? $paymentDetails['transfer_date'] : null,
+                    'cash_received_amount' => $requiresReview ? null : $cashReceived,
+                    'change_amount' => $requiresReview ? null : max(0, $cashReceived - $subtotal),
                 ],
             ]);
 
             PaymentEvent::query()->create([
                 'payment_id' => $payment->id,
-                'from_status' => Payment::STATUS_PENDING,
-                'to_status' => Payment::STATUS_PAID,
+                'from_status' => null,
+                'to_status' => $requiresReview ? Payment::STATUS_AWAITING_REVIEW : Payment::STATUS_PAID,
                 'actor_id' => $cashierId,
-                'note' => 'Cobro de venta POS.',
+                'note' => $requiresReview ? 'Pago Zelle POS pendiente de validación.' : 'Cobro de venta POS.',
                 'metadata' => ['channel' => 'pos', 'cash_session_id' => $lockedSession->id],
             ]);
 
+            if (! $requiresReview) {
             $lockedSession->movements()->create([
                 'payment_id' => $payment->id,
                 'user_id' => $cashierId,
@@ -258,6 +291,7 @@ class PosSaleService
                 'reference' => $order->number,
                 'note' => 'Cobro de venta POS.',
             ]);
+            }
 
             return $order->load(['items', 'payments.method', 'posTerminal', 'posCashSession']);
         });

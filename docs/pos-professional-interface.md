@@ -35,3 +35,8 @@ La pantalla ofrece flujo táctil adaptable a escritorio/tablet y conserva el lis
 Primera entrega: el cobro en efectivo admite registrar el importe recibido. El cambio se calcula en unidades menores (centavos) y queda como metadato auditable del pago. El movimiento de caja registra únicamente el importe neto de la venta, nunca el efectivo entregado por el cliente; por tanto, el cambio no infla el efectivo esperado. Si el campo se deja vacío, se interpreta pago exacto.
 
 La siguiente entrega incorporará Zelle manual en POS, evidencia privada, estados de revisión y reserva de inventario hasta la aprobación. Los pagos mixtos se habilitarán después de cerrar y probar por separado los flujos de efectivo y Zelle.
+
+
+### POS-10 — Zelle manual
+
+El POS ofrece Zelle únicamente en sesiones USD. Para registrar la venta se exige remitente, referencia, fecha y comprobante (PDF/JPG/PNG hasta 5 MB), almacenado en el disco privado local. La orden queda pendiente de revisión y el pago en estado `awaiting_review`; el stock se reserva sin descontarse ni generar movimiento de caja. La aprobación confirma la orden y consume la reserva; el rechazo cancela la orden y libera la reserva. La evidencia no se expone mediante URL pública.

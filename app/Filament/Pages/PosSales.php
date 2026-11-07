@@ -19,9 +19,11 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Livewire\WithFileUploads;
 
 class PosSales extends Page
 {
+    use WithFileUploads;
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-shopping-cart';
     protected static ?int $navigationSort = 4;
     protected string $view = 'filament.pages.pos-sales';
@@ -34,6 +36,10 @@ class PosSales extends Page
     public array $variantSelections = [];
     public ?int $paymentMethodId = null;
     public string $cashReceivedAmount = '';
+    public string $zelleSenderName = '';
+    public string $zelleReference = '';
+    public string $zelleTransferDate = '';
+    public $zelleProof = null;
     public string $customerName = '';
     public string $customerPhone = '';
     public string $customerEmail = '';
@@ -133,11 +139,21 @@ class PosSales extends Page
 
     public function cashPaymentMethods(): Collection
     {
-        return PaymentMethod::query()
-            ->where('is_enabled', true)
-            ->where('driver', 'cash_on_delivery')
-            ->orderBy('sort_order')
-            ->get();
+        return PaymentMethod::query()->where('is_enabled', true)->where('driver', 'cash_on_delivery')->orderBy('sort_order')->get();
+    }
+
+    public function paymentMethods(): Collection
+    {
+        $currency = $this->currentSession()?->currency;
+        return PaymentMethod::query()->where('is_enabled', true)
+            ->whereIn('driver', ['cash_on_delivery', 'zelle_manual'])
+            ->when($currency !== 'USD', fn (Builder $query) => $query->where('driver', '!=', 'zelle_manual'))
+            ->orderBy('sort_order')->get();
+    }
+
+    public function selectedPaymentMethod(): ?PaymentMethod
+    {
+        return $this->paymentMethods()->firstWhere('id', $this->paymentMethodId);
     }
 
     public function categories(): Collection
@@ -419,8 +435,9 @@ class PosSales extends Page
             throw ValidationException::withMessages(['cart' => __('Agrega al menos un producto a la venta.')]);
         }
 
-        if (! $this->paymentMethodId || ! $this->cashPaymentMethods()->contains('id', $this->paymentMethodId)) {
-            throw ValidationException::withMessages(['paymentMethodId' => __('Selecciona un método de cobro en efectivo habilitado.')]);
+        $method = $this->selectedPaymentMethod();
+        if (! $method) {
+            throw ValidationException::withMessages(['paymentMethodId' => __('Selecciona un método de pago habilitado.')]);
         }
 
         $this->validate([
@@ -429,9 +446,25 @@ class PosSales extends Page
             'customerEmail' => ['nullable', 'email', 'max:255'],
         ]);
 
-        $cashReceived = $this->cashReceivedAmount === ''
-            ? $this->cartSubtotal()
-            : $this->parseAmount($this->cashReceivedAmount, 'cashReceivedAmount');
+        $paymentDetails = [];
+        if ($method->driver === 'cash_on_delivery') {
+            $paymentDetails['cash_received_amount'] = $this->cashReceivedAmount === ''
+                ? $this->cartSubtotal()
+                : $this->parseAmount($this->cashReceivedAmount, 'cashReceivedAmount');
+        } else {
+            $this->validate([
+                'zelleSenderName' => ['required', 'string', 'max:255'],
+                'zelleReference' => ['required', 'string', 'max:120'],
+                'zelleTransferDate' => ['required', 'date'],
+                'zelleProof' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+            ]);
+            $paymentDetails = [
+                'sender_name' => $this->zelleSenderName,
+                'reference' => $this->zelleReference,
+                'transfer_date' => $this->zelleTransferDate,
+                'proof' => $this->zelleProof,
+            ];
+        }
 
         $order = app(PosSaleService::class)->sell(
             $session,
@@ -447,16 +480,20 @@ class PosSales extends Page
                 'phone' => $this->customerPhone,
                 'email' => $this->customerEmail,
             ],
-            ['cash_received_amount' => $cashReceived],
+            $paymentDetails,
         );
 
         $this->lastOrderNumber = $order->number;
         $this->cashReceivedAmount = '';
+        $this->zelleSenderName = '';
+        $this->zelleReference = '';
+        $this->zelleTransferDate = '';
+        $this->zelleProof = null;
         $this->clearCart();
 
         Notification::make()
             ->success()
-            ->title(__('Venta registrada correctamente'))
+            ->title($method->driver === 'zelle_manual' ? __('Venta registrada · pago pendiente de validación') : __('Venta registrada correctamente'))
             ->body(__('Pedido :number · :total', [
                 'number' => $order->number,
                 'total' => $this->formatMoney((int) $order->total_amount, $order->currency),

@@ -24,5 +24,6 @@ class PosCashMovement extends Model
 
     public function session(): BelongsTo { return $this->belongsTo(PosCashSession::class, 'pos_cash_session_id'); }
     public function payment(): BelongsTo { return $this->belongsTo(Payment::class); }
+    public function refund(): BelongsTo { return $this->belongsTo(PosRefund::class, 'pos_refund_id'); }
     public function user(): BelongsTo { return $this->belongsTo(User::class); }
 }

@@ -14,6 +14,8 @@ use App\Models\PosCashMovement;
 use App\Models\PosCashSession;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;

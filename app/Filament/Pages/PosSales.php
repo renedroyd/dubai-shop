@@ -334,7 +334,7 @@ class PosSales extends Page
             throw ValidationException::withMessages(['terminalId' => __('Selecciona un terminal autorizado y activo.')]);
         }
 
-        $amount = $this->parseAmount($this->openingAmount, 'openingAmount');
+        $amount = $this->parseAmount($this->openingAmount, 'openingAmount', allowZero: true);
         $session = app(PosCashSessionService::class)->open(
             $terminal,
             auth()->id(),
@@ -409,6 +409,12 @@ class PosSales extends Page
             throw ValidationException::withMessages(['paymentMethodId' => __('Selecciona un método de cobro en efectivo habilitado.')]);
         }
 
+        $this->validate([
+            'customerName' => ['nullable', 'string', 'max:255'],
+            'customerPhone' => ['nullable', 'string', 'max:40'],
+            'customerEmail' => ['nullable', 'email', 'max:255'],
+        ]);
+
         $order = app(PosSaleService::class)->sell(
             $session,
             auth()->id(),
@@ -440,7 +446,13 @@ class PosSales extends Page
 
     public function cashBalance(PosCashSession $session): int
     {
-        $totals = $session->movements()
+        $authorizedSession = $this->openSessions()->firstWhere('id', $session->id);
+
+        if (! $authorizedSession) {
+            abort(403);
+        }
+
+        $totals = $authorizedSession->movements()
             ->selectRaw('COALESCE(SUM(CASE WHEN type IN (?, ?) THEN amount ELSE 0 END), 0) as cash_in', [
                 PosCashMovement::TYPE_CASH_IN, PosCashMovement::TYPE_SALE,
             ])

@@ -23,7 +23,7 @@ class OrderStatusChart extends ChartWidget
 
     protected function getData(): array
     {
-        $statuses = Order::query()
+        $statuses = Order::query()->accessibleTo(auth()->user())
             ->selectRaw('status, COUNT(*) as total')
             ->groupBy('status')
             ->orderBy('status')

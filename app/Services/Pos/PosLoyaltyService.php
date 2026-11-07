@@ -138,6 +138,7 @@ class PosLoyaltyService
             }
 
             $credits = $wallet->entries()
+                ->whereIn('type', ['earn', 'manual_adjustment'])
                 ->where('points_delta', '>', 0)
                 ->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))
                 ->orderByRaw('CASE WHEN expires_at IS NULL THEN 1 ELSE 0 END')
@@ -362,22 +363,66 @@ class PosLoyaltyService
                 throw \Illuminate\Validation\ValidationException::withMessages(['pointsDelta' => 'El ajuste no puede reducir el saldo disponible por debajo de cero.']);
             }
 
-            $entry = $wallet->entries()->create([
-                'actor_id' => $actorId,
-                'type' => 'manual_adjustment',
-                'points_delta' => $pointsDelta,
-                'idempotency_key' => 'manual-loyalty-adjustment:'.\Illuminate\Support\Str::uuid(),
-                'metadata' => [
-                    'reason' => trim($reason),
-                    'balance_before' => $balanceBefore,
-                    'balance_after' => $balanceBefore + $pointsDelta,
-                    'currency' => $currency,
-                ],
-            ]);
+            $adjustmentKey = 'manual-loyalty-adjustment:'.\Illuminate\Support\Str::uuid();
+            $entries = collect();
+
+            if ($pointsDelta > 0) {
+                $entries->push($wallet->entries()->create([
+                    'actor_id' => $actorId,
+                    'type' => 'manual_adjustment',
+                    'points_delta' => $pointsDelta,
+                    'idempotency_key' => $adjustmentKey,
+                    'metadata' => [
+                        'reason' => trim($reason),
+                        'balance_before' => $balanceBefore,
+                        'balance_after' => $balanceBefore + $pointsDelta,
+                        'currency' => $currency,
+                    ],
+                ]));
+            } else {
+                $remaining = abs($pointsDelta);
+                $credits = $wallet->entries()
+                    ->whereIn('type', ['earn', 'manual_adjustment'])
+                    ->where('points_delta', '>', 0)
+                    ->where(fn ($query) => $query->whereNull('expires_at')->orWhere('expires_at', '>', now()))
+                    ->orderByRaw('CASE WHEN expires_at IS NULL THEN 1 ELSE 0 END')
+                    ->orderBy('expires_at')
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->get();
+
+                foreach ($credits as $credit) {
+                    $consumed = (int) $wallet->entries()->where('metadata->source_entry_id', $credit->id)->sum('points_delta');
+                    $availableFromCredit = max(0, (int) $credit->points_delta + $consumed);
+                    $take = min($availableFromCredit, $remaining);
+                    if ($take <= 0) continue;
+
+                    $entries->push($wallet->entries()->create([
+                        'actor_id' => $actorId,
+                        'type' => 'manual_adjustment',
+                        'points_delta' => -$take,
+                        'idempotency_key' => $adjustmentKey.':'.$credit->id,
+                        'expires_at' => $credit->expires_at,
+                        'metadata' => [
+                            'source_entry_id' => $credit->id,
+                            'reason' => trim($reason),
+                            'balance_before' => $balanceBefore,
+                            'balance_after' => $balanceBefore + $pointsDelta,
+                            'currency' => $currency,
+                        ],
+                    ]));
+                    $remaining -= $take;
+                    if ($remaining === 0) break;
+                }
+
+                if ($remaining > 0) {
+                    throw \Illuminate\Validation\ValidationException::withMessages(['pointsDelta' => 'No fue posible asignar el ajuste a los lotes de puntos disponibles.']);
+                }
+            }
 
             $wallet->update(['points_balance' => $wallet->availablePoints()]);
 
-            return $entry;
+            return $entries->first();
         });
     }
 

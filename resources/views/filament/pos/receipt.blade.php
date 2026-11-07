@@ -1,4 +1,11 @@
-<div class="space-y-4 text-sm text-gray-900 dark:text-gray-100">
+<style>
+    @media print {
+        body * { visibility: hidden !important; }
+        #pos-receipt, #pos-receipt * { visibility: visible !important; }
+        #pos-receipt { position: absolute; inset: 0; width: 100%; background: white; color: black; }
+    }
+</style>
+<div id="pos-receipt" class="space-y-4 text-sm text-gray-900 dark:text-gray-100">
     <div class="text-center">
         <h2 class="text-xl font-semibold">Clásico Dubai</h2>
         <p>{{ $order->posTerminal?->location?->name }}</p>

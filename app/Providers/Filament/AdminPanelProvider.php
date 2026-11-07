@@ -31,6 +31,8 @@ class AdminPanelProvider extends PanelProvider
             ->brandName('Clásico Dubai')
             ->brandLogo(asset('images/brand/clasico-dubai.svg'))
             ->brandLogoHeight('2.5rem')
+            ->sidebarCollapsibleOnDesktop()
+            ->spa(hasPrefetching: true)
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->login()
             ->darkMode(isForced: true)
@@ -50,6 +52,10 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::TOPBAR_END,
                 fn () => view('filament.components.locale-switcher'),
+            )
+            ->renderHook(
+                PanelsRenderHook::SIDEBAR_START,
+                fn () => view('filament.components.sidebar-collapsed-logo'),
             )
             ->middleware([
                 EncryptCookies::class,

@@ -90,7 +90,7 @@
                     <div class="flex flex-col gap-3 sm:flex-row">
                         <label class="relative min-w-0 flex-1">
                             <x-heroicon-o-magnifying-glass class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                            <input type="search" wire:model.live.debounce.300ms="search" placeholder="{{ __('Buscar por nombre o SKU…') }}" class="fi-input w-full rounded-xl border-gray-300 py-3 pl-10 dark:border-gray-700 dark:bg-gray-900">
+                            <input type="search" wire:model.live.debounce.300ms="search" wire:keydown.enter.prevent="scanBarcode" x-ref="posSearch" placeholder="{{ __('Buscar por nombre o SKU…') }}" class="fi-input w-full rounded-xl border-gray-300 py-3 pl-10 dark:border-gray-700 dark:bg-gray-900">
                         </label>
                         <select wire:model.live="categoryId" class="fi-input rounded-xl border-gray-300 dark:border-gray-700 dark:bg-gray-900 sm:w-56">
                             <option value="">{{ __('Todas las categorías') }}</option>

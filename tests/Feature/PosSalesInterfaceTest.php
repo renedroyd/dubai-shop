@@ -78,6 +78,27 @@ class PosSalesInterfaceTest extends TestCase
             ->assertSee('Caja POS');
     }
 
+    public function test_user_with_only_view_permission_cannot_open_a_cash_session_from_the_sales_interface(): void
+    {
+        $role = AdminRole::query()->create([
+            'name' => 'POS solo consulta',
+            'slug' => 'pos-view-only',
+            'permissions' => ['panel.access', 'pos_cash_sessions.view'],
+        ]);
+        $user = User::factory()->create(['admin_access_enabled' => true]);
+        $user->roles()->attach($role);
+        $user->warehouseAccesses()->create([
+            'warehouse_id' => Warehouse::primary()->id,
+            'permissions' => WarehouseUserAccess::PERMISSIONS,
+        ]);
+        $terminal = $this->terminal();
+
+        Livewire::actingAs($user)
+            ->test(PosSales::class)
+            ->call('openCashSession', $terminal->id)
+            ->assertForbidden();
+    }
+
     public function test_cashier_can_register_a_sale_through_the_professional_interface_using_existing_services(): void
     {
         $user = $this->cashier();

@@ -2,15 +2,15 @@
 
 namespace App\Filament\Pages;
 
-use App\Models\InventoryMovement;
 use App\Models\Order;
-use App\Models\PosCashSession;
-use App\Models\PosRefund;
+use App\Models\PosTerminal;
+use App\Models\User;
 use App\Models\Warehouse;
-use App\Models\WarehouseTransfer;
+use App\Services\Pos\PosReportService;
 use Carbon\Carbon;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Builder;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PosReports extends Page
 {
@@ -45,18 +45,109 @@ class PosReports extends Page
     protected function getViewData(): array
     {
         $user = auth()->user();
-        $allowedWarehouseIds = $user?->warehouseIdsWithPermission('reports.view') ?? [];
-        $requestedWarehouseId = request()->integer('warehouse_id') ?: null;
-        $warehouseIds = $requestedWarehouseId && in_array($requestedWarehouseId, $allowedWarehouseIds, true)
-            ? [$requestedWarehouseId]
-            : $allowedWarehouseIds;
+        abort_unless($user, 403);
 
-        $from = request()->query('from', now()->subDays(29)->toDateString());
-        $to = request()->query('to', now()->toDateString());
+        $filters = $this->filtersFromRequest($user);
+        $allowedWarehouseIds = $user->warehouseIdsWithPermission('reports.view');
+        $terminals = PosTerminal::query()
+            ->whereIn('warehouse_id', $allowedWarehouseIds)
+            ->orderBy('name')->get(['id', 'name', 'code', 'warehouse_id']);
+
+        $cashierIds = Order::query()
+            ->where('channel', 'pos')
+            ->whereIn('pos_warehouse_id', $allowedWarehouseIds)
+            ->whereNotNull('cashier_id')
+            ->distinct()->pluck('cashier_id');
+
+        return array_merge(
+            app(PosReportService::class)->build($user, $filters),
+            [
+                'warehouses' => Warehouse::query()->whereIn('id', $allowedWarehouseIds)->orderBy('name')->get(['id', 'name']),
+                'terminals' => $terminals,
+                'cashiers' => User::query()->whereIn('id', $cashierIds)->orderBy('name')->get(['id', 'name']),
+                'filters' => $filters,
+            ],
+        );
+    }
+
+    public function exportCsv(
+        string $from,
+        string $to,
+        ?int $warehouseId = null,
+        ?int $terminalId = null,
+        ?int $cashierId = null,
+        ?string $currency = null,
+    ): StreamedResponse {
+        $user = auth()->user();
+        abort_unless($user && static::canAccess(), 403);
+
+        $filters = $this->sanitizeFilters($user, $from, $to, $warehouseId, $terminalId, $cashierId, $currency);
+        $rows = app(PosReportService::class)->exportRows($user, $filters);
+
+        return response()->streamDownload(function () use ($rows): void {
+            $stream = fopen('php://output', 'w');
+            fwrite($stream, "\xEF\xBB\xBF");
+            fputcsv($stream, [
+                'Pedido', 'Fecha', 'Almacén', 'Terminal', 'Cajero', 'Moneda',
+                'Subtotal', 'Descuentos', 'Total', 'Reembolsos', 'Métodos de pago', 'Estado de pago',
+            ]);
+
+            foreach ($rows->with(['posWarehouse:id,name', 'posTerminal:id,name,code', 'cashier:id,name', 'payments.method', 'posRefunds'])->lazyById(500) as $order) {
+                $refundTotal = $order->posRefunds->where('status', 'completed')->sum('amount');
+                $paymentSummary = $order->payments
+                    ->map(fn ($payment) => ($payment->method?->name ?? $payment->driver).': '.number_format($payment->amount / 100, 2).' '.$payment->currency)
+                    ->implode(' | ');
+
+                fputcsv($stream, [
+                    $order->number,
+                    $order->placed_at?->format('Y-m-d H:i:s'),
+                    $order->posWarehouse?->name,
+                    $order->posTerminal?->name,
+                    $order->cashier?->name,
+                    $order->currency,
+                    number_format($order->subtotal_amount / 100, 2, '.', ''),
+                    number_format($order->discount_amount / 100, 2, '.', ''),
+                    number_format($order->total_amount / 100, 2, '.', ''),
+                    number_format($refundTotal / 100, 2, '.', ''),
+                    $paymentSummary,
+                    $order->payment_status,
+                ]);
+            }
+
+            fclose($stream);
+        }, 'informe-pos-'.now()->format('Ymd-His').'.csv', [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
+    private function filtersFromRequest(User $user): array
+    {
+        return $this->sanitizeFilters(
+            $user,
+            (string) request()->query('from', now()->subDays(29)->toDateString()),
+            (string) request()->query('to', now()->toDateString()),
+            request()->integer('warehouse_id') ?: null,
+            request()->integer('terminal_id') ?: null,
+            request()->integer('cashier_id') ?: null,
+            request()->query('currency'),
+        );
+    }
+
+    private function sanitizeFilters(
+        User $user,
+        string $from,
+        string $to,
+        ?int $warehouseId,
+        ?int $terminalId,
+        ?int $cashierId,
+        ?string $currency,
+    ): array {
+        $allowedWarehouseIds = $user->warehouseIdsWithPermission('reports.view');
+        abort_if($allowedWarehouseIds === [], 403);
 
         try {
-            $fromDate = Carbon::parse($from)->startOfDay();
-            $toDate = Carbon::parse($to)->endOfDay();
+            $fromDate = Carbon::createFromFormat('!Y-m-d', $from)->startOfDay();
+            $toDate = Carbon::createFromFormat('!Y-m-d', $to)->endOfDay();
         } catch (\Throwable) {
             $fromDate = now()->subDays(29)->startOfDay();
             $toDate = now()->endOfDay();
@@ -66,62 +157,40 @@ class PosReports extends Page
             [$fromDate, $toDate] = [$toDate->copy()->startOfDay(), $fromDate->copy()->endOfDay()];
         }
 
-        $sales = Order::query()
+        if ($fromDate->diffInDays($toDate) > 365) {
+            $fromDate = $toDate->copy()->subDays(365)->startOfDay();
+        }
+
+        if (! $warehouseId || ! in_array($warehouseId, $allowedWarehouseIds, true)) {
+            $warehouseId = null;
+        }
+
+        $terminalIds = PosTerminal::query()
+            ->whereIn('warehouse_id', $warehouseId ? [$warehouseId] : $allowedWarehouseIds)
+            ->pluck('id')->all();
+        if (! $terminalId || ! in_array($terminalId, $terminalIds, true)) {
+            $terminalId = null;
+        }
+
+        $cashierIds = Order::query()
             ->where('channel', 'pos')
-            ->whereIn('pos_warehouse_id', $warehouseIds)
-            ->whereBetween('placed_at', [$fromDate, $toDate])
-            ->selectRaw('pos_warehouse_id, currency, COUNT(*) as orders_count, SUM(subtotal_amount) as subtotal_amount, SUM(discount_amount) as discounts_amount, SUM(total_amount) as total_amount')
-            ->groupBy('pos_warehouse_id', 'currency')
-            ->with('posWarehouse:id,name')
-            ->orderBy('pos_warehouse_id')
-            ->get();
+            ->whereIn('pos_warehouse_id', $allowedWarehouseIds)
+            ->whereNotNull('cashier_id')->distinct()->pluck('cashier_id')->all();
+        if (! $cashierId || ! in_array($cashierId, $cashierIds, true)) {
+            $cashierId = null;
+        }
 
-        $refunds = PosRefund::query()
-            ->join('orders', 'orders.id', '=', 'pos_refunds.order_id')
-            ->join('warehouses', 'warehouses.id', '=', 'orders.pos_warehouse_id')
-            ->where('pos_refunds.status', 'completed')
-            ->whereIn('orders.pos_warehouse_id', $warehouseIds)
-            ->whereBetween('pos_refunds.refunded_at', [$fromDate, $toDate])
-            ->selectRaw('orders.pos_warehouse_id, warehouses.name as warehouse_name, pos_refunds.currency, COUNT(pos_refunds.id) as refunds_count, SUM(pos_refunds.amount) as total_amount')
-            ->groupBy('orders.pos_warehouse_id', 'warehouses.name', 'pos_refunds.currency')
-            ->orderBy('orders.pos_warehouse_id')
-            ->get();
-
-        $sessions = PosCashSession::query()
-            ->whereHas('terminal', fn (Builder $query) => $query->whereIn('warehouse_id', $warehouseIds))
-            ->whereBetween('opened_at', [$fromDate, $toDate])
-            ->with('terminal.warehouse:id,name')
-            ->orderByDesc('opened_at')
-            ->get();
-
-        $movements = InventoryMovement::query()
-            ->whereHas('inventory', fn (Builder $query) => $query->whereIn('warehouse_id', $warehouseIds))
-            ->whereBetween('created_at', [$fromDate, $toDate])
-            ->selectRaw('inventory_id, type, SUM(quantity_delta) as quantity_delta, COUNT(*) as movements_count')
-            ->groupBy('inventory_id', 'type')
-            ->with('inventory.warehouse:id,name', 'inventory.product:id,name', 'inventory.variant:id,name')
-            ->orderBy('type')
-            ->get();
-
-        $transfers = WarehouseTransfer::query()
-            ->whereIn('source_warehouse_id', $warehouseIds)
-            ->whereIn('destination_warehouse_id', $warehouseIds)
-            ->whereBetween('requested_at', [$fromDate, $toDate])
-            ->selectRaw('status, COUNT(*) as transfers_count')
-            ->groupBy('status')
-            ->orderBy('status')
-            ->get();
+        if (! in_array($currency, ['CUP', 'USD', 'EUR'], true)) {
+            $currency = null;
+        }
 
         return [
-            'warehouses' => Warehouse::query()->whereIn('id', $allowedWarehouseIds)->orderBy('name')->get(['id', 'name']),
-            'selectedWarehouseId' => $requestedWarehouseId && in_array($requestedWarehouseId, $allowedWarehouseIds, true) ? $requestedWarehouseId : null,
-            'fromDate' => $fromDate->toDateString(),
-            'toDate' => $toDate->toDateString(),
-            'sales' => $sales,
-            'refunds' => $refunds,
-            'sessions' => $sessions,
-            'movements' => $movements,
-            'transfers' => $transfers,
+            'from' => $fromDate->toDateString(),
+            'to' => $toDate->toDateString(),
+            'warehouse_id' => $warehouseId,
+            'terminal_id' => $terminalId,
+            'cashier_id' => $cashierId,
+            'currency' => $currency,
         ];
     }
 }

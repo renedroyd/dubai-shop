@@ -2,7 +2,7 @@
 
 **Corte:** 7 de noviembre de 2026  
 **Rama de referencia:** `main`  
-**Última entrega integrada:** POS-16B — alertas de inventario y reposición (PR #69, integrado). Los bloques POS-1 a POS-16 están integrados.
+**Última entrega integrada:** POS-16B — alertas de inventario y reposición (PR #69, integrado). POS-16C — seguimiento de transferencias e incidencias, en revisión en PR #71.
 
 > Este documento distingue implementación integrada, validación automatizada y aceptación operativa. Que una funcionalidad esté integrada o que CI pase no significa que esté configurada ni aceptada en el entorno real.
 
@@ -107,7 +107,7 @@ Las Fases 1–16 y las mejoras PR #29–37 están integradas. La entrega PR #38 
 
 - POS-1 a POS-10 integrados en main.
 - POS-11 integrado mediante PR #56: búsqueda por nombre/correo/teléfono guardado, alta rápida, asociación de ventas, historial limitado por almacén y clientes frecuentes.
-- POS-1 a POS-16 integrados en main.
+- POS-1 a POS-16 integrados en main. POS-16C está en revisión en `feature/pos-16c-transfer-monitoring`.
 - POS-14A y POS-14B (PR #65–66), POS-15 (PR #67) y POS-16A/16B (PR #68–69) están integrados en main.
 - POS-13 (PR #61–63): autorización por separado para procesar/aprobar devoluciones; reembolsos por los medios originales con distribución proporcional efectivo/Zelle; solo efectivo afecta caja; descuentos respetados; stock devuelto vendible, en cuarentena o desechado; cambios vinculados y diferencia neta; búsqueda de ventas por número, cliente, fecha, terminal y almacén.
 - Los PR #61, #62 y #63 superaron PHP 8.4, PHP 8.5 y Frontend assets antes de integrarse.
@@ -254,3 +254,11 @@ Cada nueva fase se desarrolla en una rama independiente. Antes de implementar, r
 - Verificar asignaciones reales de cajeros, límites de efectivo, cierres supervisados y permisos de aprobación.
 - Probar umbrales, ubicaciones de recepción, solicitudes de reposición, aprobaciones, despacho y recepción en los almacenes reales.
 - La integración y el CI no sustituyen la aceptación física ni la Fase 17 de preparación de producción.
+
+
+### POS-16C — seguimiento de transferencias e incidencias (en revisión)
+- Dashboard de estados, transferencias activas/en tránsito, actividad reciente y últimas incidencias.
+- Conteos de transferencias entrantes/salientes por almacén.
+- Alcance limitado a transferencias donde el usuario tiene `reports.view` en ambos almacenes, además del permiso `pos_reports.view`.
+- Reutiliza eventos existentes de rechazo y daños; no altera stock, aprobación, despacho ni recepción.
+- PR #71: `feature/pos-16c-transfer-monitoring`; CI de PHP 8.4, PHP 8.5 y Frontend assets validado en el head inicial. Requiere sincronizar con `main` y repetir CI antes de integrar.

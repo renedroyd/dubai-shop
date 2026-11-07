@@ -1,7 +1,7 @@
 # Hoja de ruta — Dubai Shop / Clásico Dubai
 
 **Actualizada:** 7 de noviembre de 2026  
-**Base:** Fases 1–16 y POS-1 a POS-16 integrados en main; aceptación operativa de POS y producción real pendiente.
+**Base:** Fases 1–16 y POS-1 a POS-16 integrados; POS-16C de seguimiento de transferencias en implementación. Aceptación operativa y de producción real pendiente.
 
 La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente y nuevas capacidades que requieren decisiones comerciales. La prioridad inmediata es estabilizar y aceptar el despliegue, no añadir integraciones externas sin proveedor o reglas aprobadas.
 
@@ -15,7 +15,7 @@ La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente
 | Experiencia pública y panel premium | Integrados; QA visual final pendiente | Media |
 | Importación Excel/CSV | Integrada; imágenes/variantes excluidas | Media |
 | Seguridad, RBAC y preflight | Integrados en esta entrega; configuración externa pendiente | Crítica |
-| POS y multi almacén | POS-1 a POS-16 integrados; aceptación física/operativa pendiente | Alta |
+| POS y multi almacén | POS-1 a POS-16 integrados; panel de seguimiento de transferencias en implementación | Alta |
 | Asistente de prompts IA para banners | Integrado, flujo manual gratuito | Media |
 | Lanzamiento de producción | No aceptado aún | Crítica |
 
@@ -191,7 +191,7 @@ El POS funcionará siempre conectado al servidor. No se desarrollará modo offli
 13. **POS-13 — Devoluciones y cambios:** integrado en PR #61–63. Incluye autorización por dos usuarios, reembolsos distribuidos entre los medios originales, respeto de descuentos, cuarentena/descarte de artículos y registro vinculado de cambios con diferencia neta.
 14. **POS-14 — Impresión y periféricos:** integrado en PR #65–66. Recibos térmicos 58/80 mm, 1–3 copias, códigos de barras, lector tipo teclado e impresión USB/red y gaveta ESC/POS mediante QZ Tray.
 15. **POS-15 — Dashboard e informes avanzados:** integrado en PR #67. Filtros por fecha/almacén/terminal/cajero/moneda; ventas por dimensión; pagos netos por método; margen con costo histórico; diferencias de caja; reembolsos; comparativas y exportación CSV.
-16. **POS-16 — Operación comercial avanzada:** integrado en PR #68–69. Asignación de cajeros y turnos, cierres supervisados, límites de efectivo, umbrales configurables de stock bajo y solicitudes de reposición enlazadas al flujo de transferencias.
+16. **POS-16 — Operación comercial avanzada:** POS-16A/B integrados en PR #68–69: asignación de cajeros y turnos, cierres supervisados, límites de efectivo, umbrales configurables de stock bajo y solicitudes de reposición. POS-16C en implementación en PR #71: seguimiento de transferencias e incidencias.
 
 El POS permanece exclusivamente online, sin modo offline ni sincronización diferida. Las ventas usan el almacén asignado al terminal. El flujo de pagos integrado admite efectivo, Zelle manual en USD y pagos mixtos; cada entrega mantiene la autorización por almacén, integridad transaccional, auditoría y pruebas automatizadas. Cada bloque se desarrolla en una rama propia.
 
@@ -293,3 +293,8 @@ Rama `feature/pos-16b-stock-alerts-replenishment`. Cada existencia por almacén 
 ### Estado final POS-1 a POS-16 — integrado
 
 Los bloques funcionales POS-1 a POS-16 están integrados en `main` mediante ramas y PR independientes. El CI posterior a la integración de POS-16B (PR #69) finalizó correctamente en PHP 8.4, PHP 8.5 y Frontend assets. La aceptación física pendiente incluye instalación y prueba de QZ Tray, impresoras térmicas y gavetas en cada puesto, así como pruebas operativas de cajeros, arqueos, límites y reposición en los almacenes reales. Esto no equivale a aceptación de producción de la tienda completa; la Fase 17 continúa separada y pendiente.
+
+
+### POS-16C — Seguimiento de transferencias e incidencias (en implementación)
+
+PR #71 / rama `feature/pos-16c-transfer-monitoring`. Dashboard Filament con conteos por estado, transferencias activas/en tránsito, últimas 30 transferencias, actor/fecha del último evento, incidencias de rechazos/daños y conteos entrantes/salientes por almacén. El acceso exige `pos_reports.view` y limita las consultas a transferencias donde el usuario tiene `reports.view` en ambos almacenes. Reutiliza estados/eventos existentes sin cambiar reglas de aprobación ni movimientos de inventario.

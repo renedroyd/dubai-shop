@@ -161,3 +161,13 @@ PR #61, #62 y #63 integran los bloques de devoluciones/reembolsos, disposición 
 ## Estado de integración POS-1 a POS-16
 
 Todos los bloques POS-1 a POS-16 están integrados en `main` (PR #49–69). El CI posterior a POS-16B (PR #69) pasó en PHP 8.4, PHP 8.5 y Frontend assets. La aceptación de hardware QZ Tray/impresoras/gavetas y las pruebas operativas de cajas y transferencias deben ejecutarse en las ubicaciones reales; la integración no implica aceptación de producción.
+
+
+## POS-16C — seguimiento de transferencias e incidencias (en revisión, PR #71)
+
+- Dashboard Filament con conteos por estado, transferencias activas/en tránsito y últimas 30 transferencias.
+- Muestra origen/destino, tipo, solicitante, fecha y último evento con actor.
+- Incidencias recientes de transferencias rechazadas y unidades dañadas.
+- Conteos entrantes/salientes por almacén.
+- Requiere `pos_reports.view` y limita resultados a transferencias cuyos dos almacenes están dentro del alcance `reports.view` del usuario.
+- No modifica reglas de aprobación, stock ni el flujo de despacho/recepción.

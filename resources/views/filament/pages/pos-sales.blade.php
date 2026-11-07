@@ -306,6 +306,27 @@
                     <section class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
                         <h3 class="mb-3 text-sm font-semibold">{{ __('Operaciones de caja') }}</h3>
                         <div class="space-y-3">
+                            <section
+                                wire:ignore
+                                id="pos-hardware"
+                                data-printer="{{ $session->terminal->printer_name }}"
+                                data-drawer-enabled="{{ $session->terminal->cash_drawer_enabled ? '1' : '0' }}"
+                                data-drawer-pin="{{ $session->terminal->cash_drawer_pin }}"
+                                class="space-y-2 rounded-xl border border-gray-200 p-3 dark:border-gray-700"
+                            >
+                                <div class="flex items-center justify-between gap-2">
+                                    <p class="text-xs font-semibold">{{ __('Periféricos · QZ Tray') }}</p>
+                                    <span id="pos-hardware-status" class="text-[11px] text-gray-500">{{ __('No conectado') }}</span>
+                                </div>
+                                <p class="text-[11px] text-gray-500">{{ __('Impresora configurada: :printer', ['printer' => $session->terminal->printer_name ?: __('Sin configurar')]) }}</p>
+                                <button type="button" id="pos-qz-connect" class="fi-btn fi-btn-color-gray w-full justify-center">{{ __('Conectar y probar impresora') }}</button>
+                                @if ($session->terminal->cash_drawer_enabled && auth()->user()?->hasAdminPermission('pos_cash_sessions.update'))
+                                    <button type="button" id="pos-qz-drawer" class="fi-btn fi-btn-color-warning w-full justify-center">{{ __('Abrir gaveta (prueba autorizada)') }}</button>
+                                @elseif ($session->terminal->cash_drawer_enabled)
+                                    <p class="text-xs text-warning-600">{{ __('Necesitas permiso de operaciones de caja para abrir la gaveta.') }}</p>
+                                @endif
+                                <p class="text-[10px] text-gray-500">{{ __('QZ Tray debe estar instalado y ejecutándose en esta computadora. La impresión no silenciosa puede solicitar confirmación.') }}</p>
+                            </section>
                             <form wire:submit="recordCashMovement" class="space-y-2">
                                 <select wire:model="cashMovementType" class="fi-input w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
                                     <option value="cash_in">{{ __('Entrada de efectivo') }}</option>
@@ -329,4 +350,74 @@
             </div>
         @endif
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.5/qz-tray.js"></script>
+    <script>
+        (() => {
+            const root = document.getElementById('pos-hardware');
+            if (!root || root.dataset.qzBound === '1') return;
+            root.dataset.qzBound = '1';
+
+            const status = root.querySelector('#pos-hardware-status');
+            const connectButton = root.querySelector('#pos-qz-connect');
+            const drawerButton = root.querySelector('#pos-qz-drawer');
+            const printerName = (root.dataset.printer || '').trim();
+            const drawerEnabled = root.dataset.drawerEnabled === '1';
+            const drawerPin = Number(root.dataset.drawerPin || 0);
+            let connected = false;
+
+            const connect = async () => {
+                if (!window.qz) throw new Error('No se pudo cargar la biblioteca QZ Tray.');
+                if (!connected) {
+                    await qz.websocket.connect({ retries: 2, delay: 1 });
+                    connected = true;
+                }
+                return connected;
+            };
+
+            connectButton?.addEventListener('click', async () => {
+                try {
+                    status.textContent = 'Conectando…';
+                    await connect();
+                    if (!printerName) {
+                        status.textContent = 'QZ Tray conectado · configura una impresora';
+                        return;
+                    }
+                    const printer = await qz.printers.find(printerName);
+                    const config = qz.configs.create(printer, { encoding: 'CP1252' });
+                    await qz.print(config, [
+                        '\\x1B\\x40',
+                        '\\x1B\\x61\\x01',
+                        'CLÁSICO DUBAI\\n',
+                        'PRUEBA DE IMPRESIÓN POS\\n',
+                        new Date().toLocaleString() + '\\n',
+                        '\\n\\n\\n',
+                        '\\x1D\\x56\\x00'
+                    ]);
+                    status.textContent = 'Impresora conectada · prueba enviada';
+                } catch (error) {
+                    connected = false;
+                    status.textContent = 'Error: ' + (error?.message || error);
+                }
+            });
+
+            drawerButton?.addEventListener('click', async () => {
+                if (!drawerEnabled) return;
+                try {
+                    status.textContent = 'Abriendo gaveta…';
+                    await connect();
+                    if (!printerName) throw new Error('Configura primero la impresora del terminal.');
+                    const printer = await qz.printers.find(printerName);
+                    const config = qz.configs.create(printer);
+                    const pulse = drawerPin === 1
+                        ? '\\x1B\\x70\\x01\\x19\\xFA'
+                        : '\\x1B\\x70\\x00\\x19\\xFA';
+                    await qz.print(config, [pulse]);
+                    status.textContent = 'Comando de apertura enviado';
+                } catch (error) {
+                    connected = false;
+                    status.textContent = 'Error: ' + (error?.message || error);
+                }
+            });
+        })();
+    </script>
 </x-filament-panels::page>

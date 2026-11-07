@@ -28,7 +28,7 @@ class DeliveryAttention extends TableWidget
     {
         return $table
             ->query(
-                Order::query()
+                Order::query()->accessibleTo(auth()->user())
                     ->whereNotNull('delivery_due_at')
                     ->where('delivery_due_at', '<', now())
                     ->whereNotIn('status', [Order::STATUS_DELIVERED, Order::STATUS_CANCELLED])

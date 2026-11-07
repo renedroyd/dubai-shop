@@ -52,6 +52,9 @@
                                 <input type="number" min="0" step="0.01" wire:model="openingAmount" class="fi-input mt-1 w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-950">
                                 @error('openingAmount') <p class="mt-1 text-sm text-danger-600">{{ $message }}</p> @enderror
                             </label>
+                            <label class="block text-sm font-medium">{{ __('Turno / jornada') }}
+                                <input type="text" maxlength="120" wire:model="shiftLabel" placeholder="{{ __('Ej. Mañana · Turno 1') }}" class="fi-input mt-1 w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-950">
+                            </label>
                         </div>
                         <button type="submit" class="fi-btn fi-btn-color-primary w-full justify-center" wire:loading.attr="disabled">
                             <x-heroicon-o-lock-open class="h-4 w-4" /> {{ __('Abrir caja y comenzar') }}
@@ -66,7 +69,7 @@
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-[0.18em] text-amber-300">{{ __('Clásico Dubai · Punto de venta') }}</p>
                         <h2 class="text-lg font-semibold">{{ $session->terminal->name }}</h2>
-                        <p class="text-xs text-gray-300">{{ $session->terminal->location->name }} · {{ $session->terminal->warehouse->name }}</p>
+                        <p class="text-xs text-gray-300">{{ $session->terminal->location->name }} · {{ $session->terminal->warehouse->name }} · {{ $session->shift_label ?: __('Turno sin nombre') }}</p>
                     </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-3">

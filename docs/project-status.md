@@ -1,8 +1,8 @@
 # Dubai Shop — Estado del proyecto
 
-**Corte:** 6 de noviembre de 2026  
+**Corte:** 7 de noviembre de 2026  
 **Rama de referencia:** `main`  
-**Última entrega de producto:** PR #38 — Control de acceso administrativo por roles y permisos.
+**Última entrega de producto:** POS-11 — gestión de clientes en el terminal de ventas (PR #56, pendiente de integración).
 
 > Este documento distingue implementación integrada, validación automatizada y aceptación operativa. Que una funcionalidad esté integrada o que CI pase no significa que esté configurada ni aceptada en el entorno real.
 
@@ -102,6 +102,14 @@ Las Fases 1–16 y las mejoras PR #29–37 están integradas. La entrega PR #38 
 - Permite copiar el prompt y abrir ChatGPT.
 - El usuario genera y descarga la imagen desde su cuenta gratuita y luego la carga en el formulario del banner.
 - **No existe llamada desde Laravel a OpenAI API, no se guardan claves y no hay coste de API.** La generación de imagen y la carga final son pasos manuales.
+
+## Estado de POS al 7 de noviembre de 2026
+
+- POS-1 a POS-10 integrados en main.
+- POS-11 en implementación mediante PR #56: búsqueda por nombre/correo/teléfono guardado, alta rápida, asociación de ventas, historial limitado por almacén y clientes frecuentes.
+- POS-12 a POS-16 permanecen planificados según ROADMAP.md.
+- El POS es exclusivamente online. POS-10 admite efectivo, Zelle manual USD y pagos mixtos; los pagos Zelle requieren revisión.
+- CI del PR #56 en el último commit validado: PHP 8.4, PHP 8.5 y Frontend assets — exitosos.
 
 ## 4. Historial de fases e integraciones
 

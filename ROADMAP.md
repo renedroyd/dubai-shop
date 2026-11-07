@@ -1,7 +1,7 @@
 # Hoja de ruta — Dubai Shop / Clásico Dubai
 
 **Actualizada:** 7 de noviembre de 2026  
-**Base:** Fases 1–16 y POS-1 a POS-10 integrados; POS-11 en planificación.
+**Base:** Fases 1–16 y POS-1 a POS-10 integrados; POS-11 en implementación; POS-12 a POS-16 planificados.
 
 La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente y nuevas capacidades que requieren decisiones comerciales. La prioridad inmediata es estabilizar y aceptar el despliegue, no añadir integraciones externas sin proveedor o reglas aprobadas.
 
@@ -172,7 +172,7 @@ Objetivo: implementar promociones reales sin introducir ambigüedades contables.
 
 ## POS y multi almacén — entregas independientes
 
-<badge color="success">POS-1 a POS-9 integrados</badge> <badge color="info">POS-10 en desarrollo</badge>
+<badge color="success">POS-1 a POS-10 integrados</badge> <badge color="info">POS-11 en implementación</badge>
 
 El POS funcionará siempre conectado al servidor. No se desarrollará modo offline. Decisiones aprobadas: ubicaciones internas flexibles (área/pasillo/estantería/posición), existencias independientes por almacén y aprobación configurable de transferencias.
 
@@ -184,9 +184,16 @@ El POS funcionará siempre conectado al servidor. No se desarrollará modo offli
 6. **POS-6 — Terminales:** establecimientos, terminales y asignación de almacén. Integrado en PR #44.
 7. **POS-7 — Operación POS:** ventas integradas con Orders/Payments, sesiones de caja, arqueos, recibos, devoluciones parciales/totales y reposición auditada de inventario. Integrado en PR #45.
 8. **POS-8 — Seguridad y aceptación:** asignación de permisos por usuario/almacén, restricciones en servicios y recursos, informes por almacén y pruebas de contención de inventario entre web y POS. Integrado en PR #47.
-9. **POS-9 — Interfaz profesional de ventas:** pantalla táctil independiente, catálogo por almacén/moneda, variantes, carrito, cobro, operaciones de caja y arqueo reutilizando los servicios POS existentes. En desarrollo en la rama feature/pos-professional-sales-interface.
+9. **POS-9 — Interfaz profesional de ventas:** pantalla táctil independiente, catálogo por almacén/moneda, variantes, carrito, cobro y operaciones de caja reutilizando los servicios POS existentes. Integrado en PR #49; corrección de selección de terminal en PR #50.
+10. **POS-10 — Pagos avanzados:** efectivo con cambio, Zelle manual USD, pagos mixtos, comprobantes privados, revisión, reservas, devoluciones de efectivo y conciliación. Integrado en PR #51–55.
+11. **POS-11 — Clientes y fidelización:** búsqueda por nombre/teléfono/correo, alta rápida, asociación de ventas, historial, clientes frecuentes y preparación para puntos futuros. En implementación en PR #56.
+12. **POS-12 — Promociones, descuentos y precios:** descuentos porcentuales/fijos por producto o venta, precios especiales por cliente, reglas por categoría/marca, autorización, auditoría y control de márgenes/precio mínimo.
+13. **POS-13 — Devoluciones y cambios:** localización de ventas, devoluciones parciales/totales, cambios, reposición según estado del artículo, reembolsos permitidos y autorización especial con trazabilidad.
+14. **POS-14 — Impresión y periféricos:** recibos térmicos configurables de 58/80 mm y copias duplicadas, lectores de códigos, gaveta de efectivo controlada e impresión USB/red mediante solución local.
+15. **POS-15 — Dashboard e informes avanzados:** ventas por establecimiento, terminal, cajero, producto, categoría, marca, moneda y método; margen bruto, diferencias de caja, devoluciones/descuentos, comparativas por período y exportación.
+16. **POS-16 — Operación comercial avanzada:** turnos/cajeros, asignación de terminales, arqueos y cierres supervisados, límites de efectivo, alertas de stock bajo, solicitudes de reposición, seguimiento de transferencias e indicadores por establecimiento.
 
-El POS permanece conectado al servidor. Las ventas usan el almacén asignado al terminal y, en esta primera entrega, un método de cobro en efectivo habilitado. Cada entrega se desarrolla en rama propia y se integra solo con aprobación explícita.
+El POS permanece exclusivamente online, sin modo offline ni sincronización diferida. Las ventas usan el almacén asignado al terminal. El flujo de pagos integrado admite efectivo, Zelle manual en USD y pagos mixtos; cada entrega mantiene la autorización por almacén, integridad transaccional, auditoría y pruebas automatizadas. Cada bloque se desarrolla en una rama propia.
 
 ## Cómo se acepta una fase
 
@@ -199,18 +206,57 @@ El POS permanece conectado al servidor. Las ventas usan el almacén asignado al 
 7. Integrar únicamente después de aprobación explícita del responsable.
 
 
-### POS-10 — Pagos avanzados (en implementación)
+### POS-10 — Pagos avanzados (completada)
 
-Decisiones aprobadas: efectivo, Zelle manual y pagos mixtos; Zelle solo en USD; una sola moneda por venta; no hay conversión automática. Una venta con Zelle pendiente puede registrarse, pero no se considera pagada ni se entrega mercancía hasta la aprobación de un usuario autorizado.
+Integrada en PR #51–55. Admite efectivo con cálculo de cambio, Zelle manual en USD, pagos mixtos, comprobantes privados, aprobación/rechazo, reserva/liberación de inventario y conciliación de caja. La caja registra únicamente el efectivo real; Zelle nunca se contabiliza como efectivo.
 
-Entregas:
-1. Auditoría y reutilización de Payment, PaymentEvent, PaymentDriverManager y OrderInventoryService.
-2. Arquitectura extensible de métodos de pago sin duplicar el dominio existente.
-3. Efectivo recibido, cálculo de cambio y conciliación de caja sobre el neto de la venta.
-4. Zelle manual POS con referencia, remitente, fecha y comprobante privado.
-5. Pagos mixtos con suma exacta, validación de moneda y saldo pendiente controlado.
-6. Aprobación/rechazo con permisos, auditoría y control de concurrencia.
-7. Reserva de inventario mientras Zelle está pendiente; completar al aprobar y liberar al rechazar.
-8. Pruebas de idempotencia, integridad de inventario, caja y documentación.
+### POS-11 — Clientes y fidelización (en implementación)
 
-**Implementado en la primera entrega:** captura del efectivo recibido y cálculo/auditoría del cambio. Pendiente: Zelle POS, pagos mixtos y validación integral de los flujos.
+- Buscar clientes registrados por nombre, teléfono guardado o correo.
+- Registrar rápidamente una cuenta de cliente desde la pantalla POS, sin eliminar el flujo de consumidor ocasional.
+- Asociar ventas a la cuenta existente y conservar snapshots históricos de nombre, teléfono y correo.
+- Consultar las últimas compras que el cajero está autorizado a ver.
+- Identificar clientes frecuentes de los últimos 90 días en el almacén de la caja.
+- Preparar la evolución de fidelización/puntos; no acumular ni canjear puntos hasta definir reglas de conversión, vigencia y reversión.
+
+### POS-12 — Promociones, descuentos y precios
+
+- Descuentos fijos o porcentuales por artículo y por venta.
+- Precios especiales por cliente y reglas por categoría/marca.
+- Permisos de aplicación y autorización, con registro de quién aplicó y quién aprobó.
+- Precio mínimo y controles de margen para evitar descuentos no rentables.
+- Reflejar los descuentos en la orden, recibo, caja e informes sin alterar la trazabilidad del precio original.
+
+### POS-13 — Devoluciones y cambios
+
+- Búsqueda de ventas por número, cliente, fecha y terminal.
+- Devoluciones parciales/totales y cambios vinculados a la venta original.
+- Reposición condicionada al estado y destino del artículo devuelto.
+- Reembolsos mediante los métodos permitidos y controles de caja correspondientes.
+- Autorización especial cuando corresponda, prevención de cantidades/importes superiores a lo vendido y auditoría completa.
+
+### POS-14 — Impresión y periféricos
+
+- Recibos térmicos configurables de 58 mm y 80 mm, con opción de copias/duplicados.
+- Lectores de códigos de barras físicos tipo teclado y captura mediante cámara.
+- Apertura de gaveta de efectivo solo desde operaciones autorizadas.
+- Impresoras USB o de red mediante un puente/servicio local compatible con navegador.
+- El POS seguirá conectado al servidor; los periféricos no introducen modo offline ni sincronización local de ventas.
+
+### POS-15 — Dashboard e informes avanzados
+
+- Ventas por establecimiento, terminal, cajero, producto, categoría, marca, moneda y método de pago.
+- Margen bruto/rentabilidad, diferencias de caja, devoluciones y descuentos.
+- Comparativas por períodos y exportación de resultados.
+- Indicadores y alertas operativas filtrados por los permisos globales y de almacén del usuario.
+
+### POS-16 — Operación comercial avanzada
+
+- Gestión de turnos y cajeros; asignación de terminales y almacenes.
+- Arqueos y cierres supervisados, con límites configurables de efectivo por caja.
+- Alertas de existencias bajas y solicitudes de reposición al almacén.
+- Seguimiento del ciclo de transferencias y sus incidencias.
+- Indicadores operativos por establecimiento.
+- Mantener aprobaciones configurables de transferencias según origen/destino, usuario/rol, cantidad, valor y tipo; conservar recepción parcial, diferencias, daños, rechazo y cancelación.
+
+**Requisitos transversales de POS-11 a POS-16:** permisos globales y por almacén, protección ante ventas simultáneas, integridad de pagos/caja, auditoría, pruebas automatizadas, CI y documentación. No se introducirán objetivos numéricos, reglas comerciales ni proveedores externos sin aprobación.

@@ -3,6 +3,8 @@
 namespace App\Services\Pos;
 
 use App\Models\Order;
+use App\Models\InventoryMovement;
+use App\Models\WarehouseTransfer;
 use App\Models\Payment;
 use App\Models\PosCashSession;
 use App\Models\PosRefund;
@@ -187,6 +189,21 @@ class PosReportService
             ];
         })->values();
 
+        $inventoryMovements = InventoryMovement::query()
+            ->whereHas('inventory', fn (Builder $query) => $query->whereIn('warehouse_id', $warehouseId ? [$warehouseId] : $warehouseIds))
+            ->whereBetween('created_at', [$from, $to])
+            ->selectRaw('inventory_id, type, SUM(quantity_delta) as quantity_delta, COUNT(*) as movements_count')
+            ->groupBy('inventory_id', 'type')
+            ->with('inventory.warehouse:id,name', 'inventory.product:id,name', 'inventory.variant:id,name')
+            ->orderBy('type')->get();
+
+        $transfers = WarehouseTransfer::query()
+            ->whereIn('source_warehouse_id', $warehouseId ? [$warehouseId] : $warehouseIds)
+            ->whereIn('destination_warehouse_id', $warehouseId ? [$warehouseId] : $warehouseIds)
+            ->whereBetween('requested_at', [$from, $to])
+            ->selectRaw('status, COUNT(*) as transfers_count')
+            ->groupBy('status')->orderBy('status')->get();
+
         $periodDays = max(1, $from->copy()->startOfDay()->diffInDays($to->copy()->startOfDay()) + 1);
         $previousTo = $from->copy()->subSecond()->endOfDay();
         $previousFrom = $previousTo->copy()->subDays($periodDays - 1)->startOfDay();
@@ -209,6 +226,8 @@ class PosReportService
             'cashDiscrepancies' => $cashDiscrepancies,
             'grossMargin' => $grossMargin,
             'previousSales' => $previousSales,
+            'inventoryMovements' => $inventoryMovements,
+            'transfers' => $transfers,
             'previousFrom' => $previousFrom,
             'previousTo' => $previousTo,
         ];

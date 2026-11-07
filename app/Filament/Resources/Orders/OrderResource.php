@@ -60,7 +60,7 @@ class OrderResource extends Resource
                 Order::STATUS_CANCELLED => __('Cancelado'),
             ]),
         ])->defaultSort('placed_at', 'desc')->recordActions([
-            Action::make('refund')->label(__('Devolver productos'))->icon('heroicon-o-arrow-uturn-left')->color('warning')
+            Action::make('refund')->label(__('Devolver productos'))->icon('heroicon-o-arrow-uturn-left')->color('warning')->requiresConfirmation()
                 ->authorize('update')
                 ->visible(fn (Order $record): bool => $record->channel === 'pos'
                     && in_array($record->payment_status, ['paid', 'partially_refunded'], true)
@@ -101,7 +101,7 @@ class OrderResource extends Resource
             Action::make('details')->label(__('Ver pedido'))->icon('heroicon-o-eye')
                 ->authorize('view')
                 ->modalHeading(fn (Order $record): string => __('Pedido').' '.$record->number)
-                ->modalContent(fn (Order $record) => view('filament.orders.details', ['order' => $record->load(['items', 'payments.method', 'payments.events.actor', 'shipment.events', 'shipment.attempts'])]))
+                ->modalContent(fn (Order $record) => view('filament.orders.details', ['order' => $record->load(['items', 'payments.method', 'payments.events.actor', 'shipment.events', 'shipment.attempts', 'posRefunds.items.orderItem', 'posRefunds.processor'])]))
                 ->modalSubmitAction(false)->modalCancelActionLabel(__('Cerrar')),
             Action::make('confirm')->label(__('Confirmar pedido'))->color('success')->requiresConfirmation()
                 ->authorize('update')

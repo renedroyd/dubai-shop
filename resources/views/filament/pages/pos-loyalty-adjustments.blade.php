@@ -35,7 +35,7 @@
                 <label class="block text-sm font-medium">{{ __('Motivo obligatorio') }}
                     <textarea wire:model="adjustmentReason" rows="3" maxlength="500" class="fi-input mt-1 w-full" placeholder="{{ __('Explica el motivo del ajuste') }}"></textarea>
                 </label>
-                @foreach (['customerUserId','adjustmentCurrency','adjustmentPoints','adjustmentReason'] as $field)
+                @foreach (['customerUserId','adjustmentCurrency','adjustmentPoints','adjustmentReason','pointsDelta','adjustment'] as $field)
                     @error($field) <p class="text-sm text-danger-600">{{ $message }}</p> @enderror
                 @endforeach
                 <button type="button" wire:click="submitAdjustment" wire:loading.attr="disabled" @disabled(! $customerUserId) class="fi-btn fi-btn-color-primary w-full justify-center">

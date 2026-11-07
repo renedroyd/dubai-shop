@@ -63,9 +63,7 @@ return new class extends Migration
                 'pos_price_rules.view', 'pos_price_rules.create', 'pos_price_rules.update', 'pos_price_rules.delete',
                 'pos_discounts.approve', 'pos_discounts.override_floor',
             ] as $permission) {
-                if (! in_array($permission, $permissions, true)) {
-                    $permissions[] = $permission;
-                }
+                if (! in_array($permission, $permissions, true)) $permissions[] = $permission;
             }
             DB::table('admin_roles')->where('id', $admin->id)->update([
                 'permissions' => json_encode($permissions, JSON_THROW_ON_ERROR),

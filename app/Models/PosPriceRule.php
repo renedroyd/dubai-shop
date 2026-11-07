@@ -25,12 +25,9 @@ class PosPriceRule extends Model
     protected function casts(): array
     {
         return [
-            'value_amount' => 'integer',
-            'priority' => 'integer',
-            'requires_approval' => 'boolean',
-            'is_active' => 'boolean',
-            'starts_at' => 'datetime',
-            'ends_at' => 'datetime',
+            'value_amount' => 'integer', 'priority' => 'integer',
+            'requires_approval' => 'boolean', 'is_active' => 'boolean',
+            'starts_at' => 'datetime', 'ends_at' => 'datetime',
         ];
     }
 

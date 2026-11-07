@@ -43,6 +43,37 @@ return new class extends Migration
             $table->index(['pos_cash_session_id', 'type']);
         });
 
+        Schema::create('pos_refunds', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('order_id')->constrained()->restrictOnDelete();
+            $table->foreignId('payment_id')->constrained()->restrictOnDelete();
+            $table->foreignId('pos_cash_session_id')->constrained('pos_cash_sessions')->restrictOnDelete();
+            $table->foreignId('processed_by')->constrained('users')->restrictOnDelete();
+            $table->unsignedBigInteger('amount');
+            $table->char('currency', 3);
+            $table->string('status', 20)->default('completed');
+            $table->text('reason');
+            $table->string('reference', 120)->nullable();
+            $table->timestamp('refunded_at');
+            $table->timestamps();
+            $table->index(['order_id', 'status']);
+            $table->index(['payment_id', 'refunded_at']);
+        });
+
+        Schema::create('pos_refund_items', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('pos_refund_id')->constrained('pos_refunds')->cascadeOnDelete();
+            $table->foreignId('order_item_id')->constrained('order_items')->restrictOnDelete();
+            $table->unsignedInteger('quantity');
+            $table->unsignedBigInteger('amount');
+            $table->timestamps();
+            $table->unique(['pos_refund_id', 'order_item_id']);
+        });
+
+        Schema::table('pos_cash_movements', function (Blueprint $table): void {
+            $table->foreignId('pos_refund_id')->nullable()->after('payment_id')->constrained('pos_refunds')->nullOnDelete();
+        });
+
         Schema::table('orders', function (Blueprint $table): void {
             $table->string('channel', 20)->default('web')->after('number');
             $table->foreignId('pos_terminal_id')->nullable()->after('channel')->constrained('pos_terminals')->restrictOnDelete();
@@ -66,6 +97,12 @@ return new class extends Migration
             $table->dropColumn('channel');
         });
 
+        Schema::table('pos_cash_movements', function (Blueprint $table): void {
+            $table->dropConstrainedForeignId('pos_refund_id');
+        });
+
+        Schema::dropIfExists('pos_refund_items');
+        Schema::dropIfExists('pos_refunds');
         Schema::dropIfExists('pos_cash_movements');
         Schema::dropIfExists('pos_cash_sessions');
     }

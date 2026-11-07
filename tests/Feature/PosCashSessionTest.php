@@ -172,7 +172,7 @@ class PosCashSessionTest extends TestCase
         try {
             $service->recordCashMovement($requested, $cashier->id, 'cash_in', 100, 'No debe registrarse');
             $this->fail('A session awaiting close approval must reject cash movements.');
-        } catch (\\Illuminate\\Validation\\ValidationException) {
+        } catch (\Illuminate\Validation\ValidationException) {
             $this->assertDatabaseCount('pos_cash_movements', 0);
         }
 

@@ -385,13 +385,13 @@
                     const printer = await qz.printers.find(printerName);
                     const config = qz.configs.create(printer, { encoding: 'CP1252' });
                     await qz.print(config, [
-                        '\\x1B\\x40',
-                        '\\x1B\\x61\\x01',
-                        'CLÁSICO DUBAI\\n',
-                        'PRUEBA DE IMPRESIÓN POS\\n',
-                        new Date().toLocaleString() + '\\n',
-                        '\\n\\n\\n',
-                        '\\x1D\\x56\\x00'
+                        '\x1B\x40',
+                        '\x1B\x61\x01',
+                        'CLÁSICO DUBAI\n',
+                        'PRUEBA DE IMPRESIÓN POS\n',
+                        new Date().toLocaleString() + '\n',
+                        '\n\n\n',
+                        '\x1D\x56\x00'
                     ]);
                     status.textContent = 'Impresora conectada · prueba enviada';
                 } catch (error) {
@@ -409,8 +409,8 @@
                     const printer = await qz.printers.find(printerName);
                     const config = qz.configs.create(printer);
                     const pulse = drawerPin === 1
-                        ? '\\x1B\\x70\\x01\\x19\\xFA'
-                        : '\\x1B\\x70\\x00\\x19\\xFA';
+                        ? '\x1B\x70\x01\x19\xFA'
+                        : '\x1B\x70\x00\x19\xFA';
                     await qz.print(config, [pulse]);
                     status.textContent = 'Comando de apertura enviado';
                 } catch (error) {

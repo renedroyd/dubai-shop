@@ -20,6 +20,18 @@ class PosTerminal extends Model
     protected static function booted(): void
     {
         static::saving(function (self $terminal): void {
+            $duplicateCode = self::query()
+                ->where('pos_location_id', $terminal->pos_location_id)
+                ->where('code', $terminal->code)
+                ->when($terminal->exists, fn ($query) => $query->whereKeyNot($terminal->getKey()))
+                ->exists();
+
+            if ($duplicateCode) {
+                throw ValidationException::withMessages([
+                    'code' => __('Ya existe un terminal con ese código en este establecimiento.'),
+                ]);
+            }
+
             if (! $terminal->is_active) {
                 return;
             }

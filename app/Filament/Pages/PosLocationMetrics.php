@@ -1,19 +1,19 @@
 <?php
 
-namespace App\\Filament\\Pages;
+namespace App\Filament\Pages;
 
-use App\\Models\\Order;
-use App\\Models\\PosCashSession;
-use App\\Models\\PosLocation;
-use App\\Models\\PosTerminal;
-use App\\Models\\PosRefund;
-use Carbon\\Carbon;
-use Filament\\Pages\\Page;
-use Illuminate\\Database\\Eloquent\\Builder;
+use App\Models\Order;
+use App\Models\PosCashSession;
+use App\Models\PosLocation;
+use App\Models\PosTerminal;
+use App\Models\PosRefund;
+use Carbon\Carbon;
+use Filament\Pages\Page;
+use Illuminate\Database\Eloquent\Builder;
 
 class PosLocationMetrics extends Page
 {
-    protected static string | \\BackedEnum | null $navigationIcon = 'heroicon-o-building-storefront';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-building-storefront';
     protected static ?int $navigationSort = 83;
     protected string $view = 'filament.pages.pos-location-metrics';
 
@@ -26,7 +26,7 @@ class PosLocationMetrics extends Page
             && $user->warehouseIdsWithPermission('reports.view') !== [];
     }
 
-    public static function getNavigationGroup(): string | \\UnitEnum | null
+    public static function getNavigationGroup(): string | \UnitEnum | null
     {
         return __('Punto de venta');
     }
@@ -121,7 +121,7 @@ class PosLocationMetrics extends Page
         try {
             $from = Carbon::createFromFormat('!Y-m-d', (string) request()->query('from', now()->subDays(29)->toDateString()))->startOfDay();
             $to = Carbon::createFromFormat('!Y-m-d', (string) request()->query('to', now()->toDateString()))->endOfDay();
-        } catch (\\Throwable) {
+        } catch (\Throwable) {
             $from = now()->subDays(29)->startOfDay();
             $to = now()->endOfDay();
         }

@@ -632,5 +632,9 @@
   "Movimientos de inventario": "Inventory movements",
   "No hay movimientos en el período seleccionado.": "No movements in the selected period.",
   "Transferencias por estado": "Transfers by status",
-  "No hay transferencias en el período seleccionado.": "No transfers in the selected period."
+  "No hay transferencias en el período seleccionado.": "No transfers in the selected period.",
+  "Devoluciones POS por almacén y moneda": "POS refunds by warehouse and currency",
+  "Devoluciones": "Refunds",
+  "Total reembolsado": "Total refunded",
+  "No hay devoluciones en el período seleccionado.": "No refunds in the selected period."
 }

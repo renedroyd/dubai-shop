@@ -282,3 +282,12 @@ PR #71 integrado en `main`. Dashboard de estados, actividad, incidencias y conte
 - Apertura, entradas manuales y ventas en efectivo aplican exclusivamente el límite de la moneda de la sesión.
 - Zelle puro no altera ni consume el límite de efectivo.
 - La migración conserva el límite histórico en CUP, moneda predeterminada inicial del POS; debe revisarse la configuración de terminales si un límite anterior se había usado para otra moneda.
+
+## POS-17A — libro de fidelización y acumulación inicial (en revisión)
+
+- Base de datos de configuración por moneda para CUP, USD y EUR; valores iniciales: 1 punto por cada 100 unidades monetarias menores, con vencimiento a los 12 meses.
+- Carteras separadas por cliente y moneda, con libro de movimientos e identificador único de idempotencia.
+- Acumulación calculada sobre el total POS neto de descuentos y únicamente para clientes con cuenta.
+- Ventas en efectivo acumulan al cobrarse; Zelle acumula después de la aprobación manual. Los pagos pendientes y ventas de invitado no generan puntos.
+- Pruebas automatizadas para venta pagada, exclusión de invitado, idempotencia y aprobación Zelle.
+- El canje, reversión por devoluciones, ajustes autorizados, avisos de vencimiento e interfaz administrativa/cliente quedan para los siguientes subbloques POS-17.

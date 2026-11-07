@@ -5,6 +5,7 @@ namespace App\Services\Payments;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Services\Orders\OrderInventoryService;
+use App\Services\Pos\PosLoyaltyService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -47,6 +48,10 @@ class PaymentStatusService
                 'actor_id' => $actorId,
                 'note' => $note,
             ]);
+
+            if ($order->channel === 'pos') {
+                app(PosLoyaltyService::class)->awardForPaidPosOrder($order);
+            }
 
             return $lockedPayment->fresh();
         });

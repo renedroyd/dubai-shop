@@ -16,6 +16,15 @@ class PosCashSessionTest extends TestCase
 {
     use RefreshDatabase;
 
+    private function grantWarehouseAccess(User $user): void
+    {
+        $user->update(['admin_access_enabled' => true]);
+        $user->warehouseAccesses()->create([
+            'warehouse_id' => Warehouse::primary()->id,
+            'permissions' => WarehouseUserAccess::PERMISSIONS,
+        ]);
+    }
+
     private function terminal(): PosTerminal
     {
         $location = PosLocation::query()->create([

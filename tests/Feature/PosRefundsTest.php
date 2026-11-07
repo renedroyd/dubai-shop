@@ -17,6 +17,7 @@ use App\Models\WarehouseUserAccess;
 use App\Services\Inventory\InventoryService;
 use App\Services\Pos\PosCashSessionService;
 use App\Services\Pos\PosRefundService;
+use App\Services\Pos\PosExchangeService;
 use App\Services\Pos\PosSaleService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
@@ -175,6 +176,37 @@ class PosRefundsTest extends TestCase
         $this->assertSame(1, $inventory->fresh()->quantity_blocked);
         $this->assertDatabaseHas('pos_refund_items', ['pos_refund_id' => $discardRefund->id, 'disposition' => 'discarded']);
         $this->assertDatabaseHas('inventory_movements', ['reference_type' => PosRefund::class, 'reference_id' => $discardRefund->id, 'type' => 'return_discarded', 'quantity_delta' => 0]);
+    }
+    public function test_pos_exchange_links_original_refund_and_replacement_sale_with_net_difference(): void
+    {
+        $cashier = User::factory()->create();
+        [$session, $originalOrder] = $this->completedSale($cashier);
+        $originalItem = $originalOrder->items()->firstOrFail();
+        $approver = $this->authorizedApprover($cashier);
+        $refund = app(PosRefundService::class)->refund($originalOrder, $session, $cashier->id, [
+            ['order_item_id' => $originalItem->id, 'quantity' => 1],
+        ], 'Devolución para cambio', $approver->id);
+
+        $replacementProduct = $this->product();
+        $replacementProduct->update(['price_amount' => 1500]);
+        app(InventoryService::class)->setOnHand($replacementProduct, 5, reason: 'Carga para cambio');
+        $replacementOrder = app(PosSaleService::class)->sell(
+            $session, $cashier->id, [['product_id' => $replacementProduct->id, 'quantity' => 1]], $this->cashMethod()->id,
+        );
+        $exchangeRole = AdminRole::query()->create(['name' => 'Operador de cambios', 'slug' => 'exchange-create-'.uniqid(), 'permissions' => ['pos_exchanges.create']]);
+        $cashier->roles()->attach($exchangeRole);
+
+        $exchange = app(PosExchangeService::class)->link($originalOrder->fresh(), $replacementOrder, $refund, $cashier->id, 'Cambio por otro producto de mayor valor');
+
+        $this->assertSame(1250, $exchange->returned_amount);
+        $this->assertSame(1500, $exchange->replacement_amount);
+        $this->assertSame(250, $exchange->difference_amount);
+        $this->assertDatabaseHas('pos_exchanges', [
+            'original_order_id' => $originalOrder->id,
+            'replacement_order_id' => $replacementOrder->id,
+            'pos_refund_id' => $refund->id,
+            'difference_amount' => 250,
+        ]);
     }
     public function test_refund_cannot_return_more_units_than_were_sold(): void
     {

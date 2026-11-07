@@ -20,6 +20,10 @@ class PosTerminal extends Model
     protected static function booted(): void
     {
         static::saving(function (self $terminal): void {
+            if (! $terminal->is_active) {
+                return;
+            }
+
             $location = PosLocation::query()->find($terminal->pos_location_id);
             $warehouse = Warehouse::query()->find($terminal->warehouse_id);
 

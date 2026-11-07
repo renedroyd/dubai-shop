@@ -59,8 +59,7 @@ class PosTransferTracking extends Page
                 'sourceWarehouse:id,name',
                 'destinationWarehouse:id,name',
                 'requester:id,name',
-                'items.sourceInventory.product:id,name',
-                'events' => fn ($query) => $query->with('user:id,name')->latest()->limit(5),
+                'events' => fn ($query) => $query->with('user:id,name')->latest(),
             ])
             ->orderByDesc('requested_at')
             ->limit(30)

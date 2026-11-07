@@ -64,7 +64,7 @@ class PosSaleService
                     throw ValidationException::withMessages(["items.{$index}" => 'Cada línea debe tener un producto y una cantidad positiva.']);
                 }
 
-                $product = Product::query()->whereKey($productId)->where('status', Product::STATUS_ACTIVE)->first();
+                $product = Product::query()->whereKey($productId)->where('status', Product::STATUS_ACTIVE)->lockForUpdate()->first();
                 if (! $product) {
                     throw ValidationException::withMessages(["items.{$index}.product_id" => 'El producto no existe o no está activo.']);
                 }
@@ -75,7 +75,7 @@ class PosSaleService
                 }
 
                 if ($variantId !== null) {
-                    $variant = ProductVariant::query()->whereKey($variantId)->where('product_id', $product->id)->where('is_active', true)->first();
+                    $variant = ProductVariant::query()->whereKey($variantId)->where('product_id', $product->id)->where('is_active', true)->lockForUpdate()->first();
                     if (! $variant) {
                         throw ValidationException::withMessages(["items.{$index}.product_variant_id" => 'La variante no pertenece al producto o está inactiva.']);
                     }

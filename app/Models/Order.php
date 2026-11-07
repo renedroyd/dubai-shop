@@ -43,4 +43,5 @@ class Order extends Model
     public function posWarehouse(): BelongsTo { return $this->belongsTo(Warehouse::class, 'pos_warehouse_id'); }
     public function posCashSession(): BelongsTo { return $this->belongsTo(PosCashSession::class, 'pos_cash_session_id'); }
     public function cashier(): BelongsTo { return $this->belongsTo(User::class, 'cashier_id'); }
+    public function posRefunds(): HasMany { return $this->hasMany(PosRefund::class); }
 }

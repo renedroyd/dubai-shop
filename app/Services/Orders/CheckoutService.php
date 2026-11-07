@@ -10,6 +10,7 @@ use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Payments\PaymentDriverManager;
+use App\Services\Inventory\OnlineWarehouseFulfillmentService;
 use App\Services\Shipping\ShippingRateService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -20,6 +21,7 @@ class CheckoutService
     public function __construct(
         private readonly PaymentDriverManager $drivers,
         private readonly ShippingRateService $shippingRates,
+        private readonly OnlineWarehouseFulfillmentService $fulfillment,
     ) {}
 
     public function placeOrder(Cart $cart, array $customer, PaymentMethod $method, array $paymentData, string $publicToken): Order
@@ -29,6 +31,7 @@ class CheckoutService
         }
 
         return DB::transaction(function () use ($cart, $customer, $method, $paymentData, $publicToken): Order {
+            $allocations = $this->fulfillment->allocateOrder($cart->items);
             $lines = [];
             $subtotal = 0;
 
@@ -47,33 +50,27 @@ class CheckoutService
                     throw ValidationException::withMessages(['cart' => 'Una variante del carrito ya no está disponible.']);
                 }
 
-                $inventory = Inventory::query()
-                    ->when($variant, fn ($query) => $query->where('product_variant_id', $variant->id))
-                    ->when(! $variant, fn ($query) => $query->where('product_id', $product->id)->whereNull('product_variant_id'))
-                    ->whereHas('warehouse', fn ($query) => $query->where('is_primary', true))
-                    ->lockForUpdate()
-                    ->first();
-
-                if ($inventory && $cartItem->quantity > $inventory->available_quantity) {
-                    throw ValidationException::withMessages(['cart' => "No hay existencias suficientes de {$product->name}."]);
-                }
-
                 $price = $variant?->price_amount ?? $product->price_amount;
-                $lineTotal = $price * $cartItem->quantity;
-                $subtotal += $lineTotal;
 
-                $lines[] = [
-                    'product_id' => $product->id,
-                    'inventory_id' => $inventory?->id,
-                    'product_variant_id' => $variant?->id,
-                    'product_name' => $product->name,
-                    'variant_name' => $variant?->name,
-                    'sku' => $variant?->sku ?? $product->sku,
-                    'quantity' => $cartItem->quantity,
-                    'unit_price_amount' => $price,
-                    'line_total_amount' => $lineTotal,
-                    'currency' => $product->currency,
-                ];
+                foreach ($allocations[$cartItem->id] ?? [] as $allocation) {
+                    $quantity = (int) $allocation['quantity'];
+                    $inventory = $allocation['inventory'];
+                    $lineTotal = $price * $quantity;
+                    $subtotal += $lineTotal;
+
+                    $lines[] = [
+                        'product_id' => $product->id,
+                        'inventory_id' => $inventory?->id,
+                        'product_variant_id' => $variant?->id,
+                        'product_name' => $product->name,
+                        'variant_name' => $variant?->name,
+                        'sku' => $variant?->sku ?? $product->sku,
+                        'quantity' => $quantity,
+                        'unit_price_amount' => $price,
+                        'line_total_amount' => $lineTotal,
+                        'currency' => $product->currency,
+                    ];
+                }
             }
 
             $zone = $this->shippingRates->resolve($customer, $cart->currency);
@@ -106,6 +103,13 @@ class CheckoutService
 
                 if ($line['inventory_id']) {
                     $inventory = Inventory::query()->lockForUpdate()->findOrFail($line['inventory_id']);
+
+                    if ($inventory->available_quantity < $line['quantity']) {
+                        throw ValidationException::withMessages([
+                            'cart' => 'Las existencias cambiaron mientras se procesaba el pedido. Actualiza el carrito e inténtalo de nuevo.',
+                        ]);
+                    }
+
                     $inventory->increment('quantity_reserved', $line['quantity']);
                     InventoryMovement::query()->create([
                         'inventory_id' => $inventory->id,
@@ -115,7 +119,10 @@ class CheckoutService
                         'reason' => 'Reserva por pedido '.$order->number,
                         'reference_type' => Order::class,
                         'reference_id' => $order->id,
-                        'metadata' => ['order_number' => $order->number],
+                        'metadata' => [
+                            'order_number' => $order->number,
+                            'warehouse_id' => $inventory->warehouse_id,
+                        ],
                     ]);
                 }
             }
@@ -137,6 +144,7 @@ class CheckoutService
             return $order->load(['items', 'payments.method']);
         });
     }
+
     private function decimalToMinorUnits(string $amount): int
     {
         [$whole, $fraction] = array_pad(explode('.', $amount, 2), 2, '0');

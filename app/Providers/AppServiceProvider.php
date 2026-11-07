@@ -97,7 +97,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(PosLocation::class, PosLocationPolicy::class);
         Gate::policy(PosTerminal::class, PosTerminalPolicy::class);
         Gate::policy(PosCashSession::class, PosCashSessionPolicy::class);
-        Gate::policy(PosCashSession::class, PosCashSessionPolicy::class);
         Gate::policy(WarehouseLocation::class, WarehouseLocationPolicy::class);
         Gate::policy(WarehouseTransfer::class, WarehouseTransferPolicy::class);
         Gate::policy(WarehouseTransferRule::class, WarehouseTransferRulePolicy::class);

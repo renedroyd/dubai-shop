@@ -37,6 +37,12 @@ class PosRefundService
                 throw ValidationException::withMessages(['order' => 'Solo se pueden devolver ventas POS cobradas o parcialmente reembolsadas.']);
             }
 
+            $lockedSession->load('terminal');
+
+            if (! User::query()->findOrFail($cashierId)->hasWarehousePermission($lockedSession->terminal->warehouse_id, 'pos.operate')) {
+                throw new AuthorizationException('No tienes permiso para devolver ventas de este almacén.');
+            }
+
             if (! $lockedSession->isOpen()
                 || $lockedSession->pos_terminal_id !== $lockedOrder->pos_terminal_id
                 || $lockedSession->currency !== $lockedOrder->currency) {

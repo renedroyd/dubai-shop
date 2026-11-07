@@ -112,6 +112,24 @@ class WarehouseAccessTest extends TestCase
         );
     }
 
+    public function test_global_inventory_role_cannot_bypass_missing_warehouse_permission(): void
+    {
+        $warehouse = Warehouse::primary();
+        $product = $this->product();
+        $inventory = app(InventoryService::class)->setOnHand($product, 4, warehouse: $warehouse);
+        $user = User::factory()->create(['admin_access_enabled' => true]);
+        $role = AdminRole::query()->create([
+            'name' => 'Gestor global de inventario',
+            'slug' => 'inventory-global-'.uniqid(),
+            'permissions' => ['panel.access', 'inventories.view', 'inventories.update'],
+        ]);
+        $user->roles()->attach($role);
+        $this->assign($user, $warehouse, ['view']);
+
+        $this->assertTrue(Gate::forUser($user)->allows('view', $inventory));
+        $this->assertFalse(Gate::forUser($user)->allows('update', $inventory));
+    }
+
     public function test_pos_session_cannot_be_opened_without_pos_permission_for_its_warehouse(): void
     {
         $user = User::factory()->create(['admin_access_enabled' => true]);

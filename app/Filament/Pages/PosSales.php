@@ -15,6 +15,7 @@ use App\Services\Pos\PosSaleService;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -168,9 +169,9 @@ class PosSales extends Page
             ->with([
                 'category:id,name',
                 'images:id,product_id,path,alt_text,is_primary,sort_order',
-                'inventories' => fn (Builder $query) => $query->where('warehouse_id', $warehouseId)->whereNull('product_variant_id'),
-                'variants' => fn (Builder $query) => $query->where('is_active', true)->with([
-                    'inventories' => fn (Builder $inventory) => $inventory->where('warehouse_id', $warehouseId),
+                'inventories' => fn (Relation $query) => $query->where('warehouse_id', $warehouseId)->whereNull('product_variant_id'),
+                'variants' => fn (Relation $query) => $query->where('is_active', true)->with([
+                    'inventories' => fn (Relation $inventory) => $inventory->where('warehouse_id', $warehouseId),
                 ]),
             ])
             ->orderBy('name')
@@ -215,7 +216,7 @@ class PosSales extends Page
             ->whereKey($productId)
             ->where('status', Product::STATUS_ACTIVE)
             ->where('currency', $session->currency)
-            ->with(['variants' => fn (Builder $query) => $query->where('is_active', true)])
+            ->with(['variants' => fn (Relation $query) => $query->where('is_active', true)])
             ->firstOrFail();
 
         if ($product->variants->isNotEmpty() && $variantId === null) {
@@ -294,7 +295,7 @@ class PosSales extends Page
 
         foreach ($this->cart as $key => $line) {
             $product = Product::query()
-                ->with(['images', 'variants' => fn (Builder $query) => $query->where('is_active', true)])
+                ->with(['images', 'variants' => fn (Relation $query) => $query->where('is_active', true)])
                 ->find($line['product_id']);
 
             if (! $product || $product->status !== Product::STATUS_ACTIVE) {

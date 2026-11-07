@@ -18,7 +18,7 @@ class Product extends Model
     public const STATUS_ARCHIVED = 'archived';
 
     protected $fillable = [
-        'category_id', 'brand_id', 'name', 'slug', 'sku', 'short_description',
+        'category_id', 'brand_id', 'name', 'slug', 'sku', 'barcode', 'short_description',
         'description', 'price_amount', 'compare_at_price_amount', 'currency',
         'status', 'is_featured', 'is_visible', 'meta_title', 'meta_description',
     ];

@@ -276,6 +276,39 @@ class PosSales extends Page
         ];
     }
 
+    public function scanBarcode(): void
+    {
+        $code = trim($this->search);
+        $session = $this->currentSession();
+        if ($code === '' || ! $session) return;
+
+        $variant = ProductVariant::query()
+            ->where(fn (Builder $query) => $query->where('barcode', $code)->orWhere('sku', $code))
+            ->where('is_active', true)
+            ->whereHas('product', fn (Builder $query) => $query->where('status', Product::STATUS_ACTIVE)->where('currency', $session->currency))
+            ->first();
+        if ($variant) {
+            $this->addProduct($variant->product_id, $variant->id);
+            $this->search = '';
+            return;
+        }
+
+        $product = Product::query()
+            ->where(fn (Builder $query) => $query->where('barcode', $code)->orWhere('sku', $code))
+            ->where('status', Product::STATUS_ACTIVE)
+            ->where('currency', $session->currency)
+            ->first();
+        if (! $product) {
+            Notification::make()->warning()->title(__('Código no encontrado'))->body(__('No hay un producto o variante activa con ese código en esta moneda.'))->send();
+            return;
+        }
+        if ($product->variants()->where('is_active', true)->exists()) {
+            Notification::make()->warning()->title(__('Selecciona una variante'))->body(__('Este producto tiene variantes; escanea el código de la variante.'))->send();
+            return;
+        }
+        $this->addProduct($product->id);
+        $this->search = '';
+    }
     public function updateQuantity(string $key, mixed $quantity): void
     {
         if (! isset($this->cart[$key])) {

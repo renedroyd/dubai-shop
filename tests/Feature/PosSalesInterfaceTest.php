@@ -62,11 +62,14 @@ class PosSalesInterfaceTest extends TestCase
 
     public function test_cashier_can_open_the_pos_interface_and_load_their_session_products(): void
     {
+        $this->withoutVite();
         $user = $this->cashier();
         $terminal = $this->terminal();
         app(PosCashSessionService::class)->open($terminal, $user->id, 'CUP', 5000);
         $product = $this->product();
         app(InventoryService::class)->setOnHand($product, 6, reason: 'Carga inicial');
+
+        $this->actingAs($user)->get('/admin/pos-sales')->assertOk();
 
         Livewire::actingAs($user)
             ->test(PosSales::class)

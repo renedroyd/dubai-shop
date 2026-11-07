@@ -43,6 +43,37 @@ class ProductionReadinessCommandTest extends TestCase
             ->assertSuccessful();
     }
 
+    public function test_production_readiness_rejects_missing_smtp_host_and_double_wildcard_proxy(): void
+    {
+        File::ensureDirectoryExists(storage_path('app/private'));
+        File::ensureDirectoryExists(storage_path('app/public'));
+
+        config([
+            'app.env' => 'production',
+            'app.debug' => false,
+            'app.url' => 'https://shop.example.test',
+            'app.key' => 'base64:'.base64_encode(random_bytes(32)),
+            'app.trusted_proxies' => ['**'],
+            'session.secure' => true,
+            'session.http_only' => true,
+            'session.encrypt' => true,
+            'session.same_site' => 'lax',
+            'session.driver' => 'database',
+            'queue.default' => 'database',
+            'cache.default' => 'database',
+            'mail.default' => 'smtp',
+            'mail.mailers.smtp.host' => null,
+            'mail.mailers.smtp.port' => 587,
+            'mail.from.address' => 'orders@shop.example.test',
+        ]);
+
+        $connection = Mockery::mock();
+        $connection->shouldReceive('getPdo')->once()->andReturn(new PDO('sqlite::memory:'));
+        DB::shouldReceive('connection')->once()->andReturn($connection);
+
+        $this->artisan('app:production-readiness')->assertFailed();
+    }
+
     public function test_production_readiness_command_fails_for_insecure_or_non_persistent_configuration(): void
     {
         config([

@@ -260,6 +260,9 @@
                                             @endif
                                             @error('loyaltyPointsToRedeem') <p class="text-xs text-danger-600">{{ $message }}</p> @enderror
                                             <p class="text-[11px] text-gray-500">{{ __('El canje está limitado al 20 % del subtotal después de promociones.') }}</p>
+                                            @if ($this->loyaltyExpiringPoints() > 0)
+                                                <p class="text-[11px] font-medium text-amber-700 dark:text-amber-300">{{ __('Aviso: :points puntos de este cliente vencen en los próximos 30 días.', ['points' => number_format($this->loyaltyExpiringPoints())]) }}</p>
+                                            @endif
                                         @else
                                             <p class="text-[11px] text-gray-500">{{ __('Se necesitan al menos 100 puntos para canjear.') }}</p>
                                         @endif

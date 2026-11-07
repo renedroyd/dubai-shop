@@ -116,7 +116,11 @@ class PosCashSessionService
         }
 
         return DB::transaction(function () use ($session, $userId, $countedAmount, $note): PosCashSession {
-            $locked = PosCashSession::query()->lockForUpdate()->findOrFail($session->id);
+            $locked = PosCashSession::query()->with('terminal')->lockForUpdate()->findOrFail($session->id);
+
+            if (! User::query()->findOrFail($userId)->hasWarehousePermission($locked->terminal->warehouse_id, 'pos.operate')) {
+                throw new AuthorizationException('No tienes permiso para operar cajas en este almacén.');
+            }
 
             if (! $locked->isOpen()) {
                 throw ValidationException::withMessages(['session' => 'La sesión ya está cerrada.']);

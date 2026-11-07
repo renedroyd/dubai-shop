@@ -29,6 +29,8 @@ class ProductionReadinessCommandTest extends TestCase
             'queue.default' => 'database',
             'cache.default' => 'database',
             'mail.default' => 'smtp',
+            'mail.mailers.smtp.host' => 'smtp.example.test',
+            'mail.mailers.smtp.port' => 587,
             'mail.from.address' => 'orders@shop.example.test',
         ]);
 

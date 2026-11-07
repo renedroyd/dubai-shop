@@ -11,6 +11,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -34,22 +35,41 @@ class WarehouseResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            TextInput::make('code')->label(__('Código'))->required()->alphaDash()->maxLength(40)->unique(ignoreRecord: true),
-            TextInput::make('name')->label(__('Nombre'))->required()->maxLength(255),
-            Select::make('type')->label(__('Tipo'))->required()->options([
-                'general' => __('General'),
-                'store' => __('Tienda física'),
-                'online' => __('Tienda online'),
-                'pos' => __('Punto de venta'),
-                'transit' => __('Tránsito'),
-            ])->default('general'),
-            Textarea::make('address')->label(__('Dirección'))->rows(2),
-            Textarea::make('notes')->label(__('Notas internas'))->rows(3),
-            Toggle::make('is_primary')->label(__('Almacén principal'))
-                ->helperText(__('Solo puede existir un almacén principal.'))
-                ->disabled(fn (?Warehouse $record): bool => (bool) ($record?->is_primary) || Warehouse::query()->where('is_primary', true)->when($record, fn ($query) => $query->whereKeyNot($record->getKey()))->exists()),
-            Toggle::make('is_active')->label(__('Activo'))->default(true)
-                ->disabled(fn (?Warehouse $record): bool => (bool) ($record?->is_primary)),
+            Section::make(__('Datos generales'))->schema([
+                TextInput::make('code')->label(__('Código'))->required()->alphaDash()->maxLength(40)->unique(ignoreRecord: true),
+                TextInput::make('name')->label(__('Nombre'))->required()->maxLength(255),
+                Select::make('type')->label(__('Tipo'))->required()->options([
+                    'general' => __('General'),
+                    'store' => __('Tienda física'),
+                    'online' => __('Tienda online'),
+                    'pos' => __('Punto de venta'),
+                    'transit' => __('Tránsito'),
+                ])->default('general'),
+                Textarea::make('address')->label(__('Dirección'))->rows(2),
+                Textarea::make('notes')->label(__('Notas internas'))->rows(3),
+                Toggle::make('is_primary')->label(__('Almacén principal'))
+                    ->helperText(__('Solo puede existir un almacén principal.'))
+                    ->disabled(fn (?Warehouse $record): bool => (bool) ($record?->is_primary) || Warehouse::query()->where('is_primary', true)->when($record, fn ($query) => $query->whereKeyNot($record->getKey()))->exists()),
+                Toggle::make('is_active')->label(__('Activo'))->default(true)
+                    ->disabled(fn (?Warehouse $record): bool => (bool) ($record?->is_primary)),
+            ])->columns(2),
+            Section::make(__('Abastecimiento de tienda online'))
+                ->description(__('Solo los almacenes habilitados participan en disponibilidad, reservas y preparación de pedidos web.'))
+                ->schema([
+                    Toggle::make('online_fulfillment_enabled')
+                        ->label(__('Habilitado para pedidos online'))
+                        ->default(false)
+                        ->helperText(__('El almacén principal queda habilitado por defecto al aplicar la migración.')),
+                    TextInput::make('online_fulfillment_priority')
+                        ->label(__('Prioridad de abastecimiento'))
+                        ->numeric()
+                        ->integer()
+                        ->minValue(1)
+                        ->maxValue(10000)
+                        ->default(100)
+                        ->required()
+                        ->helperText(__('Un número menor tiene mayor prioridad.')),
+                ])->columns(2),
         ]);
     }
 
@@ -61,6 +81,8 @@ class WarehouseResource extends Resource
             TextColumn::make('type')->label(__('Tipo'))->badge(),
             TextColumn::make('inventories_count')->counts('inventories')->label(__('Referencias')),
             IconColumn::make('is_primary')->label(__('Principal'))->boolean(),
+            IconColumn::make('online_fulfillment_enabled')->label(__('Abastece online'))->boolean(),
+            TextColumn::make('online_fulfillment_priority')->label(__('Prioridad'))->sortable(),
             IconColumn::make('is_active')->label(__('Activo'))->boolean(),
         ])->filters([TernaryFilter::make('is_active')->label(__('Estado'))])
           ->recordActions([

@@ -1,6 +1,6 @@
 # Multi almacén y POS — arquitectura y alcance
 
-**Estado:** POS-1, POS-2 y POS-3 integrados; POS-4 en implementación. Este documento distingue lo integrado de lo que aún está en desarrollo.
+**Estado:** POS-1 a POS-4 integrados; POS-5 en implementación. Este documento distingue lo integrado de lo que aún está en desarrollo.
 
 ## Decisiones aprobadas
 
@@ -9,6 +9,7 @@
 - Un producto o variante puede existir en varios almacenes; cada saldo y sus reservas son independientes.
 - Las transferencias utilizarán reglas configurables de aprobación según almacén, usuario/rol, cantidad, valor o tipo.
 - Los canales (web y POS) no son almacenes. Cada canal consume existencias de almacenes expresamente autorizados.
+- La tienda online solo consulta almacenes activos habilitados explícitamente para abastecimiento web; los secundarios no se habilitan automáticamente.
 - El almacén principal recibe los saldos existentes durante la migración para preservar la operación actual.
 
 ## POS-1 — Núcleo multi almacén
@@ -51,7 +52,7 @@
 - La conciliación compara el saldo agregado con la suma de saldos por ubicación.
 - Filament permite consultar saldos, ajustar ubicaciones físicas y mover stock dentro del mismo almacén.
 
-## POS-4 — Transferencias entre almacenes (en implementación)
+## POS-4 — Transferencias entre almacenes (integrado)
 
 ### Reglas y ciclo de vida
 
@@ -70,12 +71,30 @@
 
 También se contemplan `rejected` y `cancelled`. La cancelación de una transferencia despachada requiere un flujo de reversión separado.
 
-### Alcance aún pendiente
+### Pendientes posteriores
 
-- Pruebas de CI y validación de los flujos completos.
 - Reversión controlada de transferencias ya despachadas.
 - Reportes y notificaciones operativas.
-- POS-5: política de abastecimiento multi almacén para la tienda online.
+
+## POS-5 — Abastecimiento multi almacén de la tienda online (en implementación)
+
+- Cada almacén tiene un indicador explícito para habilitar el abastecimiento web y una prioridad numérica; menor número significa mayor prioridad.
+- La migración habilita el almacén principal existente con prioridad 10. Los demás almacenes quedan deshabilitados hasta que un administrador los active.
+- Carrito y checkout consultan únicamente los almacenes activos habilitados para web y calculan disponibilidad como existencia física menos reservas y bloqueos.
+- Al confirmar el pedido, el asignador intenta cubrir todo el carrito desde un solo almacén, respetando prioridad. Si ninguno puede cubrir el pedido completo, distribuye las líneas y cantidades entre almacenes según prioridad.
+- Cada tramo asignado se conserva como línea de pedido con su inventory_id; las reservas quedan asociadas al inventario del almacén que las atenderá.
+- Los productos sin inventario controlado conservan el flujo actual.
+- Al completar la entrega, se descuentan las existencias agregadas y los saldos por ubicación, registrando la distribución física consumida.
+- No se suman existencias de almacenes no habilitados para la web. POS y canal web continúan siendo canales distintos.
+
+### Criterios de aceptación POS-5
+
+1. Activar/desactivar un almacén para pedidos online y modificar su prioridad desde Filament.
+2. La disponibilidad del carrito suma solo stock disponible de almacenes online activos.
+3. Si un almacén cubre todo el carrito, se reserva desde ese almacén.
+4. Si ningún almacén cubre el carrito completo, se permite abastecimiento dividido según prioridad.
+5. Las reservas y salidas mantienen conciliados los saldos agregados y por ubicación.
+6. El checkout falla de forma segura si el stock cambia o resulta insuficiente antes de reservar.
 
 ## Reglas de integridad
 

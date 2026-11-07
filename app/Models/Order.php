@@ -34,6 +34,21 @@ class Order extends Model
         ];
     }
 
+    public function scopeAccessibleTo(Builder $query, User $user): Builder
+    {
+        $warehouseIds = $user->warehouseIdsWithPermission('view');
+
+        if ($warehouseIds === []) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->where(function (Builder $orders) use ($warehouseIds): void {
+            $orders->where(fn (Builder $pos) => $pos->where('channel', 'pos')->whereIn('pos_warehouse_id', $warehouseIds))
+                ->orWhere(fn (Builder $web) => $web->where('channel', '!=', 'pos')
+                    ->whereDoesntHave('items.inventory', fn (Builder $inventory) => $inventory->whereNotIn('warehouse_id', $warehouseIds)));
+        });
+    }
+
     public function items(): HasMany { return $this->hasMany(OrderItem::class); }
     public function payments(): HasMany { return $this->hasMany(Payment::class); }
     public function user(): BelongsTo { return $this->belongsTo(User::class); }

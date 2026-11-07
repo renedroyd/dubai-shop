@@ -60,7 +60,7 @@ class PosCashSessionResource extends Resource
             TextColumn::make('expected_cash_amount')->label(__('Efectivo esperado'))->formatStateUsing(fn ($state, PosCashSession $record) => $state === null ? '—' : number_format($state / 100, 2).' '.$record->currency),
             TextColumn::make('counted_cash_amount')->label(__('Efectivo contado'))->formatStateUsing(fn ($state, PosCashSession $record) => $state === null ? '—' : number_format($state / 100, 2).' '.$record->currency),
             TextColumn::make('difference_amount')->label(__('Diferencia'))->formatStateUsing(fn ($state, PosCashSession $record) => $state === null ? '—' : number_format($state / 100, 2).' '.$record->currency),
-            TextColumn::make('status')->label(__('Estado'))->badge()->color(fn (string $state): string => $state === PosCashSession::STATUS_OPEN ? 'success' : 'gray'),
+            TextColumn::make('status')->label(__('Estado'))->state(fn (PosCashSession $record): string => $record->close_requested_at !== null && $record->closed_at === null ? __('Pendiente de aprobación') : ($record->status === PosCashSession::STATUS_OPEN ? __('Abierta') : __('Cerrada')))->badge()->color(fn (string $state): string => $state === __('Pendiente de aprobación') ? 'warning' : ($state === __('Abierta') ? 'success' : 'gray')),
             TextColumn::make('opened_at')->label(__('Apertura'))->dateTime()->sortable(),
             TextColumn::make('closed_at')->label(__('Cierre'))->dateTime(),
         ])->filters([

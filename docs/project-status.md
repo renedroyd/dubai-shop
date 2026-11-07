@@ -309,7 +309,7 @@ PR #71 integrado en `main`. Dashboard de estados, actividad, incidencias y conte
 - Si los puntos ganados ya fueron consumidos antes de la devolución, el ledger registra el saldo negativo correspondiente; las futuras acumulaciones compensan ese saldo y el terminal no permite canjear un saldo negativo.
 - Los reembolsos monetarios siguen distribuyéndose entre los medios de pago originales y no se modifican por la conciliación de puntos.
 
-## POS-17D — administración y consulta del programa de fidelización (en revisión)
+## POS-17D — administración y consulta del programa de fidelización (integrado mediante PR #78)
 
 - Configuración Filament por moneda: acumulación, valor de canje, mínimo, porcentaje máximo y vencimiento.
 - Permisos separados para consultar/editar las reglas y para realizar ajustes manuales.
@@ -317,3 +317,7 @@ PR #71 integrado en `main`. Dashboard de estados, actividad, incidencias y conte
 - El panel de cliente muestra saldos independientes, movimientos recientes, deuda por compensar y puntos que vencen en los próximos 30 días.
 - El terminal POS también advierte al cajero cuando el cliente seleccionado tiene puntos próximos a vencer.
 - Los ajustes negativos manuales no pueden reducir un saldo disponible por debajo de cero.
+
+## Estado final de POS-17
+
+POS-17A, POS-17B, POS-17C y POS-17D están integrados en main mediante PR #75–78. La implementación funcional de fidelización está completada: acumulación, canje, devoluciones, configuración, ajustes auditados, consulta de cliente y avisos visibles. Cada PR pasó CI en PHP 8.4, PHP 8.5 y Frontend assets antes de integrarse.

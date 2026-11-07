@@ -290,7 +290,7 @@ PR #71 integrado en `main`. Dashboard de estados, actividad, incidencias y conte
 - Acumulación calculada sobre el total POS neto de descuentos y únicamente para clientes con cuenta.
 - Ventas en efectivo acumulan al cobrarse; Zelle acumula después de la aprobación manual. Los pagos pendientes y ventas de invitado no generan puntos.
 - Pruebas automatizadas para venta pagada, exclusión de invitado, idempotencia y aprobación Zelle.
-- El canje, reversión por devoluciones, ajustes autorizados, avisos de vencimiento e interfaz administrativa/cliente quedan para los siguientes subbloques POS-17.
+- El canje, la reversión por devoluciones, los ajustes autorizados, los avisos de vencimiento y las interfaces administrativa/cliente quedaron completados en POS-17B, POS-17C y POS-17D.
 
 ## POS-17B — canje de puntos en el terminal POS (integrado mediante PR #76)
 
@@ -299,7 +299,7 @@ PR #71 integrado en `main`. Dashboard de estados, actividad, incidencias y conte
 - Canje mínimo de 100 puntos y descuento máximo del 20 % del subtotal elegible después de promociones.
 - El descuento por puntos se incorpora al total y al descuento de la orden; los importes de pago, efectivo recibido y cambio se calculan sobre el total neto.
 - Los puntos se consumen por lotes conservando su fecha de vencimiento. Si se rechaza el pago Zelle, se restituyen los puntos reservados con su vencimiento original.
-- El siguiente subbloque POS-17C concilia acumulaciones y canjes cuando se procesan devoluciones.
+- La conciliación proporcional de acumulaciones y canjes en devoluciones está integrada en POS-17C (PR #77).
 
 ## POS-17C — conciliación de puntos en devoluciones (integrado mediante PR #77)
 

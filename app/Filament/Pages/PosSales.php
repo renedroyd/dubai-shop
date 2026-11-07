@@ -54,6 +54,7 @@ class PosSales extends Page
     public string $customerEmail = '';
     public string $openingCurrency = 'CUP';
     public string $openingAmount = '0.00';
+    public string $shiftLabel = '';
     public string $cashMovementType = PosCashMovement::TYPE_CASH_IN;
     public string $cashMovementAmount = '';
     public string $cashMovementNote = '';
@@ -122,6 +123,7 @@ class PosSales extends Page
         return PosCashSession::query()
             ->where('status', PosCashSession::STATUS_OPEN)
             ->whereNull('closed_at')
+            ->whereNull('close_requested_at')
             ->whereHas('terminal', fn (Builder $query) => $query
                 ->whereIn('warehouse_id', $warehouseIds)
                 ->where('is_active', true)
@@ -129,7 +131,10 @@ class PosSales extends Page
                 ->whereHas('warehouse', fn (Builder $warehouse) => $warehouse->where('is_active', true)))
             ->with(['terminal.location', 'terminal.warehouse'])
             ->orderByDesc('opened_at')
-            ->get();
+            ->get()
+            ->filter(fn (PosCashSession $session): bool => empty($session->terminal->assigned_cashier_ids)
+                || in_array((int) auth()->id(), array_map('intval', $session->terminal->assigned_cashier_ids), true))
+            ->values();
     }
 
     public function availableTerminals(): Collection
@@ -143,7 +148,10 @@ class PosSales extends Page
             ->whereHas('warehouse', fn (Builder $query) => $query->where('is_active', true))
             ->with(['location', 'warehouse'])
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->filter(fn (PosTerminal $terminal): bool => empty($terminal->assigned_cashier_ids)
+                || in_array((int) auth()->id(), array_map('intval', $terminal->assigned_cashier_ids), true))
+            ->values();
     }
 
     public function cashPaymentMethods(): Collection
@@ -562,10 +570,12 @@ class PosSales extends Page
             $this->openingCurrency,
             $amount,
             null,
+            $this->shiftLabel,
         );
 
         $this->cashSessionId = $session->id;
         $this->cart = [];
+        $this->shiftLabel = '';
         $this->paymentMethodId = $this->cashPaymentMethods()->first()?->id;
 
         Notification::make()->success()->title(__('Caja abierta'))->body(__('El terminal está listo para vender.'))->send();
@@ -608,12 +618,18 @@ class PosSales extends Page
         }
 
         $amount = $this->parseAmount($this->countedCashAmount, 'countedCashAmount', allowZero: true);
-        app(PosCashSessionService::class)->close($session, auth()->id(), $amount, $this->closingNote);
+        $closed = app(PosCashSessionService::class)->close($session, auth()->id(), $amount, $this->closingNote);
 
         $this->cashSessionId = $this->openSessions()->first()?->id;
         $this->cart = [];
         $this->countedCashAmount = '';
         $this->closingNote = '';
+
+        if ($closed->close_requested_at !== null && $closed->closed_at === null) {
+            Notification::make()->warning()->title(__('Cierre enviado a aprobación'))->body(__('Un supervisor distinto debe revisar y aprobar el arqueo.'))->send();
+
+            return;
+        }
 
         Notification::make()->success()->title(__('Caja cerrada y arqueada.'))->send();
     }

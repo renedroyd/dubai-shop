@@ -13,7 +13,7 @@ class Warehouse extends Model
         static::updating(function (self $warehouse): void {
             if ($warehouse->isDirty('is_active') && ! $warehouse->is_active
                 && $warehouse->posTerminals()->where('is_active', true)->exists()) {
-                throw \\Illuminate\\Validation\\ValidationException::withMessages([
+                throw \Illuminate\Validation\ValidationException::withMessages([
                     'is_active' => __('No puedes desactivar un almacén asignado a terminales POS activos.'),
                 ]);
             }

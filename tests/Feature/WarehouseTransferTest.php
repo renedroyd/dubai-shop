@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Warehouse;
+use App\Models\WarehouseUserAccess;
 use App\Models\WarehouseLocation;
 use App\Models\WarehouseTransfer;
 use App\Models\WarehouseTransferRule;

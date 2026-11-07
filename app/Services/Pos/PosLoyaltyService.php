@@ -119,7 +119,7 @@ class PosLoyaltyService
                 ->first();
 
             if (! $setting || ! $wallet) {
-                throw \\Illuminate\\Validation\\ValidationException::withMessages(['loyaltyPointsToRedeem' => 'Este cliente no tiene saldo de puntos disponible en la moneda de esta venta.']);
+                throw \Illuminate\Validation\ValidationException::withMessages(['loyaltyPointsToRedeem' => 'Este cliente no tiene saldo de puntos disponible en la moneda de esta venta.']);
             }
 
             $available = $wallet->availablePoints();
@@ -127,13 +127,13 @@ class PosLoyaltyService
             $maximumDiscount = intdiv($eligibleAmount * (int) $setting->maximum_redemption_basis_points, 10000);
 
             if ($requestedPoints < (int) $setting->minimum_redemption_points) {
-                throw \\Illuminate\\Validation\\ValidationException::withMessages(['loyaltyPointsToRedeem' => 'El canje mínimo es de '.(int) $setting->minimum_redemption_points.' puntos.']);
+                throw \Illuminate\Validation\ValidationException::withMessages(['loyaltyPointsToRedeem' => 'El canje mínimo es de '.(int) $setting->minimum_redemption_points.' puntos.']);
             }
             if ($requestedPoints > $available) {
-                throw \\Illuminate\\Validation\\ValidationException::withMessages(['loyaltyPointsToRedeem' => 'El cliente no dispone de suficientes puntos en esta moneda.']);
+                throw \Illuminate\Validation\ValidationException::withMessages(['loyaltyPointsToRedeem' => 'El cliente no dispone de suficientes puntos en esta moneda.']);
             }
             if ($discount <= 0 || $discount > $maximumDiscount) {
-                throw \\Illuminate\\Validation\\ValidationException::withMessages(['loyaltyPointsToRedeem' => 'El canje supera el límite del 20 % del subtotal elegible.']);
+                throw \Illuminate\Validation\ValidationException::withMessages(['loyaltyPointsToRedeem' => 'El canje supera el límite del 20 % del subtotal elegible.']);
             }
 
             $credits = $wallet->entries()
@@ -165,7 +165,7 @@ class PosLoyaltyService
             }
 
             if ($remainingToAllocate > 0) {
-                throw \\Illuminate\\Validation\\ValidationException::withMessages(['loyaltyPointsToRedeem' => 'No fue posible reservar todos los puntos seleccionados. Actualiza el saldo e inténtalo de nuevo.']);
+                throw \Illuminate\Validation\ValidationException::withMessages(['loyaltyPointsToRedeem' => 'No fue posible reservar todos los puntos seleccionados. Actualiza el saldo e inténtalo de nuevo.']);
             }
 
             return [

@@ -70,6 +70,22 @@ class PosCashSessionService
                 throw ValidationException::withMessages(['session' => 'No se pueden registrar movimientos en una caja cerrada.']);
             }
 
+            if ($type === PosCashMovement::TYPE_CASH_OUT) {
+                $totals = $locked->movements()
+                    ->selectRaw("COALESCE(SUM(CASE WHEN type IN (?, ?) THEN amount ELSE 0 END), 0) as cash_in", [
+                        PosCashMovement::TYPE_CASH_IN, PosCashMovement::TYPE_SALE,
+                    ])
+                    ->selectRaw("COALESCE(SUM(CASE WHEN type IN (?, ?) THEN amount ELSE 0 END), 0) as cash_out", [
+                        PosCashMovement::TYPE_CASH_OUT, PosCashMovement::TYPE_REFUND,
+                    ])
+                    ->first();
+                $availableCash = (int) $locked->opening_cash_amount + (int) $totals->cash_in - (int) $totals->cash_out;
+
+                if ($amount > $availableCash) {
+                    throw ValidationException::withMessages(['amount' => 'La salida supera el efectivo disponible en la caja.']);
+                }
+            }
+
             return $locked->movements()->create([
                 'user_id' => $userId,
                 'type' => $type,

@@ -190,6 +190,8 @@ class WarehouseTransferService
         return DB::transaction(function () use ($transfer, $userId, $reason): WarehouseTransfer {
             $transfer = WarehouseTransfer::query()->whereKey($transfer->id)->lockForUpdate()->firstOrFail();
 
+            $this->assertWarehousePermission($userId, $transfer->source_warehouse_id, $transfer->destination_warehouse_id, 'transfers.approve');
+
             if ($transfer->status !== WarehouseTransfer::STATUS_PENDING_APPROVAL) {
                 throw ValidationException::withMessages(['transfer' => __('Solo se pueden rechazar transferencias pendientes de aprobación.')]);
             }
@@ -235,6 +237,8 @@ class WarehouseTransferService
     {
         return DB::transaction(function () use ($transfer, $quantities, $userId): WarehouseTransfer {
             $transfer = WarehouseTransfer::query()->whereKey($transfer->id)->lockForUpdate()->firstOrFail();
+
+            $this->assertWarehousePermission($userId, $transfer->source_warehouse_id, $transfer->destination_warehouse_id, 'transfers.approve');
 
             if ($transfer->status !== WarehouseTransfer::STATUS_APPROVED) {
                 throw ValidationException::withMessages(['transfer' => __('La transferencia debe estar aprobada antes del despacho.')]);

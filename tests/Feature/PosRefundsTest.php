@@ -25,6 +25,12 @@ class PosRefundsTest extends TestCase
 
     private function openCashSession(User $user): PosCashSession
     {
+        $user->update(['admin_access_enabled' => true]);
+        $user->warehouseAccesses()->firstOrCreate(
+            ['warehouse_id' => Warehouse::primary()->id],
+            ['permissions' => WarehouseUserAccess::PERMISSIONS],
+        );
+    {
         $location = PosLocation::query()->create(['code' => 'REFUND-LOC', 'name' => 'Tienda devoluciones', 'is_active' => true]);
         $terminal = PosTerminal::query()->create([
             'pos_location_id' => $location->id,

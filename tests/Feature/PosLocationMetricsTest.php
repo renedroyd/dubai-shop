@@ -1,16 +1,16 @@
 <?php
 
-namespace Tests\\Feature;
+namespace Tests\Feature;
 
-use App\\Filament\\Pages\\PosLocationMetrics;
-use App\\Models\\AdminRole;
-use App\\Models\\PosLocation;
-use App\\Models\\PosTerminal;
-use App\\Models\\User;
-use App\\Models\\Warehouse;
-use Illuminate\\Foundation\\Testing\\RefreshDatabase;
-use Livewire\\Livewire;
-use Tests\\TestCase;
+use App\Filament\Pages\PosLocationMetrics;
+use App\Models\AdminRole;
+use App\Models\PosLocation;
+use App\Models\PosTerminal;
+use App\Models\User;
+use App\Models\Warehouse;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
+use Tests\TestCase;
 
 class PosLocationMetricsTest extends TestCase
 {

@@ -145,6 +145,33 @@ class PosSalesInterfaceTest extends TestCase
             ->assertSet('customerEmail', 'frecuente@example.com');
     }
 
+    public function test_cashier_can_find_a_customer_by_saved_phone_number(): void
+    {
+        $user = $this->cashier();
+        $customer = User::factory()->create([
+            'name' => 'Cliente por teléfono',
+            'email' => 'telefono@example.com',
+            'is_admin' => false,
+            'admin_access_enabled' => false,
+        ]);
+        $customer->customerAddresses()->create([
+            'recipient_name' => $customer->name,
+            'phone' => '555-7788',
+            'address' => 'Calle 1',
+            'city' => 'Guantánamo',
+            'region' => 'Guantánamo',
+        ]);
+        $terminal = $this->terminal();
+        app(PosCashSessionService::class)->open($terminal, $user->id, 'CUP', 5000);
+
+        Livewire::actingAs($user)
+            ->test(PosSales::class)
+            ->set('customerSearch', '555-7788')
+            ->assertSee('Cliente por teléfono')
+            ->call('selectCustomer', $customer->id)
+            ->assertSet('customerUserId', $customer->id);
+    }
+
     public function test_cashier_can_register_a_customer_from_the_pos_interface(): void
     {
         $user = $this->cashier();

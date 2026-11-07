@@ -314,7 +314,10 @@ class PosSales extends Page
         return User::query()
             ->where('is_admin', false)
             ->where('admin_access_enabled', false)
-            ->where(fn (Builder $query) => $query->where('name', 'like', '%'.$term.'%')->orWhere('email', 'like', '%'.$term.'%'))
+            ->where(fn (Builder $query) => $query
+                ->where('name', 'like', '%'.$term.'%')
+                ->orWhere('email', 'like', '%'.$term.'%')
+                ->orWhereHas('customerAddresses', fn (Builder $addresses) => $addresses->where('phone', 'like', '%'.$term.'%')))
             ->orderBy('name')->limit(8)->get(['id', 'name', 'email']);
     }
 

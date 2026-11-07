@@ -589,5 +589,7 @@
   "Gracias por su compra": "Thank you for your purchase",
   "Imprimir recibo": "Print receipt",
   "No se pueden mezclar monedas distintas en una misma sesión de caja.": "Different currencies cannot be mixed in one cash session.",
-  "En esta versión del POS solo se admite un método de cobro inmediato en efectivo habilitado.": "This POS version only supports an enabled immediate cash payment method."
+  "En esta versión del POS solo se admite un método de cobro inmediato en efectivo habilitado.": "This POS version only supports an enabled immediate cash payment method.",
+  "Almacén POS": "POS warehouse",
+  "Variante (si aplica)": "Variant (if applicable)"
 }

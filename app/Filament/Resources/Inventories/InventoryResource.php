@@ -64,7 +64,7 @@ class InventoryResource extends Resource
                 ->state(fn (Inventory $record): string => $record->minimum_sale_price_amount === null ? __('Costo de adquisición') : number_format($record->minimum_sale_price_amount / 100, 2).' '.($record->product?->currency ?? ''))
                 ->visible(fn (): bool => auth()->user()?->hasAdminPermission('inventory_costs.view') ?? false),
             TextColumn::make('available_quantity')->label(__('Disponible'))->state(fn (Inventory $record): int => $record->available_quantity)->badge()
-                ->color(fn (int $state): string => $state === 0 ? 'danger' : ($state <= 5 ? 'warning' : 'success')),
+                ->color(fn (Inventory $record): string => $record->available_quantity === 0 ? 'danger' : ($record->available_quantity <= ($record->minimum_stock_quantity ?? 5) ? 'warning' : 'success')),
             TextColumn::make('updated_at')->label(__('Actualizado'))->dateTime()->sortable(),
         ])->filters([
             Filter::make('low_stock')->label(__('Stock bajo'))->query(fn (Builder $query): Builder => $query->whereRaw('(quantity_on_hand - quantity_reserved - quantity_blocked) <= COALESCE(minimum_stock_quantity, 5)'),

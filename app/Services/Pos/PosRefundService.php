@@ -85,6 +85,19 @@ class PosRefundService
 
             $prepared = [];
             $refundAmount = 0;
+            $saleLines = $lockedOrder->items()->orderBy('id')->get();
+            $netLinesTotal = (int) $saleLines->sum('line_total_amount');
+            $orderLevelDiscount = max(0, (int) $lockedOrder->discount_amount - (int) $saleLines->sum('discount_amount'));
+            $remainingOrderDiscount = $orderLevelDiscount;
+            $orderDiscountByItem = [];
+            foreach ($saleLines as $position => $saleLine) {
+                $allocatedDiscount = $position === $saleLines->count() - 1
+                    ? $remainingOrderDiscount
+                    : ($netLinesTotal > 0 ? intdiv($orderLevelDiscount * (int) $saleLine->line_total_amount, $netLinesTotal) : 0);
+                $allocatedDiscount = min($remainingOrderDiscount, $allocatedDiscount);
+                $orderDiscountByItem[$saleLine->id] = $allocatedDiscount;
+                $remainingOrderDiscount -= $allocatedDiscount;
+            }
             foreach ($quantities as $itemId => $quantity) {
                 $item = OrderItem::query()->where('order_id', $lockedOrder->id)->whereKey($itemId)->lockForUpdate()->first();
                 if (! $item) {
@@ -96,7 +109,9 @@ class PosRefundService
                     throw ValidationException::withMessages(['items' => "La cantidad a devolver supera las unidades vendidas de {$item->product_name}."]);
                 }
 
-                $amount = (int) $item->unit_price_amount * $quantity;
+                $netItemAmount = max(0, (int) $item->line_total_amount - (int) ($orderDiscountByItem[$item->id] ?? 0));
+                $amount = intdiv($netItemAmount * ($alreadyReturned + $quantity), (int) $item->quantity)
+                    - intdiv($netItemAmount * $alreadyReturned, (int) $item->quantity);
                 $refundAmount += $amount;
                 $prepared[] = ['item' => $item, 'quantity' => $quantity, 'amount' => $amount, 'already_returned' => $alreadyReturned];
             }

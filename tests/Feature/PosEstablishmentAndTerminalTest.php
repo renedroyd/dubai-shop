@@ -111,4 +111,25 @@ class PosEstablishmentAndTerminalTest extends TestCase
             'is_active' => true,
         ]);
     }
+    public function test_warehouse_cannot_be_deactivated_while_assigned_to_an_active_terminal(): void
+    {
+        $warehouse = Warehouse::primary();
+        $location = PosLocation::query()->create([
+            'code' => 'GTMO-04',
+            'name' => 'Sucursal con almacén',
+            'is_active' => true,
+        ]);
+        PosTerminal::query()->create([
+            'pos_location_id' => $location->id,
+            'warehouse_id' => $warehouse->id,
+            'code' => 'CAJA-04',
+            'name' => 'Caja activa',
+            'is_active' => true,
+        ]);
+
+        $this->expectException(ValidationException::class);
+
+        $warehouse->update(['is_active' => false]);
+    }
+
 }

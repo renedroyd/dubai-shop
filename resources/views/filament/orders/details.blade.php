@@ -51,4 +51,18 @@
             @endforeach
         @endforeach
     </section>
+    @if ($order->posRefunds->isNotEmpty())
+        <section>
+            <h3 class="mb-2 font-semibold">{{ __('Devoluciones y reembolsos') }}</h3>
+            @foreach ($order->posRefunds as $refund)
+                <div class="border-b py-2">
+                    <p class="font-medium">{{ number_format($refund->amount / 100, 2) }} {{ $refund->currency }} · {{ $refund->status }} · {{ $refund->refunded_at->format('d/m/Y H:i') }}</p>
+                    <p>{{ __('Procesado por') }}: {{ $refund->processor?->name ?? '—' }} · {{ $refund->reason }}</p>
+                    @foreach ($refund->items as $refundItem)
+                        <p class="text-xs">{{ $refundItem->quantity }} × {{ $refundItem->orderItem?->product_name ?? __('Producto eliminado') }}</p>
+                    @endforeach
+                </div>
+            @endforeach
+        </section>
+    @endif
 </div>

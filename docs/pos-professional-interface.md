@@ -121,7 +121,7 @@ PR #61, #62 y #63 integran los bloques de devoluciones/reembolsos, disposición 
 - Cada terminal configura recibos térmicos de 58/80 mm y entre 1 y 3 copias.
 - El recibo conserva descuentos y pagos mixtos y mantiene impresión de navegador como alternativa.
 
-## POS-14B — QZ Tray (en implementación)
+## POS-14B — QZ Tray (integrado en PR #66)
 
 - QZ Tray se utiliza como puente local gratuito y de código abierto para comunicar el navegador con impresoras USB o de red instaladas en la computadora de caja.
 - El nombre de impresora y la configuración de gaveta se guardan por terminal; la apertura ESC/POS se limita a terminales habilitados y se dispara después de una venta que haya cobrado un componente en efectivo. Zelle puro no abre la gaveta.
@@ -129,7 +129,7 @@ PR #61, #62 y #63 integran los bloques de devoluciones/reembolsos, disposición 
 - QZ Tray debe estar instalado y ejecutándose en cada puesto. Sin firma de mensajes, QZ Tray puede solicitar confirmación; no se almacenan claves privadas en el navegador ni en el repositorio. La prueba física de impresora, pin y cable de gaveta es necesaria antes de aceptar cada terminal.
 
 
-## POS-15 — dashboard e informes avanzados (en implementación)
+## POS-15 — dashboard e informes avanzados (integrado en PR #67)
 
 - Filtros por período (hasta 366 días), almacén, terminal, cajero y moneda; todos los resultados respetan `reports.view` por almacén.
 - Resumen de ventas por moneda y comparación con el período inmediatamente anterior.
@@ -150,9 +150,14 @@ PR #61, #62 y #63 integran los bloques de devoluciones/reembolsos, disposición 
 - Un usuario con permiso `pos_cash_sessions.approve_close` y acceso operativo al almacén debe aprobar el cierre. El solicitante no puede aprobar su propia solicitud. Se auditan solicitante, aprobador, importes y diferencia.
 - Las sesiones pendientes de aprobación no se consideran cierres definitivos en los informes de diferencias de caja.
 
-## POS-16B — alertas de inventario y reposición (en implementación)
+## POS-16B — alertas de inventario y reposición (integrado en PR #69)
 
 - Umbral mínimo configurable por existencia de producto/variante y almacén; si no se define, se usa 5 unidades.
 - Alertas de existencias disponibles bajas, restando reservas y bloqueos.
 - Solicitudes de reposición desde la existencia con stock bajo, seleccionando origen, ubicaciones y cantidad; se crean como transferencias `replenishment` con las reglas de aprobación ya configuradas.
 - Crear la solicitud no mueve ni reserva inventario. El stock se descuenta únicamente al despachar una transferencia aprobada.
+
+
+## Estado de integración POS-1 a POS-16
+
+Todos los bloques POS-1 a POS-16 están integrados en `main` (PR #49–69). El CI posterior a POS-16B (PR #69) pasó en PHP 8.4, PHP 8.5 y Frontend assets. La aceptación de hardware QZ Tray/impresoras/gavetas y las pruebas operativas de cajas y transferencias deben ejecutarse en las ubicaciones reales; la integración no implica aceptación de producción.

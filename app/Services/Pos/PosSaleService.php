@@ -150,7 +150,7 @@ class PosSaleService
                 $inventory = $line['inventory'];
                 $quantity = $line['quantity'];
 
-                OrderItem::query()->create([
+                $orderItem = OrderItem::query()->create([
                     'order_id' => $order->id,
                     'product_id' => $product->id,
                     'inventory_id' => $inventory?->id,

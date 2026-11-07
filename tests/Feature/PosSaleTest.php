@@ -131,6 +131,41 @@ class PosSaleTest extends TestCase
         ]);
     }
 
+    public function test_pos_sale_cannot_consume_units_reserved_by_online_checkout(): void
+    {
+        $user = User::factory()->create();
+        $session = $this->openSession($user);
+        $product = $this->product();
+        $inventory = app(InventoryService::class)->setOnHand($product, 5, reason: 'Carga inicial');
+        $inventory->update(['quantity_reserved' => 4]);
+
+        $this->expectException(ValidationException::class);
+        app(PosSaleService::class)->sell(
+            $session,
+            $user->id,
+            [['product_id' => $product->id, 'quantity' => 2]],
+            $this->cashMethod()->id,
+        );
+    }
+
+    public function test_online_channel_sees_the_remaining_stock_after_a_pos_sale(): void
+    {
+        $user = User::factory()->create();
+        $session = $this->openSession($user);
+        $product = $this->product();
+        $inventory = app(InventoryService::class)->setOnHand($product, 5, reason: 'Carga inicial');
+
+        app(PosSaleService::class)->sell(
+            $session,
+            $user->id,
+            [['product_id' => $product->id, 'quantity' => 3]],
+            $this->cashMethod()->id,
+        );
+
+        $this->assertSame(2, $inventory->fresh()->quantity_on_hand);
+        $this->assertSame(2, app(OnlineWarehouseFulfillmentService::class)->availableQuantity($product));
+    }
+
     public function test_pos_sale_rejects_insufficient_stock_without_partial_writes(): void
     {
         $user = User::factory()->create();

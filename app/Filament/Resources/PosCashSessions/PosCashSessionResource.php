@@ -144,8 +144,9 @@ class PosCashSessionResource extends Resource
                     'difference' => number_format(((int) $record->difference_amount) / 100, 2).' '.$record->currency,
                 ]))
                 ->requiresConfirmation()
-                ->visible(fn (PosCashSession $record): bool => $record->close_requested_at !== null && $record->closed_at === null)
-                ->authorize(fn (PosCashSession $record): bool => (auth()->user()?->hasAdminPermission('pos_cash_sessions.approve_close') ?? false)
+                ->visible(fn (PosCashSession $record): bool => $record->close_requested_at !== null
+                    && $record->closed_at === null
+                    && (auth()->user()?->hasAdminPermission('pos_cash_sessions.approve_close') ?? false)
                     && (auth()->user()?->hasWarehousePermission($record->terminal->warehouse_id, 'pos.operate') ?? false))
                 ->action(fn (PosCashSession $record) => app(PosCashSessionService::class)->approveClose($record, auth()->id())),
         ])->headerActions([

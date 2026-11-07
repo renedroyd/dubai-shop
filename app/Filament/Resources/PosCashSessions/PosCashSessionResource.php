@@ -67,7 +67,7 @@ class PosCashSessionResource extends Resource
                             ->options(fn () => Product::query()->where('status', Product::STATUS_ACTIVE)->orderBy('name')->pluck('name', 'id'))
                             ->searchable()->required(),
                         Select::make('product_variant_id')->label(__('Variante (si aplica)'))
-                            ->options(fn () => ProductVariant::query()->where('is_active', true)->with('product')->get()
+                            ->options(fn () => ProductVariant::query()->where('is_active', true)->whereHas('product', fn ($query) => $query->where('status', Product::STATUS_ACTIVE))->with('product')->get()
                                 ->mapWithKeys(fn (ProductVariant $variant): array => [$variant->id => $variant->product->name.' — '.$variant->name]))
                             ->searchable()->nullable(),
                         TextInput::make('quantity')->label(__('Cantidad'))->numeric()->integer()->minValue(1)->required()->default(1),

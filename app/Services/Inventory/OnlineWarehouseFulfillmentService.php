@@ -42,7 +42,7 @@ class OnlineWarehouseFulfillmentService
 
     /**
      * @param iterable<CartItem> $items
-     * @return array<int, array<int, array{inventory: Inventory, quantity: int}>>
+     * @return array<int, array<int, array{inventory: ?Inventory, quantity: int}>>
      */
     public function allocateOrder(iterable $items): array
     {
@@ -68,14 +68,18 @@ class OnlineWarehouseFulfillmentService
             $inventories = $this->inventoriesFor($product, $variant, $warehouses->modelKeys(), lock: true);
             $lines[$item->id] = [
                 'quantity' => (int) $item->quantity,
+                'tracked' => $inventories->isNotEmpty(),
                 'inventories' => $inventories->keyBy('warehouse_id'),
             ];
         }
 
-        // Prefer one warehouse for the complete basket whenever possible.
         foreach ($warehouses as $warehouse) {
             $canFulfill = true;
             foreach ($lines as $line) {
+                if (! $line['tracked']) {
+                    continue;
+                }
+
                 $inventory = $line['inventories']->get($warehouse->id);
                 if (! $inventory || $inventory->available_quantity < $line['quantity']) {
                     $canFulfill = false;
@@ -87,7 +91,7 @@ class OnlineWarehouseFulfillmentService
                 $allocations = [];
                 foreach ($lines as $itemId => $line) {
                     $allocations[$itemId] = [[
-                        'inventory' => $line['inventories']->get($warehouse->id),
+                        'inventory' => $line['tracked'] ? $line['inventories']->get($warehouse->id) : null,
                         'quantity' => $line['quantity'],
                     ]];
                 }
@@ -96,9 +100,13 @@ class OnlineWarehouseFulfillmentService
             }
         }
 
-        // Otherwise split fulfillment across warehouses in configured priority order.
         $allocations = [];
         foreach ($lines as $itemId => $line) {
+            if (! $line['tracked']) {
+                $allocations[$itemId] = [['inventory' => null, 'quantity' => $line['quantity']]];
+                continue;
+            }
+
             $remaining = $line['quantity'];
             $allocations[$itemId] = [];
 
@@ -129,12 +137,8 @@ class OnlineWarehouseFulfillmentService
         return $allocations;
     }
 
-    private function inventoriesFor(
-        Product $product,
-        ?ProductVariant $variant,
-        array $warehouseIds,
-        bool $lock = false,
-    ): Collection {
+    private function inventoriesFor(Product $product, ?ProductVariant $variant, array $warehouseIds, bool $lock = false): Collection
+    {
         $query = Inventory::query()
             ->whereIn('warehouse_id', $warehouseIds)
             ->where('product_id', $product->id)

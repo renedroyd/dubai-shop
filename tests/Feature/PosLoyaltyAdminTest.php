@@ -106,4 +106,60 @@ class PosLoyaltyAdminTest extends TestCase
         $this->expectException(ValidationException::class);
         $setting->update(['maximum_redemption_basis_points' => 10001]);
     }
+
+    public function test_authorized_negative_adjustment_consumes_expiring_lots_without_double_counting(): void
+    {
+        $admin = $this->superadmin();
+        $customer = User::factory()->create(['is_admin' => false, 'admin_access_enabled' => false]);
+        $wallet = PosLoyaltyWallet::query()->create(['user_id' => $customer->id, 'currency' => 'EUR', 'points_balance' => 150]);
+        $credit = $wallet->entries()->create([
+            'type' => 'earn',
+            'points_delta' => 150,
+            'idempotency_key' => 'admin-negative-adjust-seed-'.$customer->id,
+            'expires_at' => now()->addDays(10),
+        ]);
+
+        app(PosLoyaltyService::class)->adjustWallet($customer->id, 'EUR', -50, 'Corrección autorizada de puntos', $admin->id);
+
+        $this->assertSame(100, $wallet->fresh()->availablePoints());
+        $this->assertSame(100, $wallet->fresh()->expiringPointsWithin(30));
+        $this->assertDatabaseHas('pos_loyalty_entries', [
+            'wallet_id' => $wallet->id,
+            'type' => 'manual_adjustment',
+            'points_delta' => -50,
+        ]);
+        $this->assertDatabaseHas('pos_loyalty_entries', [
+            'id' => $credit->id,
+            'points_delta' => 150,
+        ]);
+    }
+
+    public function test_expiration_summary_does_not_count_refunded_points_twice(): void
+    {
+        $customer = User::factory()->create(['is_admin' => false, 'admin_access_enabled' => false]);
+        $wallet = PosLoyaltyWallet::query()->create(['user_id' => $customer->id, 'currency' => 'CUP', 'points_balance' => 0]);
+        $credit = $wallet->entries()->create([
+            'type' => 'earn',
+            'points_delta' => 100,
+            'idempotency_key' => 'expiring-source-'.$customer->id,
+            'expires_at' => now()->addDays(10),
+        ]);
+        $wallet->entries()->create([
+            'type' => 'redeem',
+            'points_delta' => -40,
+            'idempotency_key' => 'expiring-source-consume-'.$customer->id,
+            'expires_at' => $credit->expires_at,
+            'metadata' => ['source_entry_id' => $credit->id],
+        ]);
+        $wallet->entries()->create([
+            'type' => 'redemption_refund',
+            'points_delta' => 20,
+            'idempotency_key' => 'expiring-source-restore-'.$customer->id,
+            'expires_at' => $credit->expires_at,
+            'metadata' => ['source_entry_id' => $credit->id, 'reversed_entry_id' => 999],
+        ]);
+
+        $this->assertSame(80, $wallet->fresh()->expiringPointsWithin(30));
+    }
+
 }

@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Encryption\Encrypter;
 
 class ProductionReadinessCheck extends Command
 {
@@ -13,21 +14,40 @@ class ProductionReadinessCheck extends Command
 
     public function handle(): int
     {
+        $configuredKey = (string) config('app.key');
+        $encryptionKey = str_starts_with($configuredKey, 'base64:')
+            ? base64_decode(substr($configuredKey, 7), true)
+            : $configuredKey;
+        $validApplicationKey = is_string($encryptionKey)
+            && Encrypter::supported($encryptionKey, (string) config('app.cipher'));
+
+        $queueDriver = (string) config('queue.default');
+        $trustedProxies = config('app.trusted_proxies', []);
+        $mailer = (string) config('mail.default');
+        $smtpHost = (string) config('mail.mailers.smtp.host');
+        $smtpPort = (int) config('mail.mailers.smtp.port');
+        $usesSmtp = $mailer === 'smtp' || ($mailer === 'failover' && in_array('smtp', config('mail.mailers.failover.mailers', []), true));
+
+        $mailTransportConfigured = ! in_array($mailer, ['log', 'array'], true)
+            && (! $usesSmtp || (filled($smtpHost) && $smtpPort >= 1 && $smtpPort <= 65535))
+            && ($mailer !== 'failover' || collect(config('mail.mailers.failover.mailers', []))
+                ->every(fn (string $fallback): bool => ! in_array($fallback, ['log', 'array'], true)));
+
         $checks = [
             ['APP_ENV is production', config('app.env') === 'production', 'Set APP_ENV=production.'],
             ['Debug mode is disabled', config('app.debug') === false, 'Set APP_DEBUG=false.'],
             ['Application URL uses HTTPS', parse_url((string) config('app.url'), PHP_URL_SCHEME) === 'https', 'Set APP_URL to the public HTTPS URL.'],
-            ['Application key is configured', filled(config('app.key')), 'Generate and persist a unique APP_KEY.'],
+            ['Application key is valid for the configured cipher', $validApplicationKey, 'Generate and persist a valid APP_KEY for the configured encryption cipher.'],
             ['Session cookies are secure', config('session.secure') === true, 'Set SESSION_SECURE_COOKIE=true.'],
             ['Session cookies are HTTP-only', config('session.http_only') === true, 'Set SESSION_HTTP_ONLY=true.'],
             ['Session data is encrypted', config('session.encrypt') === true, 'Set SESSION_ENCRYPT=true.'],
             ['Session SameSite policy is restrictive', in_array(config('session.same_site'), ['lax', 'strict'], true), 'Use SESSION_SAME_SITE=lax or strict.'],
-            ['Session driver is persistent', ! in_array(config('session.driver'), ['array', 'cookie'], true), 'Use a persistent server-side session driver.'],
-            ['Queue driver is asynchronous', ! in_array(config('queue.default'), ['sync', 'null'], true), 'Configure a persistent asynchronous queue and supervise its workers.'],
+            ['Session driver is persistent', ! in_array(config('session.driver'), ['array', 'cookie', 'null'], true), 'Use a persistent server-side session driver.'],
+            ['Queue driver is durable and asynchronous', in_array($queueDriver, ['database', 'redis', 'sqs', 'beanstalkd'], true), 'Configure a persistent asynchronous queue and supervise its workers.'],
             ['Cache driver is persistent', ! in_array(config('cache.default'), ['array', 'null'], true), 'Configure a persistent cache store.'],
-            ['Mail transport is configured', ! in_array(config('mail.default'), ['log', 'array'], true), 'Configure SMTP or a production mail provider.'],
+            ['Mail transport is configured', $mailTransportConfigured, 'Configure SMTP or a production mail provider.'],
             ['Mail sender address is configured', filled(config('mail.from.address')) && ! str_ends_with((string) config('mail.from.address'), '@example.com'), 'Set MAIL_FROM_ADDRESS to an address on your domain.'],
-            ['Trusted proxy configuration is explicit', ! in_array('*', config('app.trusted_proxies', []), true), 'Do not trust every proxy; configure only controlled proxy IPs/CIDRs.'],
+            ['Trusted proxy configuration is explicit', is_array($trustedProxies) && array_intersect(['*', '**'], $trustedProxies) === [], 'Do not trust every proxy; configure only controlled proxy IPs/CIDRs.'],
         ];
 
         $failed = 0;

@@ -1,0 +1,3 @@
+# Run Laravel's scheduler once per minute.
+# Replace the application path and PHP binary for the target server.
+* * * * * cd /var/www/dubai-shop/current && /usr/bin/php artisan schedule:run >> /dev/null 2>&1

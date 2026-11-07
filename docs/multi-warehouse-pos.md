@@ -137,7 +137,7 @@ También se contemplan `rejected` y `cancelled`. La cancelación de una transfer
 10. Reintegrar el inventario en las ubicaciones de origen y registrar movimientos de caja, pagos y auditoría del reembolso.
 
 
-## POS-8 — Seguridad por almacén, informes y aceptación (en desarrollo)
+## POS-8 — Seguridad por almacén, informes y aceptación (integrado en PR #47)
 
 ### Acceso por usuario y almacén
 - Cada usuario administrativo puede recibir asignaciones independientes por almacén.
@@ -190,4 +190,4 @@ La tienda pública conserva temporalmente el comportamiento anterior: carrito, c
 ## Secuencia posterior
 
 1. POS-7: ventas integradas con pedidos y pagos, cajas, arqueos, recibos y devoluciones — integrado en PR #45.
-2. POS-8: permisos por almacén y usuario, informes y pruebas integrales — en desarrollo.
+2. POS-8: permisos por almacén y usuario, informes y pruebas integrales — integrado en PR #47.

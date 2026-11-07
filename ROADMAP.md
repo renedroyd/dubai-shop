@@ -1,7 +1,7 @@
 # Hoja de ruta — Dubai Shop / Clásico Dubai
 
 **Actualizada:** 6 de noviembre de 2026  
-**Base:** Fases 1–16 y PR #29–37 integradas; PR #38 incorpora RBAC administrativo.
+**Base:** Fases 1–16, PR #29–38 y POS-1 a POS-8 (PR #39–47) integrados.
 
 La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente y nuevas capacidades que requieren decisiones comerciales. La prioridad inmediata es estabilizar y aceptar el despliegue, no añadir integraciones externas sin proveedor o reglas aprobadas.
 
@@ -15,7 +15,7 @@ La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente
 | Experiencia pública y panel premium | Integrados; QA visual final pendiente | Media |
 | Importación Excel/CSV | Integrada; imágenes/variantes excluidas | Media |
 | Seguridad, RBAC y preflight | Integrados en esta entrega; configuración externa pendiente | Crítica |
-| POS y multi almacén | POS-1 a POS-7 integrados; POS-8 en desarrollo | Alta |
+| POS y multi almacén | POS-1 a POS-8 integrados; aceptación real en producción pendiente | Alta |
 | Asistente de prompts IA para banners | Integrado, flujo manual gratuito | Media |
 | Lanzamiento de producción | No aceptado aún | Crítica |
 
@@ -49,7 +49,7 @@ Arquitectura y CI, sistema visual, catálogo, carrito/checkout, pedidos e invent
 ## Próximas entregas
 
 ### Fase 17 — Aceptación operativa y estabilización de producción
-<badge color="warning">Prioridad crítica</badge> <badge color="info">Pendiente</badge>
+<badge color="warning">Prioridad crítica</badge> <badge color="info">En preparación; validación externa pendiente</badge>
 
 Objetivo: convertir la configuración desplegada en una operación verificable y segura.
 
@@ -142,7 +142,7 @@ Objetivo: implementar promociones reales sin introducir ambigüedades contables.
 
 ## POS y multi almacén — entregas independientes
 
-<badge color="success">POS-1 a POS-6 integrados</badge> <badge color="info">POS-7 en desarrollo</badge>
+<badge color="success">POS-1 a POS-8 integrados</badge>
 
 El POS funcionará siempre conectado al servidor. No se desarrollará modo offline. Decisiones aprobadas: ubicaciones internas flexibles (área/pasillo/estantería/posición), existencias independientes por almacén y aprobación configurable de transferencias.
 
@@ -153,9 +153,9 @@ El POS funcionará siempre conectado al servidor. No se desarrollará modo offli
 5. **POS-5 — Abastecimiento web:** almacenes permitidos, prioridad, reservas, preferencia por un único almacén y distribución de respaldo. Integrado en PR #43.
 6. **POS-6 — Terminales:** establecimientos, terminales y asignación de almacén. Integrado en PR #44.
 7. **POS-7 — Operación POS:** ventas integradas con Orders/Payments, sesiones de caja, arqueos, recibos, devoluciones parciales/totales y reposición auditada de inventario. Integrado en PR #45.
-8. **POS-8 — Seguridad y aceptación:** asignación de permisos por usuario/almacén, restricciones en servicios y recursos, informes por almacén y pruebas de contención de inventario entre web y POS. En desarrollo.
+8. **POS-8 — Seguridad y aceptación:** asignación de permisos por usuario/almacén, restricciones en servicios y recursos, informes por almacén y pruebas de contención de inventario entre web y POS. Integrado en PR #47.
 
-El POS permanece conectado al servidor. Las ventas usan el almacén asignado al terminal y, en esta primera entrega, un método de cobro en efectivo habilitado. Cada entrega se desarrolla en rama propia y se integra solo con aprobación explícita. Cada entrega se desarrolla en rama propia y se integra solo con aprobación explícita.
+El POS permanece conectado al servidor. Las ventas usan el almacén asignado al terminal y, en esta primera entrega, un método de cobro en efectivo habilitado. Cada entrega se desarrolla en rama propia y se integra solo con aprobación explícita.
 
 ## Cómo se acepta una fase
 

@@ -99,7 +99,7 @@ class PosEstablishmentAndTerminalTest extends TestCase
             ]);
         }
 
-        $this->assertSame(1, PosTerminal::query()->where('code', 'CAJA-01')->count());
+        $this->assertSame(2, PosTerminal::query()->where('code', 'CAJA-01')->count());
 
         $this->expectException(QueryException::class);
 

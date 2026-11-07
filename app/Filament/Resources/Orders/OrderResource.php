@@ -39,6 +39,7 @@ class OrderResource extends Resource
             TextColumn::make('number')->label(__('Pedido'))->searchable()->sortable(),
             TextColumn::make('channel')->label(__('Canal'))->badge(),
             TextColumn::make('posTerminal.code')->label(__('Terminal'))->placeholder('—'),
+            TextColumn::make('posWarehouse.name')->label(__('Almacén POS'))->placeholder('—'),
             TextColumn::make('customer_name')->label(__('Cliente'))->searchable(),
             TextColumn::make('customer_email')->label(__('Correo'))->searchable(),
             TextColumn::make('total_amount')->label(__('Total del pedido'))->formatStateUsing(fn ($state, Order $record) => number_format($state / 100, 2).' '.$record->currency),

@@ -2,7 +2,7 @@
 
 **Corte:** 7 de noviembre de 2026  
 **Rama de referencia:** `main`  
-**Última entrega de producto:** POS-11 — gestión de clientes en el terminal de ventas (PR #56, pendiente de integración).
+**Última entrega de producto:** POS-11 — gestión de clientes en el terminal de ventas (PR #56, integrado).
 
 > Este documento distingue implementación integrada, validación automatizada y aceptación operativa. Que una funcionalidad esté integrada o que CI pase no significa que esté configurada ni aceptada en el entorno real.
 
@@ -106,7 +106,7 @@ Las Fases 1–16 y las mejoras PR #29–37 están integradas. La entrega PR #38 
 ## Estado de POS al 7 de noviembre de 2026
 
 - POS-1 a POS-10 integrados en main.
-- POS-11 en implementación mediante PR #56: búsqueda por nombre/correo/teléfono guardado, alta rápida, asociación de ventas, historial limitado por almacén y clientes frecuentes.
+- POS-11 integrado mediante PR #56: búsqueda por nombre/correo/teléfono guardado, alta rápida, asociación de ventas, historial limitado por almacén y clientes frecuentes.
 - POS-12 a POS-16 permanecen planificados según ROADMAP.md.
 - El POS es exclusivamente online. POS-10 admite efectivo, Zelle manual USD y pagos mixtos; los pagos Zelle requieren revisión.
 - CI del PR #56 en el último commit validado: PHP 8.4, PHP 8.5 y Frontend assets — exitosos.

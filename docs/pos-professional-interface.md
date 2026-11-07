@@ -61,9 +61,9 @@ La fase de pagos avanzados está integrada. El POS admite efectivo con cambio, Z
 Los flujos están cubiertos por pruebas automatizadas y CI para PHP 8.4, PHP 8.5 y compilación frontend. Las fases siguientes contemplan clientes/fidelización, promociones, devoluciones, periféricos y reportes POS.
 
 
-## POS-11 — clientes y fidelización (entrega en implementación)
+## POS-11 — clientes y fidelización (completado)
 
-La pantalla POS permite buscar clientes registrados por nombre, correo o teléfono guardado en sus direcciones. El cajero puede seleccionar una cuenta existente o crear una cuenta de cliente rápida desde la venta. La creación genera una cuenta de cliente no administrativa y una contraseña aleatoria; el cliente podrá establecer su contraseña mediante el flujo de recuperación de cuenta. Se conserva el registro de ventas ocasionales sin cuenta.
+La pantalla POS integrada permite buscar clientes registrados por nombre, correo o teléfono guardado en sus direcciones. El cajero puede seleccionar una cuenta existente o crear una cuenta de cliente rápida desde la venta. La creación genera una cuenta de cliente no administrativa y una contraseña aleatoria; el cliente podrá establecer su contraseña mediante el flujo de recuperación de cuenta. Se conserva el registro de ventas ocasionales sin cuenta.
 
 Al vincular una cuenta, orders.user_id relaciona la venta con el cliente sin duplicar la entidad de usuarios. Se muestran las últimas ventas POS del cliente únicamente en almacenes donde el cajero tiene permiso de consulta, además de los clientes frecuentes de los últimos 90 días para el almacén de la caja. El nombre y correo quedan también copiados como snapshot en la orden.
 

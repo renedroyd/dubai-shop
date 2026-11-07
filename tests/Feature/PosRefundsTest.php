@@ -107,7 +107,7 @@ class PosRefundsTest extends TestCase
 
         $full = $service->refund($order->fresh(), $session, $user->id, [
             ['order_item_id' => $item->id, 'quantity' => 2],
-        ], 'Devolución del resto', $user->id);
+        ], 'Devolución del resto', $approver->id);
 
         $this->assertSame(2500, $full->amount);
         $this->assertSame(5, $inventory->fresh()->quantity_on_hand);
@@ -130,7 +130,7 @@ class PosRefundsTest extends TestCase
         $this->expectException(ValidationException::class);
         app(PosRefundService::class)->refund($order, $session, $user->id, [
             ['order_item_id' => $item->id, 'quantity' => 4],
-        ], 'Cantidad superior a la venta', $user->id);
+        ], 'Cantidad superior a la venta', $approver->id);
     }
 
     public function test_refund_requires_open_session_for_same_terminal_and_currency(): void
@@ -138,11 +138,12 @@ class PosRefundsTest extends TestCase
         $user = User::factory()->create();
         [$session, $order] = $this->completedSale($user);
         app(PosCashSessionService::class)->close($session, $user->id, 13750);
+        $approver = $this->authorizedApprover($user);
         $item = $order->items()->firstOrFail();
 
         $this->expectException(ValidationException::class);
         app(PosRefundService::class)->refund($order, $session, $user->id, [
             ['order_item_id' => $item->id, 'quantity' => 1],
-        ], 'Caja cerrada', $user->id);
+        ], 'Caja cerrada', $approver->id);
     }
 }

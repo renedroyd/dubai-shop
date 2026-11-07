@@ -37,6 +37,7 @@ class WarehouseTransferService
         }
 
         return DB::transaction(function () use ($source, $destination, $items, $userId, $notes, $transferType): WarehouseTransfer {
+            $this->assertWarehousePermission($userId, $source->id, $destination->id, 'transfers.request');
             $normalized = [];
             $totalQuantity = 0;
 
@@ -132,6 +133,8 @@ class WarehouseTransferService
     {
         return DB::transaction(function () use ($transfer, $userId, $comments): WarehouseTransfer {
             $transfer = WarehouseTransfer::query()->whereKey($transfer->id)->lockForUpdate()->firstOrFail();
+
+            $this->assertWarehousePermission($userId, $transfer->source_warehouse_id, $transfer->destination_warehouse_id, 'transfers.approve');
 
             if ($transfer->status !== WarehouseTransfer::STATUS_PENDING_APPROVAL) {
                 throw ValidationException::withMessages(['transfer' => __('La transferencia ya no está pendiente de aprobación.')]);
@@ -420,6 +423,21 @@ class WarehouseTransferService
             ['inventory_id' => $inventory->id, 'warehouse_location_id' => $location->id],
             ['quantity_on_hand' => 0],
         );
+    }
+
+    private function assertWarehousePermission(?int $userId, int $sourceWarehouseId, int $destinationWarehouseId, string $permission): void
+    {
+        if ($userId === null) {
+            return;
+        }
+
+        $user = User::query()->findOrFail($userId);
+
+        foreach ([$sourceWarehouseId, $destinationWarehouseId] as $warehouseId) {
+            if (! $user->hasWarehousePermission($warehouseId, $permission)) {
+                throw new \\Illuminate\\Auth\\Access\\AuthorizationException('No tienes permiso para realizar esta operación en ambos almacenes.');
+            }
+        }
     }
 
     private function event(

@@ -41,7 +41,6 @@ return new class extends Migration
             $table->json('metadata')->nullable();
             $table->timestamps();
             $table->index(['pos_cash_session_id', 'type']);
-            $table->unique(['payment_id', 'type']);
         });
 
         Schema::table('orders', function (Blueprint $table): void {

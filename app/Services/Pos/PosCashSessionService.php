@@ -37,7 +37,8 @@ class PosCashSessionService
                 throw ValidationException::withMessages(['pos_terminal_id' => 'El terminal, establecimiento y almacén deben estar activos.']);
             }
 
-            if ($lockedTerminal->cash_limit_amount !== null && $openingAmount > $lockedTerminal->cash_limit_amount) {
+            $cashLimit = $lockedTerminal->cashLimitFor($currency);
+            if ($cashLimit !== null && $openingAmount > $cashLimit) {
                 throw ValidationException::withMessages(['opening_cash_amount' => 'El fondo inicial supera el límite de efectivo configurado para este terminal.']);
             }
 
@@ -98,8 +99,8 @@ class PosCashSessionService
             }
 
             if ($type === PosCashMovement::TYPE_CASH_IN
-                && $locked->terminal->cash_limit_amount !== null
-                && $availableCash + $amount > $locked->terminal->cash_limit_amount) {
+                && ($cashLimit = $locked->terminal->cashLimitFor($locked->currency)) !== null
+                && $availableCash + $amount > $cashLimit) {
                 throw ValidationException::withMessages(['amount' => 'La entrada supera el límite de efectivo configurado para este terminal.']);
             }
 

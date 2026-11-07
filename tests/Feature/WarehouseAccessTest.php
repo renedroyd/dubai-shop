@@ -79,7 +79,7 @@ class WarehouseAccessTest extends TestCase
         $primary = Warehouse::primary();
         $secondary = $this->warehouse('ACCESS-'.strtoupper(uniqid()));
         $user = User::factory()->create();
-        $this->assign($user, $secondary, ['view', 'inventory.manage']);
+        $this->assign($user, $secondary, ['inventory.manage']);
 
         $this->assertTrue($user->hasWarehousePermission($secondary, 'view'));
         $this->assertTrue($user->hasWarehousePermission($secondary, 'inventory.manage'));

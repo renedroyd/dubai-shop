@@ -8,6 +8,7 @@ use App\Models\Warehouse;
 use App\Services\Inventory\InventoryService;
 use App\Services\Inventory\OnlineWarehouseFulfillmentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class OnlineWarehouseFulfillmentTest extends TestCase

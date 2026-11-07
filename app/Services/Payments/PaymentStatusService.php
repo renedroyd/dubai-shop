@@ -112,6 +112,9 @@ class PaymentStatusService
                 'review_note' => $note,
             ]);
             $order->update(['payment_status' => 'payment_rejected']);
+            if ($order->channel === 'pos') {
+                app(PosLoyaltyService::class)->restoreRedemptionForCancelledOrder($order, $actorId);
+            }
             $lockedPayment->events()->create([
                 'from_status' => $from,
                 'to_status' => Payment::STATUS_REJECTED,

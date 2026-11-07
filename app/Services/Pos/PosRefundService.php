@@ -52,14 +52,16 @@ class PosRefundService
                 throw ValidationException::withMessages(['session' => 'La devolución requiere una caja abierta del mismo terminal y moneda de la venta.']);
             }
 
-            $payment = Payment::query()
+            $payments = Payment::query()
                 ->where('order_id', $lockedOrder->id)
                 ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_PARTIALLY_REFUNDED])
-                ->lockForUpdate()
-                ->first();
+                ->orderBy('id')->lockForUpdate()->get();
 
-            if (! $payment || $payment->driver !== 'cash_on_delivery') {
-                throw ValidationException::withMessages(['payment' => 'No existe un cobro POS en efectivo válido para reembolsar.']);
+            if ($payments->isEmpty() || $payments->contains(fn (Payment $payment): bool => ! in_array($payment->driver, ['cash_on_delivery', 'zelle_manual'], true))) {
+                throw ValidationException::withMessages(['payment' => 'No existen pagos originales válidos para reembolsar.']);
+            }
+            if ((int) $payments->sum('amount') !== (int) $lockedOrder->total_amount) {
+                throw ValidationException::withMessages(['payment' => 'Los pagos originales no concilian con el total de la venta.']);
             }
 
             $cashier = User::query()->findOrFail($cashierId);

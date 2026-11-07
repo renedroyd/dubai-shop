@@ -54,7 +54,9 @@ class User extends Authenticatable implements FilamentUser
             $permissions = json_decode($permissions, true) ?: [];
         }
 
-        return in_array('*', $permissions, true) || in_array($permission, $permissions, true);
+        return in_array('*', $permissions, true)
+            || in_array($permission, $permissions, true)
+            || ($permission === 'view' && $permissions !== []);
     }
 
     public function warehouseIdsWithPermission(string $permission = 'view'): array
@@ -70,7 +72,8 @@ class User extends Authenticatable implements FilamentUser
         return $this->warehouseAccesses()
             ->get()
             ->filter(fn (WarehouseUserAccess $access): bool => in_array('*', $access->permissions ?? [], true)
-                || in_array($permission, $access->permissions ?? [], true))
+                || in_array($permission, $access->permissions ?? [], true)
+                || ($permission === 'view' && ($access->permissions ?? []) !== []))
             ->pluck('warehouse_id')
             ->map(fn ($id): int => (int) $id)
             ->all();

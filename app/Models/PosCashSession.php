@@ -14,7 +14,8 @@ class PosCashSession extends Model
     protected $fillable = [
         'pos_terminal_id', 'opened_by', 'closed_by', 'status', 'currency',
         'opening_cash_amount', 'expected_cash_amount', 'counted_cash_amount',
-        'difference_amount', 'opening_note', 'closing_note', 'opened_at', 'closed_at',
+        'difference_amount', 'opening_note', 'closing_note', 'shift_label', 'close_requested_by', 'close_requested_at',
+        'close_counted_cash_amount', 'close_request_note', 'close_approved_by', 'close_approved_at', 'opened_at', 'closed_at',
     ];
 
     protected function casts(): array
@@ -24,12 +25,17 @@ class PosCashSession extends Model
             'expected_cash_amount' => 'integer',
             'counted_cash_amount' => 'integer',
             'difference_amount' => 'integer',
+            'close_counted_cash_amount' => 'integer',
+            'close_requested_at' => 'datetime',
+            'close_approved_at' => 'datetime',
             'opened_at' => 'datetime',
             'closed_at' => 'datetime',
         ];
     }
 
     public function terminal(): BelongsTo { return $this->belongsTo(PosTerminal::class, 'pos_terminal_id'); }
+    public function closeRequester(): BelongsTo { return $this->belongsTo(User::class, 'close_requested_by'); }
+    public function closeApprover(): BelongsTo { return $this->belongsTo(User::class, 'close_approved_by'); }
     public function opener(): BelongsTo { return $this->belongsTo(User::class, 'opened_by'); }
     public function closer(): BelongsTo { return $this->belongsTo(User::class, 'closed_by'); }
     public function movements(): HasMany { return $this->hasMany(PosCashMovement::class, 'pos_cash_session_id'); }
@@ -38,6 +44,6 @@ class PosCashSession extends Model
 
     public function isOpen(): bool
     {
-        return $this->status === self::STATUS_OPEN && $this->closed_at === null;
+        return $this->status === self::STATUS_OPEN && $this->closed_at === null && $this->close_requested_at === null;
     }
 }

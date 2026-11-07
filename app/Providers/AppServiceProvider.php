@@ -153,6 +153,8 @@ class AppServiceProvider extends ServiceProvider
                     $subject instanceof WarehouseTransfer => [$subject->source_warehouse_id, $subject->destination_warehouse_id],
                     $subject instanceof PosTerminal => [$subject->warehouse_id],
                     $subject instanceof PosCashSession => [$subject->terminal?->warehouse_id],
+                    $subject instanceof Payment && $subject->order?->channel === 'pos' => [$subject->order->pos_warehouse_id],
+                    $subject instanceof Payment => $subject->order?->items()->with('inventory')->get()->pluck('inventory.warehouse_id')->all(),
                     $subject instanceof Order && $subject->channel === 'pos' => [$subject->pos_warehouse_id],
                     $subject instanceof Order => $subject->items()->with('inventory')->get()->pluck('inventory.warehouse_id')->all(),
                     $subject instanceof WarehouseTransferRule => [$subject->source_warehouse_id, $subject->destination_warehouse_id],
@@ -172,6 +174,9 @@ class AppServiceProvider extends ServiceProvider
                             $actions[$ability] === 'view' ? 'view' : 'warehouse.manage',
                         'pos_cash_sessions' =>
                             $actions[$ability] === 'view' ? 'view' : 'pos.operate',
+                        'payments' => $subject->order?->channel === 'pos'
+                            ? ($actions[$ability] === 'view' ? 'view' : 'pos.operate')
+                            : 'view',
                         'orders' => $subject->channel === 'pos'
                             ? ($actions[$ability] === 'view' ? 'view' : 'pos.operate')
                             : 'view',

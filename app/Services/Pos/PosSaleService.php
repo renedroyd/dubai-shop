@@ -199,7 +199,7 @@ class PosSaleService
                     'reason' => 'Venta POS '.$order->number,
                     'reference_type' => Order::class,
                     'reference_id' => $order->id,
-                    'metadata' => ['channel' => 'pos', 'terminal_id' => $terminal->id, 'location_allocations' => $allocations],
+                    'metadata' => ['channel' => 'pos', 'terminal_id' => $terminal->id, 'order_item_id' => $orderItem->id, 'location_allocations' => $allocations],
                 ]);
             }
 

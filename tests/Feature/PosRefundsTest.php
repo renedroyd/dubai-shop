@@ -30,7 +30,7 @@ class PosRefundsTest extends TestCase
             ['warehouse_id' => Warehouse::primary()->id],
             ['permissions' => WarehouseUserAccess::PERMISSIONS],
         );
-    {
+
         $location = PosLocation::query()->create(['code' => 'REFUND-LOC', 'name' => 'Tienda devoluciones', 'is_active' => true]);
         $terminal = PosTerminal::query()->create([
             'pos_location_id' => $location->id,

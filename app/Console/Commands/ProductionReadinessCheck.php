@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Encryption\Encrypter;
 
 class ProductionReadinessCheck extends Command
 {
@@ -29,7 +30,7 @@ class ProductionReadinessCheck extends Command
         $mailTransportConfigured = ! in_array($mailer, ['log', 'array'], true)
             && ($mailer !== 'smtp' || (filled($smtpHost) && $smtpPort >= 1 && $smtpPort <= 65535))
             && ($mailer !== 'failover' || collect(config('mail.mailers.failover.mailers', []))
-                ->every(fn (string $fallback): bool => ! in_array($fallback, ['log', 'array'], true));
+                ->every(fn (string $fallback): bool => ! in_array($fallback, ['log', 'array'], true)));
 
         $checks = [
             ['APP_ENV is production', config('app.env') === 'production', 'Set APP_ENV=production.'],

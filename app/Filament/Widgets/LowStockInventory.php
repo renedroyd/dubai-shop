@@ -47,6 +47,9 @@ class LowStockInventory extends TableWidget
                 TextColumn::make('quantity_reserved')
                     ->label(__('Reservado'))
                     ->numeric(),
+                TextColumn::make('quantity_blocked')
+                    ->label(__('Bloqueado'))
+                    ->numeric(),
                 TextColumn::make('minimum_stock_quantity')
                     ->label(__('Umbral'))
                     ->state(fn (Inventory $record): int => $record->minimum_stock_quantity ?? 5)

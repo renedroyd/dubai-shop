@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Inventory;
 use App\Models\Payment;
 use App\Models\PosRefund;
+use App\Models\PosLoyaltyWallet;
 use App\Models\AdminRole;
 use App\Models\PaymentMethod;
 use App\Models\PosCashSession;
@@ -234,4 +235,69 @@ class PosRefundsTest extends TestCase
             ['order_item_id' => $item->id, 'quantity' => 1],
         ], 'Caja cerrada', $approver->id);
     }
+
+    public function test_partial_and_full_refunds_reverse_earned_points_and_restore_redeemed_points_proportionally(): void
+    {
+        $cashier = User::factory()->create();
+        $customer = User::factory()->create(['is_admin' => false, 'admin_access_enabled' => false]);
+        $session = $this->openCashSession($cashier);
+        $product = $this->product();
+        $product->update(['price_amount' => 125000]);
+        app(InventoryService::class)->setOnHand($product, 5, reason: 'Carga inicial');
+
+        $wallet = PosLoyaltyWallet::query()->create([
+            'user_id' => $customer->id,
+            'currency' => 'CUP',
+            'points_balance' => 150,
+        ]);
+        $wallet->entries()->create([
+            'type' => 'earn',
+            'points_delta' => 150,
+            'idempotency_key' => 'refund-loyalty-seed-'.$customer->id,
+            'expires_at' => now()->addMonths(12),
+        ]);
+
+        $order = app(PosSaleService::class)->sell(
+            $session,
+            $cashier->id,
+            [['product_id' => $product->id, 'quantity' => 2]],
+            $this->cashMethod()->id,
+            ['user_id' => $customer->id],
+            ['loyalty_points' => 100],
+        );
+
+        $this->assertSame(240000, $order->total_amount);
+        $this->assertSame(74, $wallet->fresh()->availablePoints());
+
+        $approver = $this->authorizedApprover($cashier);
+        $item = $order->items()->firstOrFail();
+        $service = app(PosRefundService::class);
+
+        $firstRefund = $service->refund($order, $session, $cashier->id, [
+            ['order_item_id' => $item->id, 'quantity' => 1],
+        ], 'Devolución parcial', $approver->id);
+
+        $this->assertSame(120000, $firstRefund->amount);
+        $this->assertSame(112, $wallet->fresh()->availablePoints());
+        $this->assertDatabaseHas('pos_loyalty_entries', [
+            'order_id' => $order->id,
+            'type' => 'earn_reversal',
+            'points_delta' => -12,
+        ]);
+        $this->assertDatabaseHas('pos_loyalty_entries', [
+            'order_id' => $order->id,
+            'type' => 'redemption_refund',
+            'points_delta' => 50,
+        ]);
+
+        $secondRefund = $service->refund($order->fresh(), $session, $cashier->id, [
+            ['order_item_id' => $item->id, 'quantity' => 1],
+        ], 'Devolución total', $approver->id);
+
+        $this->assertSame(120000, $secondRefund->amount);
+        $this->assertSame(150, $wallet->fresh()->availablePoints());
+        $this->assertSame(24, (int) $wallet->entries()->where('order_id', $order->id)->where('type', 'earn_reversal')->sum('points_delta') * -1);
+        $this->assertSame(100, (int) $wallet->entries()->where('order_id', $order->id)->where('type', 'redemption_refund')->sum('points_delta'));
+    }
+
 }

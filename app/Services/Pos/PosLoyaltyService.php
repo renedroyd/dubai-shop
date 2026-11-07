@@ -7,6 +7,7 @@ use App\Models\Payment;
 use App\Models\PosLoyaltyEntry;
 use App\Models\PosLoyaltySetting;
 use App\Models\PosLoyaltyWallet;
+use App\Models\PosRefund;
 use Illuminate\Support\Facades\DB;
 
 class PosLoyaltyService
@@ -200,7 +201,7 @@ class PosLoyaltyService
                 ]);
             }
 
-            $wallet->update(['points_balance' => max(0, $wallet->availablePoints())]);
+            $wallet->update(['points_balance' => $wallet->availablePoints()]);
         });
     }
 
@@ -236,7 +237,95 @@ class PosLoyaltyService
                 ]);
             }
 
-            $wallet->update(['points_balance' => max(0, $wallet->availablePoints())]);
+            $wallet->update(['points_balance' => $wallet->availablePoints()]);
+        });
+    }
+
+
+    public function restoreForRefund(Order $order, PosRefund $refund, int $cumulativeRefundAmount): void
+    {
+        DB::transaction(function () use ($order, $refund, $cumulativeRefundAmount): void {
+            if ($order->channel !== 'pos' || (int) $order->total_amount <= 0) return;
+
+            $wallet = PosLoyaltyWallet::query()
+                ->where('user_id', $order->user_id)
+                ->where('currency', $order->currency)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $wallet) return;
+
+            $cumulativeRefundAmount = min((int) $order->total_amount, max(0, $cumulativeRefundAmount));
+            $earnings = PosLoyaltyEntry::query()
+                ->where('wallet_id', $wallet->id)
+                ->where('order_id', $order->id)
+                ->where('type', 'earn')
+                ->where('points_delta', '>', 0)
+                ->orderBy('id')
+                ->get();
+
+            foreach ($earnings as $earning) {
+                $targetReversal = intdiv((int) $earning->points_delta * $cumulativeRefundAmount, (int) $order->total_amount);
+                $alreadyReversed = abs((int) $wallet->entries()
+                    ->where('type', 'earn_reversal')
+                    ->where('metadata->source_entry_id', $earning->id)
+                    ->sum('points_delta'));
+                $pointsToReverse = max(0, $targetReversal - $alreadyReversed);
+
+                if ($pointsToReverse > 0) {
+                    $wallet->entries()->create([
+                        'order_id' => $order->id,
+                        'actor_id' => $refund->approved_by,
+                        'type' => 'earn_reversal',
+                        'points_delta' => -$pointsToReverse,
+                        'idempotency_key' => 'pos-refund:'.$refund->id.':earn-reversal:'.$earning->id,
+                        'expires_at' => $earning->expires_at,
+                        'metadata' => [
+                            'source_entry_id' => $earning->id,
+                            'refund_id' => $refund->id,
+                            'cumulative_refund_amount' => $cumulativeRefundAmount,
+                            'original_order_total' => (int) $order->total_amount,
+                        ],
+                    ]);
+                }
+            }
+
+            $redemptions = PosLoyaltyEntry::query()
+                ->where('wallet_id', $wallet->id)
+                ->where('order_id', $order->id)
+                ->where('type', 'redeem')
+                ->where('points_delta', '<', 0)
+                ->orderBy('id')
+                ->get();
+
+            foreach ($redemptions as $redemption) {
+                $targetRestore = intdiv(abs((int) $redemption->points_delta) * $cumulativeRefundAmount, (int) $order->total_amount);
+                $alreadyRestored = (int) $wallet->entries()
+                    ->where('type', 'redemption_refund')
+                    ->where('metadata->reversed_entry_id', $redemption->id)
+                    ->sum('points_delta');
+                $pointsToRestore = max(0, $targetRestore - $alreadyRestored);
+
+                if ($pointsToRestore > 0) {
+                    $wallet->entries()->create([
+                        'order_id' => $order->id,
+                        'actor_id' => $refund->approved_by,
+                        'type' => 'redemption_refund',
+                        'points_delta' => $pointsToRestore,
+                        'idempotency_key' => 'pos-refund:'.$refund->id.':redemption-refund:'.$redemption->id,
+                        'expires_at' => $redemption->expires_at,
+                        'metadata' => [
+                            'source_entry_id' => $redemption->metadata['source_entry_id'] ?? null,
+                            'reversed_entry_id' => $redemption->id,
+                            'refund_id' => $refund->id,
+                            'cumulative_refund_amount' => $cumulativeRefundAmount,
+                            'original_order_total' => (int) $order->total_amount,
+                        ],
+                    ]);
+                }
+            }
+
+            $wallet->update(['points_balance' => $wallet->availablePoints()]);
         });
     }
 

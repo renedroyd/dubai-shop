@@ -52,6 +52,9 @@
                                 <input type="number" min="0" step="0.01" wire:model="openingAmount" class="fi-input mt-1 w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-950">
                                 @error('openingAmount') <p class="mt-1 text-sm text-danger-600">{{ $message }}</p> @enderror
                             </label>
+                            <label class="block text-sm font-medium">{{ __('Turno / jornada') }}
+                                <input type="text" maxlength="120" wire:model="shiftLabel" placeholder="{{ __('Ej. Mañana · Turno 1') }}" class="fi-input mt-1 w-full rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-950">
+                            </label>
                         </div>
                         <button type="submit" class="fi-btn fi-btn-color-primary w-full justify-center" wire:loading.attr="disabled">
                             <x-heroicon-o-lock-open class="h-4 w-4" /> {{ __('Abrir caja y comenzar') }}
@@ -66,7 +69,10 @@
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-[0.18em] text-amber-300">{{ __('Clásico Dubai · Punto de venta') }}</p>
                         <h2 class="text-lg font-semibold">{{ $session->terminal->name }}</h2>
-                        <p class="text-xs text-gray-300">{{ $session->terminal->location->name }} · {{ $session->terminal->warehouse->name }}</p>
+                        <p class="text-xs text-gray-300">{{ $session->terminal->location->name }} · {{ $session->terminal->warehouse->name }} · {{ $session->shift_label ?: __('Turno sin nombre') }}</p>
+                        @if ($session->terminal->cash_limit_amount !== null)
+                            <p class="mt-1 text-[11px] text-amber-200">{{ __('Límite de efectivo') }}: {{ $this->formatMoney($session->terminal->cash_limit_amount, $session->currency) }}</p>
+                        @endif
                     </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-3">
@@ -341,7 +347,10 @@
                                     <label class="block text-xs font-medium text-gray-500">{{ __('Efectivo contado al cierre') }}</label>
                                     <input type="number" min="0" step="0.01" wire:model="countedCashAmount" placeholder="0.00" class="fi-input w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950" required>
                                     <input wire:model="closingNote" placeholder="{{ __('Observaciones del cierre') }}" class="fi-input w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
-                                    <button type="submit" wire:confirm="{{ __('¿Cerrar la caja y registrar el arqueo?') }}" class="fi-btn fi-btn-color-danger w-full justify-center">{{ __('Cerrar caja y arquear') }}</button>
+                                    @if ($session->terminal->supervised_closing)
+                                        <p class="text-xs text-amber-600 dark:text-amber-300">{{ __('El efectivo contado se enviará a un supervisor. La caja permanecerá bloqueada hasta su aprobación.') }}</p>
+                                    @endif
+                                    <button type="submit" wire:confirm="{{ $session->terminal->supervised_closing ? __('¿Enviar el cierre a aprobación de un supervisor?') : __('¿Cerrar la caja y registrar el arqueo?') }}" class="fi-btn fi-btn-color-danger w-full justify-center">{{ $session->terminal->supervised_closing ? __('Solicitar cierre supervisado') : __('Cerrar caja y arquear') }}</button>
                                 </form>
                             </div>
                         </div>

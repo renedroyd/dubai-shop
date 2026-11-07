@@ -51,12 +51,16 @@ class PosCashSessionResource extends Resource
             TextColumn::make('terminal.location.name')->label(__('Establecimiento'))->searchable(),
             TextColumn::make('terminal.code')->label(__('Terminal'))->searchable(),
             TextColumn::make('opener.name')->label(__('Abierta por')),
+            TextColumn::make('shift_label')->label(__('Turno'))->placeholder('—'),
+            TextColumn::make('close_requested_at')->label(__('Cierre solicitado'))->dateTime(),
+            TextColumn::make('closeRequester.name')->label(__('Solicitó cierre'))->placeholder('—'),
+            TextColumn::make('closeApprover.name')->label(__('Aprobó cierre'))->placeholder('—'),
             TextColumn::make('currency')->label(__('Moneda')),
             TextColumn::make('opening_cash_amount')->label(__('Fondo inicial'))->formatStateUsing(fn ($state, PosCashSession $record) => number_format($state / 100, 2).' '.$record->currency),
             TextColumn::make('expected_cash_amount')->label(__('Efectivo esperado'))->formatStateUsing(fn ($state, PosCashSession $record) => $state === null ? '—' : number_format($state / 100, 2).' '.$record->currency),
             TextColumn::make('counted_cash_amount')->label(__('Efectivo contado'))->formatStateUsing(fn ($state, PosCashSession $record) => $state === null ? '—' : number_format($state / 100, 2).' '.$record->currency),
             TextColumn::make('difference_amount')->label(__('Diferencia'))->formatStateUsing(fn ($state, PosCashSession $record) => $state === null ? '—' : number_format($state / 100, 2).' '.$record->currency),
-            TextColumn::make('status')->label(__('Estado'))->badge()->color(fn (string $state): string => $state === PosCashSession::STATUS_OPEN ? 'success' : 'gray'),
+            TextColumn::make('status')->label(__('Estado'))->state(fn (PosCashSession $record): string => $record->close_requested_at !== null && $record->closed_at === null ? __('Pendiente de aprobación') : ($record->status === PosCashSession::STATUS_OPEN ? __('Abierta') : __('Cerrada')))->badge()->color(fn (string $state): string => $state === __('Pendiente de aprobación') ? 'warning' : ($state === __('Abierta') ? 'success' : 'gray')),
             TextColumn::make('opened_at')->label(__('Apertura'))->dateTime()->sortable(),
             TextColumn::make('closed_at')->label(__('Cierre'))->dateTime(),
         ])->filters([
@@ -67,7 +71,7 @@ class PosCashSessionResource extends Resource
         ])->defaultSort('opened_at', 'desc')->recordActions([
             Action::make('sell')->label(__('Registrar venta'))->icon('heroicon-o-shopping-cart')->color('success')
                 ->authorize('update')
-                ->visible(fn (PosCashSession $record): bool => $record->isOpen())
+                ->visible(fn (PosCashSession $record): bool => $record->isOpen() && self::isAssignedCashier($record))
                 ->form([
                     Repeater::make('items')->label(__('Productos'))->schema([
                         Select::make('product_id')->label(__('Producto'))
@@ -123,7 +127,7 @@ class PosCashSessionResource extends Resource
                 ->action(fn (PosCashSession $record, array $data) => app(PosCashSessionService::class)->recordCashMovement(
                     $record, auth()->id(), PosCashMovement::TYPE_CASH_OUT, (int) $data['amount'], $data['note'], $data['reference'] ?? null,
                 )),
-            Action::make('close')->label(__('Cerrar y arquear'))->icon('heroicon-o-lock-closed')->color('danger')
+            Action::make('close')->label(fn (PosCashSession $record): string => $record->terminal?->supervised_closing ? __('Solicitar cierre supervisado') : __('Cerrar y arquear'))->icon('heroicon-o-lock-closed')->color('danger')
                 ->requiresConfirmation()->authorize('update')
                 ->visible(fn (PosCashSession $record): bool => $record->isOpen())
                 ->form([
@@ -133,15 +137,31 @@ class PosCashSessionResource extends Resource
                 ->action(fn (PosCashSession $record, array $data) => app(PosCashSessionService::class)->close(
                     $record, auth()->id(), (int) $data['counted_amount'], $data['note'] ?? null,
                 )),
+            Action::make('approveClose')->label(__('Aprobar cierre'))->icon('heroicon-o-shield-check')->color('success')
+                ->modalDescription(fn (PosCashSession $record): string => __('Esperado: :expected · Contado: :counted · Diferencia: :difference', [
+                    'expected' => number_format(((int) $record->expected_cash_amount) / 100, 2).' '.$record->currency,
+                    'counted' => number_format(((int) $record->close_counted_cash_amount) / 100, 2).' '.$record->currency,
+                    'difference' => number_format(((int) $record->difference_amount) / 100, 2).' '.$record->currency,
+                ]))
+                ->requiresConfirmation()
+                ->visible(fn (PosCashSession $record): bool => $record->close_requested_at !== null
+                    && $record->closed_at === null
+                    && (auth()->user()?->hasAdminPermission('pos_cash_sessions.approve_close') ?? false)
+                    && (auth()->user()?->hasWarehousePermission($record->terminal->warehouse_id, 'pos.operate') ?? false))
+                ->action(fn (PosCashSession $record) => app(PosCashSessionService::class)->approveClose($record, auth()->id())),
         ])->headerActions([
             Action::make('open')->label(__('Abrir caja'))->icon('heroicon-o-lock-open')->authorize('create')
                 ->form([
                     Select::make('pos_terminal_id')->label(__('Terminal'))
-                        ->options(fn () => PosTerminal::query()->where('is_active', true)->whereHas('location', fn ($q) => $q->where('is_active', true))->whereHas('warehouse', fn ($q) => $q->where('is_active', true))->whereIn('warehouse_id', auth()->user()?->warehouseIdsWithPermission('pos.operate') ?? [])->orderBy('name')->pluck('name', 'id'))
+                        ->options(fn () => PosTerminal::query()->where('is_active', true)->whereHas('location', fn ($q) => $q->where('is_active', true))->whereHas('warehouse', fn ($q) => $q->where('is_active', true))->whereIn('warehouse_id', auth()->user()?->warehouseIdsWithPermission('pos.operate') ?? [])->whereDoesntHave('cashSessions', fn ($query) => $query->where('status', PosCashSession::STATUS_OPEN)->whereNull('closed_at'))->orderBy('name')->get()
+                            ->filter(fn (PosTerminal $terminal): bool => empty($terminal->assigned_cashier_ids)
+                                || in_array((int) auth()->id(), array_map('intval', $terminal->assigned_cashier_ids), true))
+                            ->pluck('name', 'id'))
                         ->searchable()->required(),
                     Select::make('currency')->label(__('Moneda'))->options(['CUP' => 'CUP', 'USD' => 'USD', 'EUR' => 'EUR'])->required(),
                     TextInput::make('opening_amount')->label(__('Fondo inicial en centavos'))->numeric()->integer()->minValue(0)->required()->default(0),
                     Textarea::make('note')->label(__('Observaciones de apertura'))->maxLength(2000),
+                    TextInput::make('shift_label')->label(__('Turno / jornada'))->maxLength(120),
                 ])
                 ->action(fn (array $data) => app(PosCashSessionService::class)->open(
                     PosTerminal::query()->findOrFail($data['pos_terminal_id']),
@@ -149,8 +169,16 @@ class PosCashSessionResource extends Resource
                     $data['currency'],
                     (int) $data['opening_amount'],
                     $data['note'] ?? null,
+                    $data['shift_label'] ?? null,
                 )),
         ]);
+    }
+
+    private static function isAssignedCashier(PosCashSession $record): bool
+    {
+        $assignedIds = array_map('intval', $record->terminal?->assigned_cashier_ids ?? []);
+
+        return $assignedIds === [] || in_array((int) auth()->id(), $assignedIds, true);
     }
 
     public static function getPages(): array

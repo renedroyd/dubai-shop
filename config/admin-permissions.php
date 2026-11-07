@@ -116,6 +116,7 @@ return [
         'pos_reports.view' => 'Consultar informes POS y multi almacén',
         'pos_cash_sessions.create' => 'Abrir sesiones de caja y registrar movimientos',
         'pos_cash_sessions.update' => 'Cerrar y conciliar sesiones de caja',
+        'pos_cash_sessions.approve_close' => 'Aprobar cierres de caja supervisados',
         'pos_price_rules.view' => 'Consultar reglas de precios y promociones POS',
         'pos_price_rules.create' => 'Crear reglas de precios y promociones POS',
         'pos_price_rules.update' => 'Modificar reglas de precios y promociones POS',

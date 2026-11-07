@@ -10,12 +10,12 @@ use Illuminate\Validation\ValidationException;
 class PosTerminal extends Model
 {
     protected $fillable = [
-        'pos_location_id', 'warehouse_id', 'code', 'name', 'notes', 'receipt_width', 'receipt_copies', 'printer_name', 'cash_drawer_enabled', 'cash_drawer_pin', 'is_active',
+        'pos_location_id', 'warehouse_id', 'code', 'name', 'notes', 'receipt_width', 'receipt_copies', 'printer_name', 'cash_drawer_enabled', 'cash_drawer_pin', 'assigned_cashier_ids', 'cash_limit_amount', 'supervised_closing', 'is_active',
     ];
 
     protected function casts(): array
     {
-        return ['is_active' => 'boolean', 'receipt_copies' => 'integer', 'cash_drawer_enabled' => 'boolean', 'cash_drawer_pin' => 'integer'];
+        return ['is_active' => 'boolean', 'receipt_copies' => 'integer', 'cash_drawer_enabled' => 'boolean', 'cash_drawer_pin' => 'integer', 'assigned_cashier_ids' => 'array', 'cash_limit_amount' => 'integer', 'supervised_closing' => 'boolean'];
     }
 
     protected static function booted(): void

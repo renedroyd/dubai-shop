@@ -6,6 +6,7 @@ use App\Filament\Resources\PosTerminals\Pages\CreatePosTerminal;
 use App\Filament\Resources\PosTerminals\Pages\EditPosTerminal;
 use App\Filament\Resources\PosTerminals\Pages\ListPosTerminals;
 use App\Models\PosTerminal;
+use App\Models\User;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -56,6 +57,16 @@ class PosTerminalResource extends Resource
                 TextInput::make('name')->label(__('Nombre'))->required()->maxLength(255),
                 Select::make('receipt_width')->label(__('Ancho del recibo'))->options(['58' => '58 mm', '80' => '80 mm'])->default('80')->required(),
                 TextInput::make('receipt_copies')->label(__('Copias del recibo'))->numeric()->integer()->minValue(1)->maxValue(3)->default(1)->required(),
+                Select::make('assigned_cashier_ids')->label(__('Cajeros asignados'))
+                    ->multiple()
+                    ->options(fn () => User::query()->where('admin_access_enabled', true)->orderBy('name')->pluck('name', 'id'))
+                    ->searchable()->preload()
+                    ->helperText(__('Si queda vacío, cualquier usuario con permiso POS en el almacén podrá operar este terminal.')),
+                TextInput::make('cash_limit_amount')->label(__('Límite de efectivo en caja (centavos)'))
+                    ->numeric()->integer()->minValue(0)->nullable()
+                    ->helperText(__('Limita el efectivo físico acumulado en esta caja. Deja vacío para no aplicar límite.')),
+                Toggle::make('supervised_closing')->label(__('Exigir aprobación de supervisor al cerrar'))->default(false)
+                    ->helperText(__('El cajero solicita el cierre y un supervisor distinto debe aprobarlo.')),
                 TextInput::make('printer_name')->label(__('Impresora QZ Tray'))->maxLength(255)
                     ->helperText(__('Nombre exacto de la impresora instalada en la computadora de caja.')),
                 Toggle::make('cash_drawer_enabled')->label(__('Gaveta de efectivo habilitada'))->default(false),
@@ -74,6 +85,9 @@ class PosTerminalResource extends Resource
             TextColumn::make('name')->label(__('Terminal'))->searchable()->sortable(),
             TextColumn::make('location.name')->label(__('Establecimiento'))->sortable(),
             TextColumn::make('warehouse.name')->label(__('Almacén asignado'))->sortable(),
+            TextColumn::make('assigned_cashier_ids')->label(__('Cajeros asignados'))->state(fn (PosTerminal $record) => empty($record->assigned_cashier_ids) ? __('Todos los autorizados') : User::query()->whereIn('id', $record->assigned_cashier_ids)->orderBy('name')->pluck('name')->join(', ')),
+            TextColumn::make('cash_limit_amount')->label(__('Límite de efectivo'))->formatStateUsing(fn ($state) => $state === null ? '—' : number_format($state / 100, 2)),
+            IconColumn::make('supervised_closing')->label(__('Cierre supervisado'))->boolean(),
             IconColumn::make('is_active')->label(__('Activo'))->boolean(),
         ])->filters([
             TernaryFilter::make('is_active')->label(__('Estado')),

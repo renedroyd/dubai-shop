@@ -19,6 +19,7 @@ use App\Services\Inventory\OnlineWarehouseFulfillmentService;
 use App\Services\Pos\PosCashSessionService;
 use App\Services\Pos\PosSaleService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -473,4 +474,69 @@ class PosSaleTest extends TestCase
             $this->cashMethod()->id,
         );
     }
+
+    public function test_cash_sale_is_rejected_when_it_would_exceed_terminal_cash_limit(): void
+    {
+        $user = User::factory()->create();
+        $session = $this->openSession($user);
+        $session->terminal->update(['cash_limit_amount' => 6000]);
+        $product = $this->product();
+        app(InventoryService::class)->setOnHand($product, 5, reason: 'Carga inicial');
+
+        try {
+            app(PosSaleService::class)->sell($session, $user->id, [['product_id' => $product->id, 'quantity' => 1]], $this->cashMethod()->id);
+            $this->fail('Expected the cash limit to prevent the sale.');
+        } catch (ValidationException) {
+            $this->assertDatabaseCount('orders', 0);
+            $this->assertDatabaseCount('pos_cash_movements', 0);
+        }
+    }
+
+    public function test_zelle_only_sale_is_not_limited_by_terminal_cash_balance_limit(): void
+    {
+        Storage::fake('local');
+        $user = User::factory()->create();
+        $session = $this->openSession($user, 'USD');
+        $session->terminal->update(['cash_limit_amount' => 0]);
+        $product = $this->product('USD');
+        $inventory = app(InventoryService::class)->setOnHand($product, 3, reason: 'Carga inicial');
+        $zelle = PaymentMethod::query()->where('driver', 'zelle_manual')->firstOrFail();
+        $zelle->update(['is_enabled' => true]);
+
+        $order = app(PosSaleService::class)->sell($session, $user->id, [['product_id' => $product->id, 'quantity' => 1]], $zelle->id, [], [
+            'sender_name' => 'Cliente Zelle',
+            'reference' => 'ZELLE-NO-CASH-LIMIT',
+            'transfer_date' => now()->toDateString(),
+            'proof' => UploadedFile::fake()->create('proof.pdf', 20, 'application/pdf'),
+        ]);
+
+        $this->assertSame('awaiting_review', $order->payment_status);
+        $this->assertDatabaseMissing('pos_cash_movements', ['pos_cash_session_id' => $session->id, 'type' => 'sale']);
+        $this->assertSame(1, $inventory->fresh()->quantity_reserved);
+    }
+
+
+    public function test_pos_sale_rejects_cashier_not_assigned_to_terminal(): void
+    {
+        $assignedCashier = User::factory()->create();
+        $unassignedCashier = User::factory()->create();
+        $session = $this->openSession($assignedCashier);
+        $session->terminal->update(['assigned_cashier_ids' => [$assignedCashier->id]]);
+        $unassignedCashier->update(['admin_access_enabled' => true]);
+        $unassignedCashier->warehouseAccesses()->firstOrCreate(
+            ['warehouse_id' => Warehouse::primary()->id],
+            ['permissions' => WarehouseUserAccess::PERMISSIONS],
+        );
+        $product = $this->product();
+        app(InventoryService::class)->setOnHand($product, 3, reason: 'Carga inicial');
+
+        $this->expectException(AuthorizationException::class);
+        app(PosSaleService::class)->sell(
+            $session,
+            $unassignedCashier->id,
+            [['product_id' => $product->id, 'quantity' => 1]],
+            $this->cashMethod()->id,
+        );
+    }
+
 }

@@ -68,13 +68,17 @@
             @forelse ($sales as $sale)
                 @php($previous = $previousSales->firstWhere('currency', $sale->currency))
                 @php($previousAmount = (int) ($previous?->total_amount ?? 0))
+                @php($refundAmount = (int) ($refunds->firstWhere('currency', $sale->currency)?->amount ?? 0))
+                @php($netAfterRefunds = (int) $sale->total_amount - $refundAmount)
                 @php($difference = (int) $sale->total_amount - $previousAmount)
                 <article class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">{{ __('Ventas netas registradas') }} · {{ $sale->currency }}</p>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">{{ __('Ventas después de descuentos') }} · {{ $sale->currency }}</p>
                     <p class="mt-2 text-2xl font-bold tabular-nums">{{ number_format($sale->total_amount / 100, 2) }} {{ $sale->currency }}</p>
                     <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
                         <div><p class="text-xs text-gray-500">{{ __('Pedidos pagados') }}</p><p class="font-semibold">{{ $sale->orders_count }}</p></div>
                         <div><p class="text-xs text-gray-500">{{ __('Descuentos') }}</p><p class="font-semibold tabular-nums">{{ number_format($sale->discounts_amount / 100, 2) }}</p></div>
+                        <div><p class="text-xs text-gray-500">{{ __('Reembolsos') }}</p><p class="font-semibold tabular-nums">{{ number_format($refundAmount / 100, 2) }}</p></div>
+                        <div><p class="text-xs text-gray-500">{{ __('Neto tras reembolsos') }}</p><p class="font-semibold tabular-nums">{{ number_format($netAfterRefunds / 100, 2) }} {{ $sale->currency }}</p></div>
                     </div>
                     <div class="mt-3 border-t border-gray-100 pt-3 text-xs dark:border-gray-800">
                         <span class="text-gray-500">{{ __('Período anterior') }}:</span>
@@ -152,14 +156,14 @@
         </section>
 
         <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-            <h2 class="mb-3 text-base font-semibold">{{ __('Productos más vendidos') }}</h2>
+            <h2 class="mb-3 text-base font-semibold">{{ __('Ventas por producto y variante') }}</h2>
             <div class="overflow-x-auto"><table class="w-full text-sm">
                 <thead><tr class="border-b text-left"><th class="py-2">{{ __('Producto') }}</th><th>{{ __('SKU') }}</th><th>{{ __('Unidades') }}</th><th class="text-right">{{ __('Importe') }}</th></tr></thead>
                 <tbody>@forelse ($salesByProduct as $row)
                     <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-2">{{ $row->product_name }} @if($row->variant_name)<span class="text-xs text-gray-500">· {{ $row->variant_name }}</span>@endif</td><td>{{ $row->sku }}</td><td>{{ $row->quantity_sold }}</td><td class="text-right tabular-nums">{{ number_format($row->sales_amount / 100, 2) }} {{ $row->currency }}</td></tr>
                 @empty <tr><td colspan="4" class="py-4 text-center text-gray-500">{{ __('Sin datos') }}</td></tr>@endforelse</tbody>
             </table></div>
-            <p class="mt-2 text-xs text-gray-500">{{ __('Importes por artículo después del descuento de línea y antes de distribuir descuentos globales del pedido.') }}</p>
+            <p class="mt-2 text-xs text-gray-500">{{ __('Importes por artículo después del descuento de línea y antes de distribuir descuentos globales del pedido. Se muestran separados por moneda.') }}</p>
         </section>
 
         <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">

@@ -23,6 +23,8 @@ use App\Models\Warehouse;
 use App\Models\WarehouseLocation;
 use App\Models\WarehouseTransfer;
 use App\Models\WarehouseTransferRule;
+use App\Models\PosLocation;
+use App\Models\PosTerminal;
 
 return [
     'model_resources' => [
@@ -48,6 +50,8 @@ return [
         WarehouseLocation::class => 'warehouse_locations',
         WarehouseTransfer::class => 'warehouse_transfers',
         WarehouseTransferRule::class => 'warehouse_transfer_rules',
+        PosLocation::class => 'pos_locations',
+        PosTerminal::class => 'pos_terminals',
     ],
 
     'permissions' => [
@@ -94,6 +98,14 @@ return [
         'warehouse_transfer_rules.create' => 'Crear reglas de aprobación',
         'warehouse_transfer_rules.update' => 'Modificar reglas de aprobación',
         'warehouse_transfer_rules.delete' => 'Eliminar reglas de aprobación',
+        'pos_locations.view' => 'Consultar establecimientos POS',
+        'pos_locations.create' => 'Crear establecimientos POS',
+        'pos_locations.update' => 'Modificar establecimientos POS',
+        'pos_locations.delete' => 'Eliminar establecimientos POS',
+        'pos_terminals.view' => 'Consultar terminales POS',
+        'pos_terminals.create' => 'Crear terminales POS',
+        'pos_terminals.update' => 'Modificar terminales y almacén asignado',
+        'pos_terminals.delete' => 'Eliminar terminales POS',
         'orders.view' => 'Consultar pedidos',
         'orders.update' => 'Gestionar pedidos y entregas',
         'payments.view' => 'Consultar pagos y comprobantes',

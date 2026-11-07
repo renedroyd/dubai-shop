@@ -15,7 +15,7 @@ La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente
 | Experiencia pública y panel premium | Integrados; QA visual final pendiente | Media |
 | Importación Excel/CSV | Integrada; imágenes/variantes excluidas | Media |
 | Seguridad, RBAC y preflight | Integrados en esta entrega; configuración externa pendiente | Crítica |
-| POS y multi almacén | POS-1 y POS-2 integrados; POS-3 en desarrollo; sin ventas POS habilitadas | Alta |
+| POS y multi almacén | POS-1, POS-2 y POS-3 integrados; POS-4 en desarrollo; sin ventas POS habilitadas | Alta |
 | Asistente de prompts IA para banners | Integrado, flujo manual gratuito | Media |
 | Lanzamiento de producción | No aceptado aún | Crítica |
 
@@ -142,14 +142,14 @@ Objetivo: implementar promociones reales sin introducir ambigüedades contables.
 
 ## POS y multi almacén — entregas independientes
 
-<badge color="success">POS-1 y POS-2 integrados</badge> <badge color="info">POS-3 en desarrollo</badge>
+<badge color="success">POS-1, POS-2 y POS-3 integrados</badge> <badge color="info">POS-4 en desarrollo</badge>
 
 El POS funcionará siempre conectado al servidor. No se desarrollará modo offline. Decisiones aprobadas: ubicaciones internas flexibles (área/pasillo/estantería/posición), existencias independientes por almacén y aprobación configurable de transferencias.
 
 1. **POS-1 — Núcleo multi almacén:** almacenes, jerarquía de ubicaciones, asignación de inventario existente al almacén principal y compatibilidad del checkout. Integrado en PR #39.
-2. **POS-2 — Administración de almacenes:** recursos Filament para gestionar almacenes y ubicaciones, tipos, jerarquía y estados. En desarrollo.
-3. **POS-3 — Existencias por ubicación:** saldos por posición, ajustes, conciliación y auditoría.
-4. **POS-4 — Transferencias:** reglas configurables, aprobaciones, despacho, tránsito, recepción parcial y diferencias.
+2. **POS-2 — Administración de almacenes:** recursos Filament para gestionar almacenes y ubicaciones, tipos, jerarquía y estados. Integrado en PR #40.
+3. **POS-3 — Existencias por ubicación:** saldos por posición, ajustes, conciliación y auditoría. Integrado en PR #41.
+4. **POS-4 — Transferencias:** reglas por almacén, tipo, cantidad y roles; aprobaciones múltiples, despacho, tránsito, recepción parcial y diferencias. En desarrollo.
 5. **POS-5 — Abastecimiento web:** almacenes permitidos, prioridad, reservas y fallback.
 6. **POS-6 — Terminales:** establecimientos, terminales y asignación de almacén.
 7. **POS-7 — Operación POS:** ventas integradas con Orders/Payments, cajas, arqueos, recibos y devoluciones.

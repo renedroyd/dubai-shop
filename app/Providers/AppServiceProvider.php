@@ -22,8 +22,12 @@ use App\Models\StorefrontSetting;
 use App\Models\User;
 use App\Models\Warehouse;
 use App\Models\WarehouseLocation;
+use App\Models\WarehouseTransfer;
+use App\Models\WarehouseTransferRule;
 use App\Policies\WarehousePolicy;
 use App\Policies\WarehouseLocationPolicy;
+use App\Policies\WarehouseTransferPolicy;
+use App\Policies\WarehouseTransferRulePolicy;
 use App\Observers\OrderObserver;
 use App\Payments\PaymentDriverManager;
 use App\Policies\AdminRolePolicy;
@@ -85,6 +89,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(User::class, UserPolicy::class);
         Gate::policy(Warehouse::class, WarehousePolicy::class);
         Gate::policy(WarehouseLocation::class, WarehouseLocationPolicy::class);
+        Gate::policy(WarehouseTransfer::class, WarehouseTransferPolicy::class);
+        Gate::policy(WarehouseTransferRule::class, WarehouseTransferRulePolicy::class);
 
         Gate::before(function (?User $user, string $ability, array $arguments): ?bool {
             if (! $user || ! $user->admin_access_enabled) {

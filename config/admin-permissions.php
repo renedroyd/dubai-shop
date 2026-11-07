@@ -21,6 +21,8 @@ use App\Models\AdminRole;
 
 use App\Models\Warehouse;
 use App\Models\WarehouseLocation;
+use App\Models\WarehouseTransfer;
+use App\Models\WarehouseTransferRule;
 
 return [
     'model_resources' => [
@@ -44,6 +46,8 @@ return [
         AdminRole::class => 'admin_roles',
         Warehouse::class => 'warehouses',
         WarehouseLocation::class => 'warehouse_locations',
+        WarehouseTransfer::class => 'warehouse_transfers',
+        WarehouseTransferRule::class => 'warehouse_transfer_rules',
     ],
 
     'permissions' => [
@@ -82,6 +86,14 @@ return [
         'warehouse_locations.create' => 'Crear ubicaciones',
         'warehouse_locations.update' => 'Modificar ubicaciones',
         'warehouse_locations.delete' => 'Eliminar ubicaciones',
+        'warehouse_transfers.view' => 'Consultar transferencias entre almacenes',
+        'warehouse_transfers.create' => 'Crear transferencias entre almacenes',
+        'warehouse_transfers.update' => 'Aprobar, despachar y recibir transferencias',
+        'warehouse_transfers.delete' => 'Cancelar transferencias no despachadas',
+        'warehouse_transfer_rules.view' => 'Consultar reglas de aprobación de transferencias',
+        'warehouse_transfer_rules.create' => 'Crear reglas de aprobación',
+        'warehouse_transfer_rules.update' => 'Modificar reglas de aprobación',
+        'warehouse_transfer_rules.delete' => 'Eliminar reglas de aprobación',
         'orders.view' => 'Consultar pedidos',
         'orders.update' => 'Gestionar pedidos y entregas',
         'payments.view' => 'Consultar pagos y comprobantes',

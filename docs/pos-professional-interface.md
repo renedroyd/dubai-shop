@@ -70,7 +70,7 @@ Al vincular una cuenta, orders.user_id relaciona la venta con el cliente sin dup
 La infraestructura de puntos/fidelización queda para una entrega posterior: no se suman ni canjean puntos hasta definir conversión, vencimiento, límites y tratamiento de devoluciones.
 
 
-## POS-12 — promociones, descuentos y precios (en implementación)
+## POS-12 — promociones, descuentos y precios (completado)
 
 ### Base de costos por almacén
 

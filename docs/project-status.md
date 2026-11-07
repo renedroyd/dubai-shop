@@ -2,7 +2,7 @@
 
 **Corte:** 7 de noviembre de 2026  
 **Rama de referencia:** `main`  
-**Última entrega de producto:** POS-12A — costos y precios mínimos por producto/variante y almacén (PR #58, integrado); POS-12B — motor de reglas de precios y descuentos (PR #59, pendiente de CI).
+**Última entrega de producto:** POS-12 — costos por almacén, reglas de precios, descuentos y protección de margen (PR #58–59, integrados).
 
 > Este documento distingue implementación integrada, validación automatizada y aceptación operativa. Que una funcionalidad esté integrada o que CI pase no significa que esté configurada ni aceptada en el entorno real.
 
@@ -107,7 +107,7 @@ Las Fases 1–16 y las mejoras PR #29–37 están integradas. La entrega PR #38 
 
 - POS-1 a POS-10 integrados en main.
 - POS-11 integrado mediante PR #56: búsqueda por nombre/correo/teléfono guardado, alta rápida, asociación de ventas, historial limitado por almacén y clientes frecuentes.
-- POS-12 en implementación: costos por almacén integrados en PR #58; reglas porcentuales/fijas, precios especiales, autorización, auditoría y protección de margen en PR #59.
+- POS-1 a POS-12 integrados en main.
 - POS-13 a POS-16 permanecen planificados según ROADMAP.md.
 - El POS es exclusivamente online. POS-10 admite efectivo, Zelle manual USD y pagos mixtos; los pagos Zelle requieren revisión.
 - CI del PR #56 en el último commit validado: PHP 8.4, PHP 8.5 y Frontend assets — exitosos.

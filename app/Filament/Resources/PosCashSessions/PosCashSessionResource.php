@@ -8,6 +8,7 @@ use App\Models\PosCashSession;
 use App\Models\PosTerminal;
 use App\Models\PaymentMethod;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Services\Pos\PosSaleService;
 use App\Services\Pos\PosCashSessionService;
 use Filament\Actions\Action;
@@ -65,6 +66,10 @@ class PosCashSessionResource extends Resource
                         Select::make('product_id')->label(__('Producto'))
                             ->options(fn () => Product::query()->where('status', Product::STATUS_ACTIVE)->orderBy('name')->pluck('name', 'id'))
                             ->searchable()->required(),
+                        Select::make('product_variant_id')->label(__('Variante (si aplica)'))
+                            ->options(fn () => ProductVariant::query()->where('is_active', true)->with('product')->get()
+                                ->mapWithKeys(fn (ProductVariant $variant): array => [$variant->id => $variant->product->name.' — '.$variant->name]))
+                            ->searchable()->nullable(),
                         TextInput::make('quantity')->label(__('Cantidad'))->numeric()->integer()->minValue(1)->required()->default(1),
                     ])->columns(2)->minItems(1)->required(),
                     Select::make('payment_method_id')->label(__('Método de cobro'))

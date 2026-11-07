@@ -14,7 +14,6 @@ use App\Models\PosCashMovement;
 use App\Models\PosCashSession;
 use App\Models\Product;
 use App\Models\ProductVariant;
-use App\Models\WarehouseLocation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;

@@ -1,6 +1,6 @@
 # Multi almacén y POS — arquitectura y alcance
 
-**Estado:** POS-1 a POS-5 integrados; POS-6 en implementación. Este documento distingue lo integrado de lo que aún está en desarrollo.
+**Estado:** POS-1 a POS-6 integrados; POS-7 en implementación. Este documento distingue lo integrado de lo que aún está en desarrollo.
 
 ## Decisiones aprobadas
 
@@ -92,7 +92,7 @@ También se contemplan `rejected` y `cancelled`. La cancelación de una transfer
 5. Las reservas y salidas mantienen conciliados los saldos agregados y por ubicación.
 6. El checkout falla de forma segura si el stock cambia o resulta insuficiente antes de reservar.
 
-## POS-6 — Establecimientos, terminales y almacén asignado (en implementación)
+## POS-6 — Establecimientos, terminales y almacén asignado (integrado)
 
 - Los establecimientos POS representan puntos físicos de operación y se administran independientemente de los almacenes.
 - Cada establecimiento tiene código único, nombre, dirección, teléfono, notas y estado.
@@ -111,6 +111,30 @@ También se contemplan `rejected` y `cancelled`. La cancelación de una transfer
 4. Impedir asignar terminales activos a establecimientos o almacenes inactivos.
 5. Impedir desactivar establecimientos o almacenes con terminales activos.
 6. Aplicar permisos RBAC separados para consultar, crear, modificar y eliminar establecimientos y terminales.
+
+## POS-7 — Ventas, caja, recibos y devoluciones (implementación lista para validar)
+
+- Las ventas POS se registran como pedidos compartidos (orders) con canal pos, terminal, sesión de caja y cajero asociados.
+- Cada terminal utiliza exclusivamente el almacén activo que tiene asignado; el POS no suma existencias de otros almacenes.
+- La venta bloquea la sesión, inventario y saldos por ubicación dentro de una transacción. Si el stock agregado y el distribuido por ubicaciones no concuerdan, la operación se rechaza sin guardar una venta parcial.
+- La salida de inventario genera movimientos auditables vinculados al pedido y reduce el saldo agregado y el de sus ubicaciones.
+- Las sesiones de caja registran fondo inicial, entradas/salidas manuales, ventas cobradas, efectivo esperado, efectivo contado y diferencia de arqueo.
+- Un terminal solo puede tener una sesión abierta; no se permiten ventas ni movimientos manuales en sesiones cerradas.
+- En la primera entrega, el cobro inmediato POS usa un método de efectivo habilitado. Zelle y otros métodos manuales no se marcan automáticamente como cobrados desde el POS.
+- Los recibos consultan los mismos pedidos y pagos. Las devoluciones parciales o totales requieren una sesión abierta del mismo terminal/moneda, registran el reembolso, descuentan efectivo de caja y restauran stock en las ubicaciones originales.
+
+### Criterios de aceptación POS-7
+
+1. Abrir una sesión de caja para un terminal activo y evitar sesiones simultáneas en el mismo terminal.
+2. Registrar ventas como pedidos del canal POS, asociados a terminal, sesión y cajero.
+3. Validar precio, moneda y existencias del almacén asignado antes de confirmar la venta.
+4. Descontar stock agregado y por ubicación de forma atómica y auditable.
+5. Registrar pagos compartidos y movimientos de efectivo en la sesión.
+6. Registrar entradas/salidas de caja y cerrar con arqueo y diferencia calculada.
+7. Consultar e imprimir un recibo POS desde el pedido.
+8. Rechazar ventas en sesiones cerradas o con inventario inconsistente.
+9. Registrar devoluciones parciales/totales en caja abierta del mismo terminal y moneda, sin exceder unidades ni importes originales.
+10. Reintegrar el inventario en las ubicaciones de origen y registrar movimientos de caja, pagos y auditoría del reembolso.
 
 ## Reglas de integridad
 

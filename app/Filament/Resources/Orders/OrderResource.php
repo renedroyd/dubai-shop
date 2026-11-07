@@ -4,11 +4,14 @@ namespace App\Filament\Resources\Orders;
 
 use App\Filament\Resources\Orders\Pages\ListOrders;
 use App\Models\Order;
+use App\Models\PosCashSession;
 use App\Services\Orders\OrderInventoryService;
 use App\Services\Shipping\ShipmentService;
+use App\Services\Pos\PosRefundService;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Repeater;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -37,6 +40,9 @@ class OrderResource extends Resource
     {
         return $table->columns([
             TextColumn::make('number')->label(__('Pedido'))->searchable()->sortable(),
+            TextColumn::make('channel')->label(__('Canal'))->badge(),
+            TextColumn::make('posTerminal.code')->label(__('Terminal'))->placeholder('—'),
+            TextColumn::make('posWarehouse.name')->label(__('Almacén POS'))->placeholder('—'),
             TextColumn::make('customer_name')->label(__('Cliente'))->searchable(),
             TextColumn::make('customer_email')->label(__('Correo'))->searchable(),
             TextColumn::make('total_amount')->label(__('Total del pedido'))->formatStateUsing(fn ($state, Order $record) => number_format($state / 100, 2).' '.$record->currency),
@@ -54,21 +60,59 @@ class OrderResource extends Resource
                 Order::STATUS_CANCELLED => __('Cancelado'),
             ]),
         ])->defaultSort('placed_at', 'desc')->recordActions([
+            Action::make('refund')->label(__('Devolver productos'))->icon('heroicon-o-arrow-uturn-left')->color('warning')->requiresConfirmation()
+                ->authorize('update')
+                ->visible(fn (Order $record): bool => $record->channel === 'pos'
+                    && in_array($record->payment_status, ['paid', 'partially_refunded'], true)
+                    && PosCashSession::query()->where('pos_terminal_id', $record->pos_terminal_id)
+                        ->where('currency', $record->currency)->where('status', PosCashSession::STATUS_OPEN)->whereNull('closed_at')->exists())
+                ->form(fn (Order $record): array => [
+                    Repeater::make('items')->label(__('Artículos a devolver'))->schema([
+                        Select::make('order_item_id')->label(__('Artículo'))
+                            ->options($record->items()->get()->mapWithKeys(fn ($item) => [
+                                $item->id => $item->product_name.($item->variant_name ? ' — '.$item->variant_name : ''),
+                            ]))
+                            ->searchable()->required(),
+                        TextInput::make('quantity')->label(__('Cantidad'))->numeric()->integer()->minValue(1)->required(),
+                    ])->columns(2)->minItems(1)->required(),
+                    Textarea::make('reason')->label(__('Motivo de la devolución'))->required()->maxLength(1000),
+                ])
+                ->action(function (Order $record, array $data): void {
+                    $session = PosCashSession::query()
+                        ->where('pos_terminal_id', $record->pos_terminal_id)
+                        ->where('currency', $record->currency)
+                        ->where('status', PosCashSession::STATUS_OPEN)
+                        ->whereNull('closed_at')
+                        ->latest('opened_at')
+                        ->firstOrFail();
+
+                    app(PosRefundService::class)->refund(
+                        $record, $session, auth()->id(), $data['items'], $data['reason'],
+                    );
+                }),
+            Action::make('printReceipt')->label(__('Recibo POS'))->icon('heroicon-o-printer')
+                ->authorize('view')
+                ->visible(fn (Order $record): bool => $record->channel === 'pos')
+                ->modalHeading(fn (Order $record): string => __('Recibo').' '.$record->number)
+                ->modalContent(fn (Order $record) => view('filament.pos.receipt', [
+                    'order' => $record->load(['items', 'payments.method', 'posTerminal.location', 'cashier']),
+                ]))
+                ->modalSubmitAction(false)->modalCancelActionLabel(__('Cerrar')),
             Action::make('details')->label(__('Ver pedido'))->icon('heroicon-o-eye')
                 ->authorize('view')
                 ->modalHeading(fn (Order $record): string => __('Pedido').' '.$record->number)
-                ->modalContent(fn (Order $record) => view('filament.orders.details', ['order' => $record->load(['items', 'payments.method', 'payments.events.actor', 'shipment.events', 'shipment.attempts'])]))
+                ->modalContent(fn (Order $record) => view('filament.orders.details', ['order' => $record->load(['items', 'payments.method', 'payments.events.actor', 'shipment.events', 'shipment.attempts', 'posRefunds.items.orderItem', 'posRefunds.processor'])]))
                 ->modalSubmitAction(false)->modalCancelActionLabel(__('Cerrar')),
             Action::make('confirm')->label(__('Confirmar pedido'))->color('success')->requiresConfirmation()
                 ->authorize('update')
                 ->visible(fn (Order $record): bool => $record->status === Order::STATUS_PENDING && in_array($record->payment_status, ['pending_collection', 'paid'], true))
                 ->action(fn (Order $record) => $record->update(['status' => Order::STATUS_CONFIRMED, 'confirmed_at' => now()])),
-            Action::make('processing')->label(__('Preparar'))->visible(fn (Order $record): bool => $record->status === Order::STATUS_CONFIRMED)
+            Action::make('processing')->label(__('Preparar'))->visible(fn (Order $record): bool => $record->channel !== 'pos' && $record->status === Order::STATUS_CONFIRMED)
                 ->authorize('update')
                 ->action(fn (Order $record) => $record->update(['status' => Order::STATUS_PROCESSING])),
             Action::make('assignCourier')->label(__('Asignar repartidor'))->icon('heroicon-o-user')
                 ->authorize('update')
-                ->visible(fn (Order $record): bool => in_array($record->status, [Order::STATUS_PROCESSING, Order::STATUS_SHIPPED], true))
+                ->visible(fn (Order $record): bool => $record->channel !== 'pos' && in_array($record->status, [Order::STATUS_PROCESSING, Order::STATUS_SHIPPED], true))
                 ->form([
                     TextInput::make('courier_name')->label(__('Nombre del repartidor'))->required()->maxLength(160),
                     TextInput::make('courier_phone')->label(__('Teléfono de contacto'))->tel()->maxLength(40),
@@ -88,7 +132,7 @@ class OrderResource extends Resource
                 ->action(fn (Order $record) => app(ShipmentService::class)->dispatch($record, auth()->id())),
             Action::make('deliveryAttempt')->label(__('Registrar intento de entrega'))->icon('heroicon-o-clipboard-document-check')
                 ->authorize('update')
-                ->visible(fn (Order $record): bool => $record->status === Order::STATUS_SHIPPED && $record->shipment?->status === 'dispatched')
+                ->visible(fn (Order $record): bool => $record->channel !== 'pos' && $record->status === Order::STATUS_SHIPPED && $record->shipment?->status === 'dispatched')
                 ->form([
                     Select::make('result')->label(__('Resultado'))->options(['delivered' => __('Entregado'), 'failed' => __('No se pudo entregar')])->required(),
                     TextInput::make('recipient_name')->label(__('Persona que recibe'))->maxLength(160),
@@ -99,7 +143,7 @@ class OrderResource extends Resource
                 )),
             Action::make('cancel')->label(__('Cancelar pedido'))->color('danger')->requiresConfirmation()
                 ->authorize('update')
-                ->visible(fn (Order $record): bool => in_array($record->status, [Order::STATUS_PENDING, Order::STATUS_CONFIRMED, Order::STATUS_PROCESSING], true) && $record->payment_status !== 'paid')
+                ->visible(fn (Order $record): bool => $record->channel !== 'pos' && in_array($record->status, [Order::STATUS_PENDING, Order::STATUS_CONFIRMED, Order::STATUS_PROCESSING], true) && $record->payment_status !== 'paid')
                 ->action(function (Order $record): void {
                     DB::transaction(function () use ($record): void {
                         app(OrderInventoryService::class)->release($record);

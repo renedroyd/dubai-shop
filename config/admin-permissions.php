@@ -25,6 +25,7 @@ use App\Models\WarehouseTransfer;
 use App\Models\WarehouseTransferRule;
 use App\Models\PosLocation;
 use App\Models\PosTerminal;
+use App\Models\PosCashSession;
 
 return [
     'model_resources' => [
@@ -52,6 +53,7 @@ return [
         WarehouseTransferRule::class => 'warehouse_transfer_rules',
         PosLocation::class => 'pos_locations',
         PosTerminal::class => 'pos_terminals',
+        PosCashSession::class => 'pos_cash_sessions',
     ],
 
     'permissions' => [
@@ -106,6 +108,9 @@ return [
         'pos_terminals.create' => 'Crear terminales POS',
         'pos_terminals.update' => 'Modificar terminales y almacén asignado',
         'pos_terminals.delete' => 'Eliminar terminales POS',
+        'pos_cash_sessions.view' => 'Consultar sesiones y arqueos de caja',
+        'pos_cash_sessions.create' => 'Abrir sesiones de caja y registrar movimientos',
+        'pos_cash_sessions.update' => 'Cerrar y conciliar sesiones de caja',
         'orders.view' => 'Consultar pedidos',
         'orders.update' => 'Gestionar pedidos y entregas',
         'payments.view' => 'Consultar pagos y comprobantes',

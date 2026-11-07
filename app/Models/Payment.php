@@ -13,6 +13,8 @@ class Payment extends Model
     public const STATUS_PAID = 'paid';
     public const STATUS_REJECTED = 'rejected';
     public const STATUS_PENDING_COLLECTION = 'pending_collection';
+    public const STATUS_PARTIALLY_REFUNDED = 'partially_refunded';
+    public const STATUS_REFUNDED = 'refunded';
 
     protected $fillable = [
         'order_id', 'payment_method_id', 'driver', 'status', 'amount', 'currency',
@@ -29,4 +31,6 @@ class Payment extends Model
     public function method(): BelongsTo { return $this->belongsTo(PaymentMethod::class, 'payment_method_id'); }
     public function reviewer(): BelongsTo { return $this->belongsTo(User::class, 'reviewed_by'); }
     public function events(): HasMany { return $this->hasMany(PaymentEvent::class)->latest(); }
+    public function posCashMovements(): HasMany { return $this->hasMany(PosCashMovement::class); }
+    public function posRefunds(): HasMany { return $this->hasMany(PosRefund::class); }
 }

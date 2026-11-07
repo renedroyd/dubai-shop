@@ -65,7 +65,8 @@ class PosTerminalResource extends Resource
             TernaryFilter::make('is_active')->label(__('Estado')),
         ])->recordActions([
             EditAction::make(),
-            DeleteAction::make()->requiresConfirmation(),
+            DeleteAction::make()->requiresConfirmation()
+                ->visible(fn (PosTerminal $record): bool => ! $record->cashSessions()->exists() && ! $record->orders()->exists()),
         ])->headerActions([
             CreateAction::make()->label(__('Nuevo terminal')),
         ]);

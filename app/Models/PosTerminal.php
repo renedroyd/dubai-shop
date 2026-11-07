@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Validation\ValidationException;
 
 class PosTerminal extends Model
@@ -29,6 +30,14 @@ class PosTerminal extends Model
             if ($duplicateCode) {
                 throw ValidationException::withMessages([
                     'code' => __('Ya existe un terminal con ese código en este establecimiento.'),
+                ]);
+            }
+
+            if ($terminal->exists
+                && ($terminal->isDirty('warehouse_id') || ($terminal->isDirty('is_active') && ! $terminal->is_active))
+                && $terminal->cashSessions()->where('status', PosCashSession::STATUS_OPEN)->whereNull('closed_at')->exists()) {
+                throw ValidationException::withMessages([
+                    'is_active' => __('No puedes desactivar ni reasignar un terminal mientras tenga una caja abierta.'),
                 ]);
             }
 
@@ -61,5 +70,15 @@ class PosTerminal extends Model
     public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);
+    }
+
+    public function cashSessions(): HasMany
+    {
+        return $this->hasMany(PosCashSession::class, 'pos_terminal_id');
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class, 'pos_terminal_id');
     }
 }

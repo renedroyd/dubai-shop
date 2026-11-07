@@ -41,6 +41,8 @@ class PaymentResource extends Resource
                 Payment::STATUS_PAID => 'success',
                 Payment::STATUS_REJECTED => 'danger',
                 Payment::STATUS_AWAITING_REVIEW => 'warning',
+                Payment::STATUS_PARTIALLY_REFUNDED => 'warning',
+                Payment::STATUS_REFUNDED => 'gray',
                 default => 'gray',
             }),
             TextColumn::make('created_at')->label(__('Fecha'))->dateTime()->sortable(),
@@ -51,6 +53,8 @@ class PaymentResource extends Resource
                 Payment::STATUS_PAID => __('Pagado'),
                 Payment::STATUS_REJECTED => __('Rechazado'),
                 Payment::STATUS_PENDING_COLLECTION => __('Pendiente de cobro'),
+                Payment::STATUS_PARTIALLY_REFUNDED => __('Reembolsado parcialmente'),
+                Payment::STATUS_REFUNDED => __('Reembolsado'),
             ]),
         ])->defaultSort('created_at', 'desc')->recordActions([
             Action::make('downloadProof')->label(__('Ver comprobante'))->icon('heroicon-o-arrow-down-tray')

@@ -216,7 +216,7 @@ Cada nueva fase se desarrolla en una rama independiente. Antes de implementar, r
 - Exportación CSV filtrada y limitada a los almacenes autorizados. No se convierten ni mezclan monedas.
 
 
-### POS-16A — turnos y control de caja (en desarrollo)
+### POS-16A — turnos y control de caja (integrado en main)
 - Rama: `feature/pos-16a-shifts-and-cash-control`.
 - Asignación de cajeros por terminal y etiqueta de turno en cada sesión.
 - Límite de efectivo por terminal aplicado al fondo inicial, entradas manuales y ventas con efectivo; Zelle puro queda excluido.
@@ -228,9 +228,19 @@ Cada nueva fase se desarrolla en una rama independiente. Antes de implementar, r
 - Alertas de stock bajo y solicitudes de reposición integradas con transferencias multi almacén.
 
 
-### POS-16B — alertas y reposición (en desarrollo)
+### POS-16B — alertas y reposición (integrado en main)
 - Rama: `feature/pos-16b-stock-alerts-replenishment`.
 - Umbral mínimo configurable por existencia/almacén, con valor predeterminado de 5 unidades.
 - Alertas calculadas sobre disponible real (existencia menos reservado y bloqueado).
 - Acción de solicitar reposición desde otra ubicación/almacén, usando transferencias existentes tipo `replenishment` y sus aprobaciones.
 - La solicitud no altera el stock; el movimiento ocurre en el despacho aprobado.
+
+
+### POS-16C — seguimiento de transferencias e incidencias (en desarrollo)
+- Rama: `feature/pos-16c-transfer-monitoring`.
+- Dashboard de estados y actividad reciente de transferencias entre almacenes autorizados.
+- Registro visible de eventos, rechazos y unidades dañadas, con actor y fecha.
+- Indicadores de transferencias entrantes/salientes por almacén.
+- Las consultas exigen permiso administrativo `pos_reports.view` y permiso `reports.view` en ambos almacenes de cada transferencia.
+- Se reutilizan los eventos y estados existentes; no se altera inventario ni aprobación.
+- CI de POS-16A/B no presenta checks verificables en la consulta actual; exigir nueva ejecución completa en el PR.

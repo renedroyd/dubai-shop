@@ -1,7 +1,7 @@
 # Hoja de ruta — Dubai Shop / Clásico Dubai
 
 **Actualizada:** 7 de noviembre de 2026  
-**Base:** Fases 1–16 y POS-1 a POS-16B integrados; POS-16C en implementación.
+**Base:** Fases 1–16 y POS-1 a POS-16 integrados; POS-16C de seguimiento de transferencias en implementación. Aceptación operativa y de producción real pendiente.
 
 La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente y nuevas capacidades que requieren decisiones comerciales. La prioridad inmediata es estabilizar y aceptar el despliegue, no añadir integraciones externas sin proveedor o reglas aprobadas.
 
@@ -15,7 +15,7 @@ La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente
 | Experiencia pública y panel premium | Integrados; QA visual final pendiente | Media |
 | Importación Excel/CSV | Integrada; imágenes/variantes excluidas | Media |
 | Seguridad, RBAC y preflight | Integrados en esta entrega; configuración externa pendiente | Crítica |
-| POS y multi almacén | POS-1 a POS-13 integrados; aceptación real en producción pendiente | Alta |
+| POS y multi almacén | POS-1 a POS-16 integrados; panel de seguimiento de transferencias en implementación | Alta |
 | Asistente de prompts IA para banners | Integrado, flujo manual gratuito | Media |
 | Lanzamiento de producción | No aceptado aún | Crítica |
 
@@ -172,7 +172,7 @@ Objetivo: implementar promociones reales sin introducir ambigüedades contables.
 
 ## POS y multi almacén — entregas independientes
 
-<badge color="success">POS-1 a POS-16B integrados</badge> <badge color="info">POS-16C en implementación</badge>
+<badge color="success">POS-1 a POS-16A integrados</badge> <badge color="info">POS-16B en implementación</badge>
 
 El POS funcionará siempre conectado al servidor. No se desarrollará modo offline. Decisiones aprobadas: ubicaciones internas flexibles (área/pasillo/estantería/posición), existencias independientes por almacén y aprobación configurable de transferencias.
 
@@ -189,9 +189,9 @@ El POS funcionará siempre conectado al servidor. No se desarrollará modo offli
 11. **POS-11 — Clientes y fidelización:** búsqueda por nombre/teléfono/correo, alta rápida, asociación de ventas, historial, clientes frecuentes y preparación para puntos futuros. Integrado en PR #56.
 12. **POS-12 — Promociones, descuentos y precios:** reglas porcentuales/fijas por producto, categoría, marca o venta; precios especiales por cliente; ámbito por almacén/moneda; autorización, auditoría y protección de costo/precio mínimo. Integrado en PR #58–59.
 13. **POS-13 — Devoluciones y cambios:** integrado en PR #61–63. Incluye autorización por dos usuarios, reembolsos distribuidos entre los medios originales, respeto de descuentos, cuarentena/descarte de artículos y registro vinculado de cambios con diferencia neta.
-14. **POS-14 — Impresión y periféricos:** POS-14A integrado en PR #65 (recibos térmicos 58/80 mm, copias, códigos de barras y lector tipo teclado). POS-14B en implementación en rama propia: QZ Tray para impresión directa y gaveta ESC/POS.
-15. **POS-15 — Dashboard e informes avanzados:** ampliación en curso de la página existente para filtros por fecha/almacén/terminal/cajero/moneda, ventas por dimensión, pagos netos por método, margen con costo histórico, diferencias de caja, reembolsos, comparación entre períodos y exportación CSV.
-16. **POS-16 — Operación comercial avanzada:** turnos/cajeros, asignación de terminales, arqueos y cierres supervisados, límites de efectivo, alertas de stock bajo, solicitudes de reposición, seguimiento de transferencias e indicadores por establecimiento.
+14. **POS-14 — Impresión y periféricos:** integrado en PR #65–66. Recibos térmicos 58/80 mm, 1–3 copias, códigos de barras, lector tipo teclado e impresión USB/red y gaveta ESC/POS mediante QZ Tray.
+15. **POS-15 — Dashboard e informes avanzados:** integrado en PR #67. Filtros por fecha/almacén/terminal/cajero/moneda; ventas por dimensión; pagos netos por método; margen con costo histórico; diferencias de caja; reembolsos; comparativas y exportación CSV.
+16. **POS-16 — Operación comercial avanzada:** POS-16A/B integrados en PR #68–69: asignación de cajeros y turnos, cierres supervisados, límites de efectivo, umbrales configurables de stock bajo y solicitudes de reposición. POS-16C en implementación en PR #71: seguimiento de transferencias e incidencias.
 
 El POS permanece exclusivamente online, sin modo offline ni sincronización diferida. Las ventas usan el almacén asignado al terminal. El flujo de pagos integrado admite efectivo, Zelle manual en USD y pagos mixtos; cada entrega mantiene la autorización por almacén, integridad transaccional, auditoría y pruebas automatizadas. Cada bloque se desarrolla en una rama propia.
 
@@ -266,32 +266,35 @@ Integrada en PR #51–55. Admite efectivo con cálculo de cambio, Zelle manual e
 
 PR #65 integrado en `main`. Los terminales configuran ancho 58/80 mm y 1–3 copias; productos y variantes admiten códigos de barras; el POS captura lectores físicos tipo teclado. CI validado en PHP 8.4, PHP 8.5 y Frontend assets.
 
-### POS-14B — Impresión local y gaveta (en implementación)
+### POS-14B — Impresión local y gaveta (integrado en PR #66)
 
 Rama `feature/pos-14b-qz-tray-cash-drawer`. Se adopta QZ Tray, aplicación local gratuita y de código abierto. Se integra selección de impresora por terminal, impresión ESC/POS directa del recibo, prueba de impresora y apertura de gaveta condicionada a una venta con efectivo. La conexión no firmada puede mostrar diálogos de confianza; no se incluye ni se expone ninguna clave privada. La configuración y prueba física de impresoras/gavetas queda como aceptación operativa por computadora.
 
 
-### POS-15 — Dashboard e informes avanzados (en implementación)
+### POS-15 — Dashboard e informes avanzados (integrado en PR #67)
 
 Rama `feature/pos-15-advanced-reports-dashboard`. Se amplía el informe existente con filtros autorizados por almacén, terminal, cajero, moneda y rango de fechas; ventas por almacén, terminal, cajero, producto/variante, categoría y marca; importes cobrados por método con reembolsos del período descontados; devoluciones, descuentos, arqueos/diferencias de caja y comparación con el período inmediatamente anterior. El margen bruto se calcula con el costo histórico de cada línea y el descuento global del pedido; si faltan costos históricos, el total de margen se marca como no disponible. Se incorpora exportación CSV con alcance limitado a los almacenes autorizados. Los importes se mantienen separados por moneda y no se convierten.
 
 
-### POS-16A — Turnos y control de caja (integrado en main)
+### POS-16A — Turnos y control de caja (integrado en PR #68)
 
 Rama `feature/pos-16a-shifts-and-cash-control`. Asignación opcional de cajeros por terminal; etiqueta de turno en cada sesión; límite de efectivo físico por terminal aplicado al fondo inicial, entradas manuales y ventas en efectivo (sin bloquear Zelle puro); cierre supervisado con solicitud del cajero, bloqueo inmediato de movimientos/ventas y aprobación obligatoria de un supervisor distinto con permiso específico. Se conserva el cajero solicitante y el supervisor aprobador en auditoría.
 
-### POS-16B — Alertas y reposición (pendiente)
+### POS-16B — Alertas y reposición (integrado en PR #69)
 
 Se implementarán umbrales mínimos de inventario configurables por producto/variante y almacén, alertas de existencias bajas y solicitudes de reposición entre almacenes integradas con el flujo de transferencias existente.
 
 
-### POS-16B — Alertas y reposición (integrado en main)
+### POS-16B — Alertas y reposición (en implementación)
 
 Rama `feature/pos-16b-stock-alerts-replenishment`. Cada existencia por almacén puede guardar un umbral mínimo propio; si no se configura, se mantiene el valor predeterminado de 5 unidades. Las alertas consideran existencia disponible después de reservas y bloqueos. Desde una existencia con stock bajo se puede solicitar reposición desde otro almacén, creando una transferencia de tipo `replenishment` que utiliza las reglas y aprobaciones existentes; solicitar no mueve ni reserva stock, que solo se mueve durante el despacho aprobado.
 
 
+### Estado final POS-1 a POS-16 — integrado
+
+Los bloques funcionales POS-1 a POS-16 están integrados en `main` mediante ramas y PR independientes. El CI posterior a la integración de POS-16B (PR #69) finalizó correctamente en PHP 8.4, PHP 8.5 y Frontend assets. La aceptación física pendiente incluye instalación y prueba de QZ Tray, impresoras térmicas y gavetas en cada puesto, así como pruebas operativas de cajeros, arqueos, límites y reposición en los almacenes reales. Esto no equivale a aceptación de producción de la tienda completa; la Fase 17 continúa separada y pendiente.
+
+
 ### POS-16C — Seguimiento de transferencias e incidencias (en implementación)
 
-Rama `feature/pos-16c-transfer-monitoring`. Añade una vista de seguimiento para transferencias entre almacenes autorizados, con resumen por estado, actividad reciente, ruta origen/destino, solicitante, último evento, incidencias por rechazo/daños y conteos de entradas/salidas por almacén. Reutiliza el historial de eventos existente y limita consultas a transferencias cuyos dos almacenes están dentro del alcance `reports.view`. No modifica reglas de aprobación ni movimientos de inventario.
-
-**CI:** la consulta de checks y ejecuciones para los commits de POS-16A/B no devolvió estados verificables en GitHub Actions. Revalidar la matriz PHP 8.4, PHP 8.5 y Frontend en el PR de POS-16C antes de integrar.
+PR #71 / rama `feature/pos-16c-transfer-monitoring`. Dashboard Filament con conteos por estado, transferencias activas/en tránsito, últimas 30 transferencias, actor/fecha del último evento, incidencias de rechazos/daños y conteos entrantes/salientes por almacén. El acceso exige `pos_reports.view` y limita las consultas a transferencias donde el usuario tiene `reports.view` en ambos almacenes. Reutiliza estados/eventos existentes sin cambiar reglas de aprobación ni movimientos de inventario.

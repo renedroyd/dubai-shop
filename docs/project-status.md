@@ -2,7 +2,7 @@
 
 **Corte:** 7 de noviembre de 2026  
 **Rama de referencia:** `main`  
-**Última entrega integrada:** POS-16A — turnos y control de caja (PR #68, integrado). POS-16B — alertas de inventario y reposición, en implementación.
+**Última entrega integrada:** POS-16B — alertas de inventario y reposición (PR #69, integrado). POS-16C — seguimiento de transferencias e incidencias, en revisión en PR #71.
 
 > Este documento distingue implementación integrada, validación automatizada y aceptación operativa. Que una funcionalidad esté integrada o que CI pase no significa que esté configurada ni aceptada en el entorno real.
 
@@ -107,8 +107,8 @@ Las Fases 1–16 y las mejoras PR #29–37 están integradas. La entrega PR #38 
 
 - POS-1 a POS-10 integrados en main.
 - POS-11 integrado mediante PR #56: búsqueda por nombre/correo/teléfono guardado, alta rápida, asociación de ventas, historial limitado por almacén y clientes frecuentes.
-- POS-1 a POS-16A integrados en main.
-- POS-14A y POS-14B (PR #65–66) están integrados. POS-15 (PR #67) está integrado. POS-16A (PR #68) está integrado. POS-16B está en desarrollo en `feature/pos-16b-stock-alerts-replenishment`.
+- POS-1 a POS-16 integrados en main. POS-16C está en revisión en `feature/pos-16c-transfer-monitoring`.
+- POS-14A y POS-14B (PR #65–66), POS-15 (PR #67) y POS-16A/16B (PR #68–69) están integrados en main.
 - POS-13 (PR #61–63): autorización por separado para procesar/aprobar devoluciones; reembolsos por los medios originales con distribución proporcional efectivo/Zelle; solo efectivo afecta caja; descuentos respetados; stock devuelto vendible, en cuarentena o desechado; cambios vinculados y diferencia neta; búsqueda de ventas por número, cliente, fecha, terminal y almacén.
 - Los PR #61, #62 y #63 superaron PHP 8.4, PHP 8.5 y Frontend assets antes de integrarse.
 - El POS es exclusivamente online. POS-10 admite efectivo, Zelle manual USD y pagos mixtos; los pagos Zelle requieren revisión.
@@ -216,7 +216,7 @@ Cada nueva fase se desarrolla en una rama independiente. Antes de implementar, r
 - Exportación CSV filtrada y limitada a los almacenes autorizados. No se convierten ni mezclan monedas.
 
 
-### POS-16A — turnos y control de caja (integrado en main)
+### POS-16A — turnos y control de caja (en desarrollo)
 - Rama: `feature/pos-16a-shifts-and-cash-control`.
 - Asignación de cajeros por terminal y etiqueta de turno en cada sesión.
 - Límite de efectivo por terminal aplicado al fondo inicial, entradas manuales y ventas con efectivo; Zelle puro queda excluido.
@@ -228,7 +228,7 @@ Cada nueva fase se desarrolla en una rama independiente. Antes de implementar, r
 - Alertas de stock bajo y solicitudes de reposición integradas con transferencias multi almacén.
 
 
-### POS-16B — alertas y reposición (integrado en main)
+### POS-16B — alertas y reposición (en desarrollo)
 - Rama: `feature/pos-16b-stock-alerts-replenishment`.
 - Umbral mínimo configurable por existencia/almacén, con valor predeterminado de 5 unidades.
 - Alertas calculadas sobre disponible real (existencia menos reservado y bloqueado).
@@ -236,11 +236,29 @@ Cada nueva fase se desarrolla en una rama independiente. Antes de implementar, r
 - La solicitud no altera el stock; el movimiento ocurre en el despacho aprobado.
 
 
-### POS-16C — seguimiento de transferencias e incidencias (en desarrollo)
-- Rama: `feature/pos-16c-transfer-monitoring`.
-- Dashboard de estados y actividad reciente de transferencias entre almacenes autorizados.
-- Registro visible de eventos, rechazos y unidades dañadas, con actor y fecha.
-- Indicadores de transferencias entrantes/salientes por almacén.
-- Las consultas exigen permiso administrativo `pos_reports.view` y permiso `reports.view` en ambos almacenes de cada transferencia.
-- Se reutilizan los eventos y estados existentes; no se altera inventario ni aprobación.
-- CI de POS-16A/B no presenta checks verificables en la consulta actual; exigir nueva ejecución completa en el PR.
+### POS-14 — periféricos (PR #65–66)
+- Recibos térmicos 58/80 mm, copias por terminal, códigos de barras de productos/variantes y lector tipo teclado.
+- QZ Tray 2.3.0 para impresión directa y apertura de gaveta ESC/POS. Requiere instalación local en cada puesto y aceptación física de impresora/gaveta; la conexión sin firma puede mostrar confirmaciones.
+
+### POS-15 — informes avanzados (PR #67)
+- Filtros por fechas, almacén, terminal, cajero y moneda; desgloses por producto, categoría, marca, terminal y método de pago.
+- Margen estimado con costo histórico; diferencias de caja, reembolsos, comparación de períodos y exportación CSV.
+
+### POS-16 — operación avanzada (PR #68–69)
+- Cajeros asignados a terminales y etiquetas de turno; límites de efectivo y cierres supervisados con aprobación de otra persona.
+- Umbral mínimo configurable por inventario/almacén; alertas basadas en disponible tras reservas/bloqueos.
+- Solicitudes de reposición enlazadas a transferencias y aprobaciones existentes; crear la solicitud no mueve stock.
+
+### Aceptación operativa POS pendiente
+- Instalar y probar QZ Tray, impresoras térmicas y gavetas en cada computadora de caja.
+- Verificar asignaciones reales de cajeros, límites de efectivo, cierres supervisados y permisos de aprobación.
+- Probar umbrales, ubicaciones de recepción, solicitudes de reposición, aprobaciones, despacho y recepción en los almacenes reales.
+- La integración y el CI no sustituyen la aceptación física ni la Fase 17 de preparación de producción.
+
+
+### POS-16C — seguimiento de transferencias e incidencias (en revisión)
+- Dashboard de estados, transferencias activas/en tránsito, actividad reciente y últimas incidencias.
+- Conteos de transferencias entrantes/salientes por almacén.
+- Alcance limitado a transferencias donde el usuario tiene `reports.view` en ambos almacenes, además del permiso `pos_reports.view`.
+- Reutiliza eventos existentes de rechazo y daños; no altera stock, aprobación, despacho ni recepción.
+- PR #71: `feature/pos-16c-transfer-monitoring`; CI de PHP 8.4, PHP 8.5 y Frontend assets validado en el head inicial. Requiere sincronizar con `main` y repetir CI antes de integrar.

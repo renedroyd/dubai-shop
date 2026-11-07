@@ -329,4 +329,46 @@ class PosLoyaltyService
         });
     }
 
+
+    public function adjustWallet(int $userId, string $currency, int $pointsDelta, string $reason, int $actorId): PosLoyaltyEntry
+    {
+        return DB::transaction(function () use ($userId, $currency, $pointsDelta, $reason, $actorId): PosLoyaltyEntry {
+            $actor = \App\Models\User::query()->findOrFail($actorId);
+            if (! $actor->hasAdminPermission('pos_loyalty.adjust')) {
+                throw new \Illuminate\Auth\Access\AuthorizationException('No tienes permiso para ajustar puntos de fidelización.');
+            }
+            if (! in_array($currency, ['CUP', 'USD', 'EUR'], true) || $pointsDelta === 0 || trim($reason) === '') {
+                throw \Illuminate\Validation\ValidationException::withMessages(['adjustment' => 'Indica una moneda, un ajuste distinto de cero y un motivo obligatorio.']);
+            }
+
+            $wallet = PosLoyaltyWallet::query()->firstOrCreate(
+                ['user_id' => $userId, 'currency' => $currency],
+                ['points_balance' => 0],
+            );
+            $wallet = PosLoyaltyWallet::query()->whereKey($wallet->id)->lockForUpdate()->firstOrFail();
+            $balanceBefore = $wallet->availablePoints();
+
+            if ($pointsDelta < 0 && $balanceBefore + $pointsDelta < 0) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['pointsDelta' => 'El ajuste no puede reducir el saldo disponible por debajo de cero.']);
+            }
+
+            $entry = $wallet->entries()->create([
+                'actor_id' => $actorId,
+                'type' => 'manual_adjustment',
+                'points_delta' => $pointsDelta,
+                'idempotency_key' => 'manual-loyalty-adjustment:'.\Illuminate\Support\Str::uuid(),
+                'metadata' => [
+                    'reason' => trim($reason),
+                    'balance_before' => $balanceBefore,
+                    'balance_after' => $balanceBefore + $pointsDelta,
+                    'currency' => $currency,
+                ],
+            ]);
+
+            $wallet->update(['points_balance' => $wallet->availablePoints()]);
+
+            return $entry;
+        });
+    }
+
 }

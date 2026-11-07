@@ -300,3 +300,11 @@ PR #71 integrado en `main`. Dashboard de estados, actividad, incidencias y conte
 - El descuento por puntos se incorpora al total y al descuento de la orden; los importes de pago, efectivo recibido y cambio se calculan sobre el total neto.
 - Los puntos se consumen por lotes conservando su fecha de vencimiento. Si se rechaza el pago Zelle, se restituyen los puntos reservados con su vencimiento original.
 - El canje parcial por devoluciones y la restitución proporcional se implementarán en POS-17C.
+
+## POS-17C — conciliación de puntos en devoluciones (en revisión)
+
+- Las devoluciones parciales revierten proporcionalmente los puntos ganados y restituyen proporcionalmente los puntos canjeados.
+- La proporción se calcula sobre el importe neto efectivamente pagado por la orden; al completar la devolución se revierte/restaura el 100 %.
+- Cada movimiento de devolución conserva la referencia a su movimiento original, el aprobador, la devolución y el vencimiento de los puntos.
+- Si los puntos ganados ya fueron consumidos antes de la devolución, el ledger registra el saldo negativo correspondiente; las futuras acumulaciones compensan ese saldo y el terminal no permite canjear un saldo negativo.
+- Los reembolsos monetarios siguen distribuyéndose entre los medios de pago originales y no se modifican por la conciliación de puntos.

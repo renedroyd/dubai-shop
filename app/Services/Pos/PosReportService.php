@@ -142,10 +142,10 @@ class PosReportService
             ->when($terminalId, fn (Builder $query) => $query->where('pos_terminal_id', $terminalId))
             ->when($cashierId, fn (Builder $query) => $query->where('opened_by', $cashierId))
             ->when($currency, fn (Builder $query) => $query->where('currency', $currency))
-            ->with(['terminal.warehouse:id,name', 'opener:id,name', 'closer:id,name'])
+            ->with(['terminal.warehouse:id,name', 'opener:id,name', 'closer:id,name', 'closeRequester:id,name', 'closeApprover:id,name'])
             ->orderByDesc('opened_at')->get();
 
-        $cashDiscrepancies = $sessions->whereNotNull('difference_amount')
+        $cashDiscrepancies = $sessions->filter(fn ($session) => $session->closed_at !== null && $session->difference_amount !== null)
             ->groupBy('currency')->map(fn ($rows, $code) => (object) [
                 'currency' => $code,
                 'sessions_count' => $rows->count(),

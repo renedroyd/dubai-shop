@@ -262,6 +262,34 @@ class PosSaleTest extends TestCase
         $this->assertDatabaseHas('payments', ['order_id' => $order->id, 'driver' => 'cash_on_delivery', 'status' => Payment::STATUS_REFUNDED]);
     }
 
+    public function test_pos_zelle_approval_is_idempotent_and_does_not_consume_stock_twice(): void
+    {
+        Storage::fake('local');
+        $user = User::factory()->create();
+        $session = $this->openSession($user, 'USD');
+        $product = $this->product('USD');
+        $inventory = app(InventoryService::class)->setOnHand($product, 5, reason: 'Carga inicial');
+        $method = PaymentMethod::query()->where('driver', 'zelle_manual')->firstOrFail();
+        $method->update(['is_enabled' => true]);
+        $order = app(PosSaleService::class)->sell($session, $user->id, [['product_id' => $product->id, 'quantity' => 2]], $method->id, [], [
+            'sender_name' => 'Cliente POS', 'reference' => 'ZELLE-IDEMPOTENT',
+            'transfer_date' => now()->toDateString(),
+            'proof' => UploadedFile::fake()->create('proof.pdf', 20, 'application/pdf'),
+        ]);
+        $payment = $order->payments()->firstOrFail();
+        $service = app(\App\Services\Payments\PaymentStatusService::class);
+        $service->approve($payment, $user->id, 'Validado');
+        try {
+            $service->approve($payment, $user->id, 'Segundo intento');
+            $this->fail('A repeated approval must be rejected.');
+        } catch (ValidationException) {
+            $this->assertSame(3, $inventory->fresh()->quantity_on_hand);
+            $this->assertSame(0, $inventory->fresh()->quantity_reserved);
+            $this->assertDatabaseCount('inventory_movements', 3);
+            $this->assertDatabaseHas('inventory_movements', ['reference_type' => Order::class, 'reference_id' => $order->id, 'type' => 'sale', 'quantity_delta' => -2]);
+        }
+    }
+
     public function test_pos_sale_supports_variant_inventory_and_uses_variant_price(): void
     {
         $user = User::factory()->create();

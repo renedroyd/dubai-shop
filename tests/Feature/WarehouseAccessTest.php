@@ -16,6 +16,7 @@ use App\Models\WarehouseUserAccess;
 use App\Services\Inventory\InventoryService;
 use App\Services\Pos\PosCashSessionService;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

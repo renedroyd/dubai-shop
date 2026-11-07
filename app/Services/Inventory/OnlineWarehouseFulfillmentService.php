@@ -1,20 +1,17 @@
 <?php
 
-namespace App\\Services\\Inventory;
+namespace App\Services\Inventory;
 
-use App\\Models\\CartItem;
-use App\\Models\\Inventory;
-use App\\Models\\Product;
-use App\\Models\\ProductVariant;
-use App\\Models\\Warehouse;
-use Illuminate\\Database\\Eloquent\\Collection;
-use Illuminate\\Validation\\ValidationException;
+use App\Models\CartItem;
+use App\Models\Inventory;
+use App\Models\Product;
+use App\Models\ProductVariant;
+use App\Models\Warehouse;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Validation\ValidationException;
 
 class OnlineWarehouseFulfillmentService
 {
-    /**
-     * Return online-eligible warehouses in fulfillment priority order.
-     */
     public function warehouses(): Collection
     {
         return Warehouse::query()
@@ -44,10 +41,7 @@ class OnlineWarehouseFulfillmentService
     }
 
     /**
-     * Allocate each tracked cart line. Prefer one warehouse for the complete order;
-     * if none can fulfill every line, fall back to priority-ordered split fulfillment.
-     *
-     * @param  iterable<CartItem>  $items
+     * @param iterable<CartItem> $items
      * @return array<int, array<int, array{inventory: Inventory, quantity: int}>>
      */
     public function allocateOrder(iterable $items): array
@@ -78,7 +72,7 @@ class OnlineWarehouseFulfillmentService
             ];
         }
 
-        // Keep every line in one warehouse whenever a single eligible warehouse can cover the order.
+        // Prefer one warehouse for the complete basket whenever possible.
         foreach ($warehouses as $warehouse) {
             $canFulfill = true;
             foreach ($lines as $line) {
@@ -102,7 +96,7 @@ class OnlineWarehouseFulfillmentService
             }
         }
 
-        // No single warehouse can cover the whole basket: allocate line-by-line by priority.
+        // Otherwise split fulfillment across warehouses in configured priority order.
         $allocations = [];
         foreach ($lines as $itemId => $line) {
             $remaining = $line['quantity'];
@@ -157,7 +151,6 @@ class OnlineWarehouseFulfillmentService
 
         $inventories = $query->get();
 
-        // Preserve the existing behavior: use product-level stock when no variant-specific stock is configured.
         if ($variant && $inventories->isEmpty()) {
             $fallback = Inventory::query()
                 ->whereIn('warehouse_id', $warehouseIds)

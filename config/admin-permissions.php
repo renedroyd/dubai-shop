@@ -26,6 +26,7 @@ use App\Models\WarehouseTransferRule;
 use App\Models\PosLocation;
 use App\Models\PosTerminal;
 use App\Models\PosCashSession;
+use App\Models\PosPriceRule;
 
 return [
     'model_resources' => [
@@ -54,6 +55,7 @@ return [
         PosLocation::class => 'pos_locations',
         PosTerminal::class => 'pos_terminals',
         PosCashSession::class => 'pos_cash_sessions',
+        PosPriceRule::class => 'pos_price_rules',
     ],
 
     'permissions' => [
@@ -114,6 +116,12 @@ return [
         'pos_reports.view' => 'Consultar informes POS y multi almacén',
         'pos_cash_sessions.create' => 'Abrir sesiones de caja y registrar movimientos',
         'pos_cash_sessions.update' => 'Cerrar y conciliar sesiones de caja',
+        'pos_price_rules.view' => 'Consultar reglas de precios y promociones POS',
+        'pos_price_rules.create' => 'Crear reglas de precios y promociones POS',
+        'pos_price_rules.update' => 'Modificar reglas de precios y promociones POS',
+        'pos_price_rules.delete' => 'Eliminar reglas de precios y promociones POS',
+        'pos_discounts.approve' => 'Autorizar descuentos que requieren aprobación',
+        'pos_discounts.override_floor' => 'Autorizar ventas por debajo del costo o precio mínimo',
         'orders.view' => 'Consultar pedidos',
         'orders.update' => 'Gestionar pedidos y entregas',
         'payments.view' => 'Consultar pagos y comprobantes',

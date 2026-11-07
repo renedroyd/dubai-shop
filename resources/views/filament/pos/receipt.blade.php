@@ -19,15 +19,23 @@
                 <div>
                     <div>{{ $item->product_name }}</div>
                     @if ($item->variant_name)<div class="text-xs">{{ $item->variant_name }}</div>@endif
-                    <div class="text-xs">{{ $item->quantity }} × {{ number_format($item->unit_price_amount / 100, 2) }} {{ $item->currency }}</div>
+                    @php($originalUnitPrice = $item->original_unit_price_amount ?? $item->unit_price_amount)
+                    <div class="text-xs">{{ $item->quantity }} × @if ($item->discount_amount > 0)<span class="line-through">{{ number_format($originalUnitPrice / 100, 2) }}</span> {{ number_format($item->unit_price_amount / 100, 2) }} @else {{ number_format($item->unit_price_amount / 100, 2) }} @endif {{ $item->currency }}</div>
+                    @if ($item->discount_amount > 0)<div class="text-xs">{{ __('Descuento aplicado') }}: −{{ number_format($item->discount_amount / 100, 2) }} {{ $item->currency }}</div>@endif
                 </div>
                 <div class="font-medium">{{ number_format($item->line_total_amount / 100, 2) }} {{ $item->currency }}</div>
             </div>
         @endforeach
     </div>
-    <div class="flex justify-between text-base font-semibold">
-        <span>{{ __('Total del pedido') }}</span>
-        <span>{{ number_format($order->total_amount / 100, 2) }} {{ $order->currency }}</span>
+    <div class="space-y-1 border-t pt-3">
+        <div class="flex justify-between"><span>{{ __('Subtotal') }}</span><span>{{ number_format($order->subtotal_amount / 100, 2) }} {{ $order->currency }}</span></div>
+        @if (($order->discount_amount ?? 0) > 0)
+            <div class="flex justify-between"><span>{{ __('Descuentos') }}</span><span>−{{ number_format($order->discount_amount / 100, 2) }} {{ $order->currency }}</span></div>
+        @endif
+        <div class="flex justify-between text-base font-semibold">
+            <span>{{ __('Total del pedido') }}</span>
+            <span>{{ number_format($order->total_amount / 100, 2) }} {{ $order->currency }}</span>
+        </div>
     </div>
     <div class="text-xs text-center">
         <p>{{ __('Método de cobro') }}: {{ $order->payments->first()?->method?->name }}</p>

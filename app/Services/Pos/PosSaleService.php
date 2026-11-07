@@ -10,6 +10,8 @@ use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Models\PaymentEvent;
 use App\Models\PaymentMethod;
+use App\Models\PosDiscountEvent;
+use App\Services\Pos\PosPricingService;
 use App\Models\PosCashMovement;
 use App\Models\PosCashSession;
 use App\Models\Product;
@@ -45,7 +47,8 @@ class PosSaleService
             $terminal = $lockedSession->terminal;
             $warehouse = $terminal?->warehouse;
 
-            if (! $warehouse || ! User::query()->findOrFail($cashierId)->hasWarehousePermission($warehouse->id, 'pos.operate')) {
+            $cashier = User::query()->findOrFail($cashierId);
+            if (! $warehouse || ! $cashier->hasWarehousePermission($warehouse->id, 'pos.operate')) {
                 throw new AuthorizationException('No tienes permiso para vender desde este almacén.');
             }
 
@@ -78,10 +81,20 @@ class PosSaleService
                 $cashReceived = $cashReceived > 0 ? $cashReceived : 0;
             }
 
+            $customerUserId = filled($customer['user_id'] ?? null) ? (int) $customer['user_id'] : null;
+            $customerUser = $customerUserId
+                ? User::query()->whereKey($customerUserId)->where('is_admin', false)->where('admin_access_enabled', false)->lockForUpdate()->first()
+                : null;
+            if ($customerUserId !== null && ! $customerUser) {
+                throw ValidationException::withMessages(['customer.user_id' => 'El cliente seleccionado no existe o no es una cuenta de cliente válida.']);
+            }
+
             $prepared = [];
             $requestedByInventory = [];
             $currency = $lockedSession->currency;
             $subtotal = 0;
+            $netSubtotal = 0;
+            $itemDiscountTotal = 0;
 
             foreach ($lines as $index => $line) {
                 $productId = (int) ($line['product_id'] ?? 0);
@@ -113,9 +126,7 @@ class PosSaleService
                     throw ValidationException::withMessages(["items.{$index}.product_id" => 'No se pueden mezclar monedas distintas en una misma sesión de caja.']);
                 }
 
-                $price = (int) ($variant?->price_amount ?? $product->price_amount);
-                $lineTotal = $price * $quantity;
-                $subtotal += $lineTotal;
+                $basePrice = (int) ($variant?->price_amount ?? $product->price_amount);
                 $stockKey = $variant ? 'variant:'.$variant->id : 'product:'.$product->id;
 
                 $inventory = Inventory::query()
@@ -141,16 +152,37 @@ class PosSaleService
                     }
                 }
 
-                $prepared[] = compact('product', 'variant', 'inventory', 'quantity', 'price', 'lineTotal');
+                $pricing = app(PosPricingService::class)->priceLine($product, $variant, $inventory, $customerUser, $cashier, $warehouse->id, $currency);
+                $price = $pricing['unit_price_amount'];
+                $lineTotal = $price * $quantity;
+                $originalLineTotal = $basePrice * $quantity;
+                $lineDiscount = $pricing['discount_amount'] * $quantity;
+                $subtotal += $originalLineTotal;
+                $netSubtotal += $lineTotal;
+                $itemDiscountTotal += $lineDiscount;
+                $prepared[] = [
+                    'product' => $product, 'variant' => $variant, 'inventory' => $inventory, 'quantity' => $quantity,
+                    'price' => $price, 'originalPrice' => $basePrice, 'lineTotal' => $lineTotal,
+                    'discountAmount' => $lineDiscount, 'unitCost' => $inventory?->acquisition_cost_amount,
+                    'rule' => $pricing['rule'], 'approvedBy' => $pricing['approved_by'],
+                ];
             }
 
-            $cashAmount = $isMixed ? (int) ($paymentDetails['cash_amount'] ?? 0) : $subtotal;
+            $orderPricing = app(PosPricingService::class)->priceOrderDiscount($netSubtotal, $prepared, $customerUser, $cashier, $warehouse->id, $currency);
+            $orderDiscountAmount = $orderPricing['discount_amount'];
+            $total = $netSubtotal - $orderDiscountAmount;
+            $discountTotal = $itemDiscountTotal + $orderDiscountAmount;
+            if ($total <= 0) {
+                throw ValidationException::withMessages(['discounts' => 'El total de la venta debe ser mayor que cero.']);
+            }
+
+            $cashAmount = $isMixed ? (int) ($paymentDetails['cash_amount'] ?? 0) : $total;
             $zelleAmount = $isMixed ? (int) ($paymentDetails['zelle_amount'] ?? 0) : 0;
             if ($isMixed) {
                 if ($currency !== 'USD') {
                     throw ValidationException::withMessages(['paymentDetails' => 'Los pagos mixtos con Zelle solo están disponibles en USD.']);
                 }
-                if ($cashAmount <= 0 || $zelleAmount <= 0 || $cashAmount + $zelleAmount !== $subtotal) {
+                if ($cashAmount <= 0 || $zelleAmount <= 0 || $cashAmount + $zelleAmount !== $total) {
                     throw ValidationException::withMessages(['paymentDetails' => 'Los importes de efectivo y Zelle deben ser positivos y sumar exactamente el total de la venta.']);
                 }
                 if ($cashReceived === 0) {
@@ -160,11 +192,11 @@ class PosSaleService
                     throw ValidationException::withMessages(['cash_received_amount' => 'El efectivo recibido no puede ser inferior a la parte asignada al efectivo.']);
                 }
             } else {
-                if ($method->driver === 'cash_on_delivery' && $cashReceived > 0 && $cashReceived < $subtotal) {
+                if ($method->driver === 'cash_on_delivery' && $cashReceived > 0 && $cashReceived < $total) {
                     throw ValidationException::withMessages(['cash_received_amount' => 'El efectivo recibido no puede ser inferior al total de la venta.']);
                 }
                 if ($method->driver === 'cash_on_delivery' && $cashReceived === 0) {
-                    $cashReceived = $subtotal;
+                    $cashReceived = $total;
                 }
             }
             $zelleMethod = $isMixed
@@ -172,15 +204,6 @@ class PosSaleService
                 : null;
             if ($isMixed && ! $zelleMethod) {
                 throw ValidationException::withMessages(['paymentDetails' => 'El método Zelle manual no está habilitado.']);
-            }
-
-            $customerUserId = filled($customer['user_id'] ?? null) ? (int) $customer['user_id'] : null;
-            $customerUser = $customerUserId
-                ? User::query()->whereKey($customerUserId)->where('is_admin', false)->where('admin_access_enabled', false)->lockForUpdate()->first()
-                : null;
-
-            if ($customerUserId !== null && ! $customerUser) {
-                throw ValidationException::withMessages(['customer.user_id' => 'El cliente seleccionado no existe o no es una cuenta de cliente válida.']);
             }
 
             $order = Order::withoutEvents(fn () => Order::query()->create([
@@ -201,15 +224,25 @@ class PosSaleService
                 'customer_note' => $customer['note'] ?? null,
                 'currency' => $currency,
                 'subtotal_amount' => $subtotal,
+                'discount_amount' => $discountTotal,
                 'shipping_amount' => 0,
                 'tax_amount' => 0,
-                'total_amount' => $subtotal,
+                'total_amount' => $total,
                 'status' => $requiresReview ? Order::STATUS_PENDING : Order::STATUS_CONFIRMED,
                 'payment_status' => $requiresReview ? 'awaiting_review' : 'paid',
                 'placed_at' => now(),
                 'confirmed_at' => $requiresReview ? null : now(),
                 'inventory_processed_at' => $requiresReview ? null : now(),
             ]));
+
+            if ($orderDiscountAmount > 0 && $orderPricing['rule']) {
+                PosDiscountEvent::query()->create([
+                    'order_id' => $order->id, 'pos_price_rule_id' => $orderPricing['rule']->id,
+                    'applied_by' => $cashierId, 'approved_by' => $orderPricing['approved_by'],
+                    'scope' => 'order', 'discount_amount' => $orderDiscountAmount,
+                    'rule_snapshot' => ['name' => $orderPricing['rule']->name, 'rule_type' => $orderPricing['rule']->rule_type, 'value_amount' => $orderPricing['rule']->value_amount, 'currency' => $orderPricing['rule']->currency, 'warehouse_id' => $orderPricing['rule']->warehouse_id, 'customer_id' => $orderPricing['rule']->customer_id],
+                ]);
+            }
 
             foreach ($prepared as $line) {
                 $product = $line['product'];
@@ -227,9 +260,23 @@ class PosSaleService
                     'sku' => $variant?->sku ?: $product->sku,
                     'quantity' => $quantity,
                     'unit_price_amount' => $line['price'],
+                    'original_unit_price_amount' => $line['originalPrice'],
                     'line_total_amount' => $line['lineTotal'],
+                    'discount_amount' => $line['discountAmount'],
+                    'unit_cost_amount' => $line['unitCost'],
+                    'pos_price_rule_id' => $line['rule']?->id,
                     'currency' => $currency,
                 ]);
+
+                if ($line['discountAmount'] > 0 && $line['rule']) {
+                    PosDiscountEvent::query()->create([
+                        'order_id' => $order->id, 'order_item_id' => $orderItem->id,
+                        'pos_price_rule_id' => $line['rule']->id, 'applied_by' => $cashierId,
+                        'approved_by' => $line['approvedBy'], 'scope' => $line['rule']->scope,
+                        'discount_amount' => $line['discountAmount'],
+                        'rule_snapshot' => ['name' => $line['rule']->name, 'rule_type' => $line['rule']->rule_type, 'value_amount' => $line['rule']->value_amount, 'currency' => $line['rule']->currency, 'warehouse_id' => $line['rule']->warehouse_id, 'customer_id' => $line['rule']->customer_id],
+                    ]);
+                }
 
                 if (! $inventory) {
                     continue;
@@ -338,7 +385,7 @@ class PosSaleService
                 $payment = Payment::query()->create([
                     'order_id' => $order->id, 'payment_method_id' => $method->id, 'driver' => $method->driver,
                     'status' => $requiresReview ? Payment::STATUS_AWAITING_REVIEW : Payment::STATUS_PAID,
-                    'amount' => $subtotal, 'currency' => $currency,
+                    'amount' => $total, 'currency' => $currency,
                     'reference' => $requiresReview ? trim((string) $paymentDetails['reference']) : null,
                     'proof_path' => $proofPath,
                     'reviewed_by' => $requiresReview ? null : $cashierId,
@@ -349,7 +396,7 @@ class PosSaleService
                         'sender_name' => $requiresReview ? trim((string) $paymentDetails['sender_name']) : null,
                         'transfer_date' => $requiresReview ? $paymentDetails['transfer_date'] : null,
                         'cash_received_amount' => $requiresReview ? null : $cashReceived,
-                        'change_amount' => $requiresReview ? null : max(0, $cashReceived - $subtotal),
+                        'change_amount' => $requiresReview ? null : max(0, $cashReceived - $total),
                     ],
                 ]);
                 $payment->events()->create([
@@ -362,7 +409,7 @@ class PosSaleService
                 if (! $requiresReview) {
                     $lockedSession->movements()->create([
                         'payment_id' => $payment->id, 'user_id' => $cashierId, 'type' => PosCashMovement::TYPE_SALE,
-                        'amount' => $subtotal, 'currency' => $currency, 'reference' => $order->number,
+                        'amount' => $total, 'currency' => $currency, 'reference' => $order->number,
                         'note' => 'Cobro de venta POS.',
                     ]);
                 }

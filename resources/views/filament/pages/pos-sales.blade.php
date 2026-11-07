@@ -195,6 +195,14 @@
                                 </div>
                             @endforelse
                         </div>
+                        @if ($this->cartPricingWarnings() !== [])
+                            <div class="mx-4 mt-3 space-y-1 rounded-lg border border-amber-500/30 bg-amber-50 p-3 text-xs text-amber-800 dark:bg-amber-500/10 dark:text-amber-200">
+                                @foreach ($this->cartPricingWarnings() as $pricingWarning)
+                                    <p>{{ $pricingWarning }}</p>
+                                @endforeach
+                                <p>{{ __('La venta continuará al precio normal cuando la promoción no pueda aplicarse.') }}</p>
+                            </div>
+                        @endif
                         <div class="space-y-3 border-t border-gray-200 p-4 dark:border-gray-800">
                             <div class="flex items-center justify-between text-sm text-gray-500"><span>{{ __('Subtotal') }}</span><span class="font-semibold text-gray-950 dark:text-white">{{ $this->formatMoney($this->cartSubtotal(), $session->currency) }}</span></div>
                             <div class="flex items-center justify-between border-t border-dashed border-gray-200 pt-3 text-base font-bold dark:border-gray-700"><span>{{ __('Total a cobrar') }}</span><span class="text-xl text-amber-600 dark:text-amber-400">{{ $this->formatMoney($this->cartSubtotal(), $session->currency) }}</span></div>

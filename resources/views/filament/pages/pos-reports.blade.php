@@ -27,12 +27,12 @@
             <h2 class="mb-3 text-base font-semibold">{{ __('Ventas POS por almacén y moneda') }}</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
-                    <thead><tr class="border-b text-left"><th class="py-2">{{ __('Almacén') }}</th><th>{{ __('Moneda') }}</th><th>{{ __('Ventas') }}</th><th class="text-right">{{ __('Total') }}</th></tr></thead>
+                    <thead><tr class="border-b text-left"><th class="py-2">{{ __('Almacén') }}</th><th>{{ __('Moneda') }}</th><th>{{ __('Ventas') }}</th><th class="text-right">{{ __('Descuentos') }}</th><th class="text-right">{{ __('Total neto') }}</th></tr></thead>
                     <tbody>
                         @forelse ($sales as $sale)
-                            <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-2">{{ $sale->posWarehouse?->name ?? '—' }}</td><td>{{ $sale->currency }}</td><td>{{ $sale->orders_count }}</td><td class="text-right tabular-nums">{{ number_format($sale->total_amount / 100, 2) }}</td></tr>
+                            <tr class="border-b border-gray-100 dark:border-gray-800"><td class="py-2">{{ $sale->posWarehouse?->name ?? '—' }}</td><td>{{ $sale->currency }}</td><td>{{ $sale->orders_count }}</td><td class="text-right tabular-nums">{{ number_format($sale->discounts_amount / 100, 2) }}</td><td class="text-right tabular-nums">{{ number_format($sale->total_amount / 100, 2) }}</td></tr>
                         @empty
-                            <tr><td colspan="4" class="py-4 text-center text-gray-500">{{ __('No hay ventas POS en el período seleccionado.') }}</td></tr>
+                            <tr><td colspan="5" class="py-4 text-center text-gray-500">{{ __('No hay ventas POS en el período seleccionado.') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>

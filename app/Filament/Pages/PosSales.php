@@ -14,6 +14,7 @@ use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Services\Pos\PosCashSessionService;
 use App\Services\Pos\PosSaleService;
+use App\Services\Pos\PosPricingService;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Builder;
@@ -434,13 +435,24 @@ class PosSales extends Page
             }
 
             $variant = $line['variant_id'] ? $product->variants->firstWhere('id', $line['variant_id']) : null;
-            $price = (int) ($variant?->price_amount ?? $product->price_amount);
+            $session = $this->currentSession();
+            $warehouseId = $session?->terminal->warehouse_id;
+            $inventory = $warehouseId ? Inventory::query()->where('warehouse_id', $warehouseId)->where('stock_key', $variant ? 'variant:'.$variant->id : 'product:'.$product->id)->first() : null;
+            $pricing = $warehouseId && $session
+                ? app(PosPricingService::class)->previewLine($product, $variant, $inventory, $this->customerUserId, $warehouseId, $session->currency, auth()->user())
+                : ['original_unit_price_amount' => (int) ($variant?->price_amount ?? $product->price_amount), 'unit_price_amount' => (int) ($variant?->price_amount ?? $product->price_amount), 'discount_amount' => 0, 'rule' => null];
+            $price = $pricing['unit_price_amount'];
             $items[] = [
                 'key' => $key,
                 'product' => $product,
                 'variant' => $variant,
                 'quantity' => (int) $line['quantity'],
                 'price' => $price,
+                'original_price' => $pricing['original_unit_price_amount'],
+                'discount_amount' => $pricing['discount_amount'] * (int) $line['quantity'],
+                'rule_name' => $pricing['rule']?->name,
+                'blocked_reason' => $pricing['blocked_reason'] ?? null,
+                'inventory' => $inventory,
                 'total' => $price * (int) $line['quantity'],
             ];
         }
@@ -451,6 +463,42 @@ class PosSales extends Page
     public function cartSubtotal(): int
     {
         return collect($this->cartItems())->sum('total');
+    }
+
+    public function cartOriginalSubtotal(): int
+    {
+        return collect($this->cartItems())->sum(fn (array $item): int => $item['original_price'] * $item['quantity']);
+    }
+
+    public function cartOrderDiscount(): int
+    {
+        $session = $this->currentSession();
+        if (! $session) return 0;
+        $prepared = collect($this->cartItems())->map(fn (array $item): array => ['inventory' => $item['inventory'], 'quantity' => $item['quantity']])->all();
+        return app(PosPricingService::class)->previewOrderDiscount($this->cartSubtotal(), $this->customerUserId, $session->terminal->warehouse_id, $session->currency, $prepared, auth()->user())['discount_amount'];
+    }
+
+    public function cartDiscountTotal(): int
+    {
+        return collect($this->cartItems())->sum('discount_amount') + $this->cartOrderDiscount();
+    }
+
+    public function cartPricingWarnings(): array
+    {
+        $warnings = collect($this->cartItems())->pluck('blocked_reason')->filter()->unique()->values()->all();
+        $session = $this->currentSession();
+        if ($session) {
+            $items = $this->cartItems();
+            $prepared = collect($items)->map(fn (array $item): array => ['inventory' => $item['inventory'], 'quantity' => $item['quantity']])->all();
+            $orderPreview = app(PosPricingService::class)->previewOrderDiscount($this->cartSubtotal(), $this->customerUserId, $session->terminal->warehouse_id, $session->currency, $prepared, auth()->user());
+            if ($orderPreview['blocked_reason'] ?? null) $warnings[] = $orderPreview['blocked_reason'];
+        }
+        return array_values(array_unique($warnings));
+    }
+
+    public function cartTotal(): int
+    {
+        return max(0, $this->cartSubtotal() - $this->cartOrderDiscount());
     }
 
     public function formatMoney(int $amount, string $currency): string
@@ -584,7 +632,7 @@ class PosSales extends Page
             ];
         } elseif ($method->driver === 'cash_on_delivery') {
             $paymentDetails['cash_received_amount'] = $this->cashReceivedAmount === ''
-                ? $this->cartSubtotal()
+                ? $this->cartTotal()
                 : $this->parseAmount($this->cashReceivedAmount, 'cashReceivedAmount');
         } else {
             $this->validate([
@@ -601,6 +649,8 @@ class PosSales extends Page
             ];
         }
 
+        $wasMixedPayment = $this->mixedPayment;
+        $wasZellePayment = $method->driver === 'zelle_manual';
         $order = app(PosSaleService::class)->sell(
             $session,
             auth()->id(),
@@ -611,6 +661,7 @@ class PosSales extends Page
             ], $this->cart)),
             $this->paymentMethodId,
             [
+                'user_id' => $this->customerUserId,
                 'name' => $this->customerName,
                 'phone' => $this->customerPhone,
                 'email' => $this->customerEmail,
@@ -631,7 +682,7 @@ class PosSales extends Page
 
         Notification::make()
             ->success()
-            ->title(($method->driver === 'zelle_manual' || $this->mixedPayment) ? __('Venta registrada · pago pendiente de validación') : __('Venta registrada correctamente'))
+            ->title(($wasZellePayment || $wasMixedPayment) ? __('Venta registrada · pago pendiente de validación') : __('Venta registrada correctamente'))
             ->body(__('Pedido :number · :total', [
                 'number' => $order->number,
                 'total' => $this->formatMoney((int) $order->total_amount, $order->currency),

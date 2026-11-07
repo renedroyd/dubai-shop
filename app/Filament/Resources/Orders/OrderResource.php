@@ -51,6 +51,8 @@ class OrderResource extends Resource
             TextColumn::make('posWarehouse.name')->label(__('Almacén POS'))->placeholder('—'),
             TextColumn::make('customer_name')->label(__('Cliente'))->searchable(),
             TextColumn::make('customer_email')->label(__('Correo'))->searchable(),
+            TextColumn::make('subtotal_amount')->label(__('Subtotal'))->formatStateUsing(fn ($state, Order $record) => number_format($state / 100, 2).' '.$record->currency),
+            TextColumn::make('discount_amount')->label(__('Descuentos'))->formatStateUsing(fn ($state, Order $record) => number_format($state / 100, 2).' '.$record->currency),
             TextColumn::make('total_amount')->label(__('Total del pedido'))->formatStateUsing(fn ($state, Order $record) => number_format($state / 100, 2).' '.$record->currency),
             TextColumn::make('status')->label(__('Estado'))->badge(),
             TextColumn::make('payment_status')->label(__('Pago'))->badge(),

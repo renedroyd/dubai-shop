@@ -358,7 +358,7 @@ class PosSales extends Page
 
     public function recordCashMovement(): void
     {
-        $this->authorizeCashierPermission('pos_cash_sessions.create');
+        $this->authorizeCashierPermission('pos_cash_sessions.update');
 
         $session = $this->currentSession();
 

@@ -136,6 +136,41 @@ También se contemplan `rejected` y `cancelled`. La cancelación de una transfer
 9. Registrar devoluciones parciales/totales en caja abierta del mismo terminal y moneda, sin exceder unidades ni importes originales.
 10. Reintegrar el inventario en las ubicaciones de origen y registrar movimientos de caja, pagos y auditoría del reembolso.
 
+
+## POS-8 — Seguridad por almacén, informes y aceptación (en desarrollo)
+
+### Acceso por usuario y almacén
+- Cada usuario administrativo puede recibir asignaciones independientes por almacén.
+- Cada asignación contiene permisos explícitos: consultar, gestionar inventario, solicitar transferencias, aprobar transferencias, operar POS, consultar informes y administrar almacén/ubicaciones.
+- Los permisos globales RBAC por recurso siguen siendo obligatorios; el permiso por almacén actúa como una segunda barrera y no amplía los permisos globales.
+- El Superadministrador conserva acceso global. Los demás usuarios solo consultan y operan los almacenes asignados.
+- Los listados, widgets, pagos, pedidos POS, existencias, movimientos, ubicaciones, terminales, cajas y transferencias se filtran por los almacenes autorizados.
+- Los servicios de inventario, caja POS, ventas, devoluciones y transferencias verifican permisos dentro del flujo de negocio, evitando depender exclusivamente de la interfaz Filament.
+
+### Informes
+- Ventas POS agrupadas por almacén y moneda, sin conversiones automáticas.
+- Sesiones de caja, arqueos y diferencias.
+- Movimientos de inventario por almacén, producto y tipo.
+- Transferencias agrupadas por estado.
+- Filtros de fecha y almacén, limitados a las asignaciones de quien consulta.
+
+### Aceptación y contención entre canales
+- El checkout web y el POS utilizan el mismo registro de inventario por producto/variante y almacén.
+- Una reserva web reduce la cantidad disponible para una venta POS.
+- Una venta POS reduce inmediatamente la disponibilidad que consulta la tienda online.
+- Las operaciones críticas bloquean filas de inventario y ejecutan cambios en transacciones.
+- La suite automatizada comprueba que los dos canales no puedan consumir unidades reservadas o inexistentes. La validación de concurrencia real entre procesos y motores de base de datos de producción requiere una prueba adicional en el entorno objetivo.
+
+### Criterios de aceptación POS-8
+1. Asignar a un usuario uno o varios almacenes con permisos diferentes por almacén.
+2. Denegar el acceso a almacenes no asignados aunque el rol global permita la acción.
+3. Restringir apertura, venta, movimientos, cierre y devoluciones POS al permiso `pos.operate`.
+4. Restringir ajustes de existencias y ubicaciones a `inventory.manage`.
+5. Restringir creación, aprobación, despacho y recepción de transferencias a permisos de origen y destino.
+6. Ocultar datos de almacenes no autorizados en recursos, pagos, pedidos, dashboard e informes.
+7. Mostrar informes con totales separados por moneda y solo sobre almacenes autorizados.
+8. Verificar contención de reservas y ventas entre el checkout web y el POS.
+
 ## Reglas de integridad
 
 1. Un almacén principal debe existir y estar activo.
@@ -154,5 +189,5 @@ La tienda pública conserva temporalmente el comportamiento anterior: carrito, c
 
 ## Secuencia posterior
 
-1. POS-7: ventas integradas con pedidos y pagos, cajas, arqueos, recibos y devoluciones.
-2. POS-8: permisos por almacén y usuario, informes y pruebas integrales.
+1. POS-7: ventas integradas con pedidos y pagos, cajas, arqueos, recibos y devoluciones — integrado en PR #45.
+2. POS-8: permisos por almacén y usuario, informes y pruebas integrales — en desarrollo.

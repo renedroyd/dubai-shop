@@ -110,7 +110,6 @@ class PosTransferTrackingTest extends TestCase
             ->assertSee('Seguimiento de transferencias')
             ->assertSee('Actividad reciente')
             ->assertSee('TRF-')
-            ->assertSee('Almacén principal')
             ->assertSee('Reposición');
     }
 

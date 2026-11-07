@@ -1,7 +1,7 @@
 # Hoja de ruta — Dubai Shop / Clásico Dubai
 
 **Actualizada:** 7 de noviembre de 2026  
-**Base:** Fases 1–16 y POS-1 a POS-14 integrados; POS-15 en implementación; POS-16 planificado.
+**Base:** Fases 1–16 y POS-1 a POS-15 integrados; POS-16A en implementación; POS-16B pendiente.
 
 La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente y nuevas capacidades que requieren decisiones comerciales. La prioridad inmediata es estabilizar y aceptar el despliegue, no añadir integraciones externas sin proveedor o reglas aprobadas.
 
@@ -172,7 +172,7 @@ Objetivo: implementar promociones reales sin introducir ambigüedades contables.
 
 ## POS y multi almacén — entregas independientes
 
-<badge color="success">POS-1 a POS-14 integrados</badge> <badge color="info">POS-15 en implementación; POS-16 pendiente</badge>
+<badge color="success">POS-1 a POS-15 integrados</badge> <badge color="info">POS-16A en implementación; POS-16B pendiente</badge>
 
 El POS funcionará siempre conectado al servidor. No se desarrollará modo offline. Decisiones aprobadas: ubicaciones internas flexibles (área/pasillo/estantería/posición), existencias independientes por almacén y aprobación configurable de transferencias.
 
@@ -274,3 +274,12 @@ Rama `feature/pos-14b-qz-tray-cash-drawer`. Se adopta QZ Tray, aplicación local
 ### POS-15 — Dashboard e informes avanzados (en implementación)
 
 Rama `feature/pos-15-advanced-reports-dashboard`. Se amplía el informe existente con filtros autorizados por almacén, terminal, cajero, moneda y rango de fechas; ventas por almacén, terminal, cajero, producto/variante, categoría y marca; importes cobrados por método con reembolsos del período descontados; devoluciones, descuentos, arqueos/diferencias de caja y comparación con el período inmediatamente anterior. El margen bruto se calcula con el costo histórico de cada línea y el descuento global del pedido; si faltan costos históricos, el total de margen se marca como no disponible. Se incorpora exportación CSV con alcance limitado a los almacenes autorizados. Los importes se mantienen separados por moneda y no se convierten.
+
+
+### POS-16A — Turnos y control de caja (en implementación)
+
+Rama `feature/pos-16a-shifts-and-cash-control`. Asignación opcional de cajeros por terminal; etiqueta de turno en cada sesión; límite de efectivo físico por terminal aplicado al fondo inicial, entradas manuales y ventas en efectivo (sin bloquear Zelle puro); cierre supervisado con solicitud del cajero, bloqueo inmediato de movimientos/ventas y aprobación obligatoria de un supervisor distinto con permiso específico. Se conserva el cajero solicitante y el supervisor aprobador en auditoría.
+
+### POS-16B — Alertas y reposición (pendiente)
+
+Se implementarán umbrales mínimos de inventario configurables por producto/variante y almacén, alertas de existencias bajas y solicitudes de reposición entre almacenes integradas con el flujo de transferencias existente.

@@ -18,8 +18,8 @@ class OnlineWarehouseFulfillmentTest extends TestCase
     {
         return Product::query()->create([
             'name' => $name,
-            'slug' => str()->slug($name).'-'.uniqid(),
-            'sku' => strtoupper(str()->random(8)),
+            'slug' => Str::slug($name).'-'.uniqid(),
+            'sku' => strtoupper(Str::random(8)),
             'price_amount' => 1250,
             'currency' => 'USD',
             'status' => Product::STATUS_ACTIVE,
@@ -30,7 +30,7 @@ class OnlineWarehouseFulfillmentTest extends TestCase
     private function secondaryWarehouse(array $attributes = []): Warehouse
     {
         return Warehouse::query()->create(array_merge([
-            'code' => 'SECONDARY-'.str()->upper(str()->random(5)),
+            'code' => 'SECONDARY-'.Str::upper(Str::random(5)),
             'name' => 'Almacén secundario',
             'type' => 'general',
             'is_primary' => false,
@@ -43,7 +43,7 @@ class OnlineWarehouseFulfillmentTest extends TestCase
     private function cartWith(array $products): Cart
     {
         $cart = Cart::query()->create([
-            'session_id' => (string) str()->uuid(),
+            'session_id' => (string) Str::uuid(),
             'currency' => 'USD',
             'expires_at' => now()->addDay(),
         ]);

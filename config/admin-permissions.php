@@ -125,6 +125,8 @@ return [
         'pos_refunds.view' => 'Consultar devoluciones y cambios POS',
         'pos_refunds.process' => 'Procesar devoluciones POS',
         'pos_refunds.approve' => 'Autorizar devoluciones y reembolsos POS',
+        'pos_exchanges.create' => 'Registrar cambios entre ventas POS',
+        'pos_exchanges.view' => 'Consultar cambios POS',
         'pos_refunds.view' => 'Consultar devoluciones y cambios POS',
         'pos_refunds.process' => 'Procesar devoluciones POS',
         'pos_refunds.approve' => 'Autorizar devoluciones y reembolsos POS',

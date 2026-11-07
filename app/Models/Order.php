@@ -61,5 +61,7 @@ class Order extends Model
     public function posCashSession(): BelongsTo { return $this->belongsTo(PosCashSession::class, 'pos_cash_session_id'); }
     public function cashier(): BelongsTo { return $this->belongsTo(User::class, 'cashier_id'); }
     public function posRefunds(): HasMany { return $this->hasMany(PosRefund::class); }
+    public function posExchangesAsOriginal(): HasMany { return $this->hasMany(PosExchange::class, 'original_order_id'); }
+    public function posExchangeAsReplacement(): HasOne { return $this->hasOne(PosExchange::class, 'replacement_order_id'); }
     public function discountEvents(): HasMany { return $this->hasMany(PosDiscountEvent::class); }
 }

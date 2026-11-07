@@ -5,10 +5,13 @@ namespace App\Filament\Resources\Orders;
 use App\Filament\Resources\Orders\Pages\ListOrders;
 use App\Models\Order;
 use App\Models\User;
+use App\Models\PosRefund;
 use App\Models\PosCashSession;
 use App\Services\Orders\OrderInventoryService;
 use App\Services\Shipping\ShipmentService;
 use App\Services\Pos\PosRefundService;
+use App\Services\Pos\PosExchangeService;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -108,7 +111,32 @@ class OrderResource extends Resource
                         $record, $session, auth()->id(), $data['items'], $data['reason'], (int) $data['approved_by'],
                     );
                 }),
-            Action::make('printReceipt')->label(__('Recibo POS'))->icon('heroicon-o-printer')
+            Action::make('registerExchange')->label(__('Vincular como cambio'))->icon('heroicon-o-arrows-right-left')->color('info')
+                ->authorize('update')
+                ->visible(fn (Order $record): bool => $record->channel === 'pos' && $record->payment_status === 'paid' && ! $record->posExchangeAsReplacement()->exists())
+                ->form([
+                    Select::make('original_order_id')->label(__('Venta original'))->options(fn (Order $record) => Order::query()
+                        ->where('channel', 'pos')->whereIn('payment_status', ['partially_refunded', 'refunded'])
+                        ->where('id', '!=', $record->id)->where('pos_warehouse_id', $record->pos_warehouse_id)
+                        ->where('currency', $record->currency)->latest('placed_at')->limit(100)->pluck('number', 'id'))
+                        ->searchable()->required()->live(),
+                    Select::make('pos_refund_id')->label(__('Devolución vinculada'))
+                        ->options(fn (Get $get): array => PosRefund::query()->where('order_id', $get('original_order_id'))
+                            ->where('status', 'completed')->orderByDesc('refunded_at')->get()
+                            ->mapWithKeys(fn (PosRefund $refund) => [$refund->id => 'Devolución #'.$refund->id.' — '.number_format($refund->amount / 100, 2).' '.$refund->currency])->all())
+                        ->disabled(fn (Get $get): bool => blank($get('original_order_id')))->required()->searchable(),
+                    Textarea::make('reason')->label(__('Motivo / detalle del cambio'))->required()->maxLength(1000),
+                ])
+                ->action(function (Order $record, array $data): void {
+                    app(PosExchangeService::class)->link(
+                        Order::query()->findOrFail((int) $data['original_order_id']),
+                        $record,
+                        PosRefund::query()->findOrFail((int) $data['pos_refund_id']),
+                        auth()->id(),
+                        $data['reason'],
+                    );
+                }),
+                        Action::make('printReceipt')->label(__('Recibo POS'))->icon('heroicon-o-printer')
                 ->authorize('view')
                 ->visible(fn (Order $record): bool => $record->channel === 'pos')
                 ->modalHeading(fn (Order $record): string => __('Recibo').' '.$record->number)
@@ -119,7 +147,7 @@ class OrderResource extends Resource
             Action::make('details')->label(__('Ver pedido'))->icon('heroicon-o-eye')
                 ->authorize('view')
                 ->modalHeading(fn (Order $record): string => __('Pedido').' '.$record->number)
-                ->modalContent(fn (Order $record) => view('filament.orders.details', ['order' => $record->load(['items', 'payments.method', 'payments.events.actor', 'shipment.events', 'shipment.attempts', 'posRefunds.items.orderItem', 'posRefunds.processor'])]))
+                ->modalContent(fn (Order $record) => view('filament.orders.details', ['order' => $record->load(['items', 'payments.method', 'payments.events.actor', 'shipment.events', 'shipment.attempts', 'posRefunds.items.orderItem', 'posRefunds.processor', 'posExchangeAsReplacement.originalOrder', 'posExchangeAsReplacement.refund', 'posExchangesAsOriginal.replacementOrder'])]))
                 ->modalSubmitAction(false)->modalCancelActionLabel(__('Cerrar')),
             Action::make('confirm')->label(__('Confirmar pedido'))->color('success')->requiresConfirmation()
                 ->authorize('update')

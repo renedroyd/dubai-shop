@@ -3,6 +3,7 @@
 namespace App\Services\Orders;
 
 use App\Models\Inventory;
+use App\Models\InventoryLocationBalance;
 use App\Models\InventoryMovement;
 use App\Models\Order;
 use Illuminate\Support\Facades\DB;
@@ -44,6 +45,40 @@ class OrderInventoryService
                     ]);
                 }
 
+                $locationAllocations = [];
+                if ($fulfill) {
+                    $remaining = (int) $item->quantity;
+                    $balances = InventoryLocationBalance::query()
+                        ->where('inventory_id', $inventory->id)
+                        ->lockForUpdate()
+                        ->orderBy('warehouse_location_id')
+                        ->get();
+
+                    foreach ($balances as $balance) {
+                        if ($remaining <= 0) {
+                            break;
+                        }
+
+                        $quantity = min($remaining, $balance->quantity_on_hand);
+                        if ($quantity <= 0) {
+                            continue;
+                        }
+
+                        $balance->decrement('quantity_on_hand', $quantity);
+                        $locationAllocations[] = [
+                            'warehouse_location_id' => $balance->warehouse_location_id,
+                            'quantity' => $quantity,
+                        ];
+                        $remaining -= $quantity;
+                    }
+
+                    if ($remaining > 0) {
+                        throw ValidationException::withMessages([
+                            'inventory' => 'Los saldos por ubicación no coinciden con el inventario agregado. Concílialos antes de completar el pedido.',
+                        ]);
+                    }
+                }
+
                 $inventory->decrement('quantity_reserved', $item->quantity);
 
                 if ($fulfill) {
@@ -55,10 +90,15 @@ class OrderInventoryService
                     'user_id' => auth()->id(),
                     'type' => $fulfill ? 'sale' : 'reservation_release',
                     'quantity_delta' => $fulfill ? -$item->quantity : $item->quantity,
+                    'from_location_id' => count($locationAllocations) === 1 ? $locationAllocations[0]['warehouse_location_id'] : null,
                     'reason' => ($fulfill ? 'Salida por entrega del pedido ' : 'Liberación de reserva del pedido ').$lockedOrder->number,
                     'reference_type' => Order::class,
                     'reference_id' => $lockedOrder->id,
-                    'metadata' => ['order_number' => $lockedOrder->number],
+                    'metadata' => [
+                        'order_number' => $lockedOrder->number,
+                        'warehouse_id' => $inventory->warehouse_id,
+                        'location_allocations' => $locationAllocations,
+                    ],
                 ]);
             }
 

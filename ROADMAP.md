@@ -1,7 +1,7 @@
 # Hoja de ruta — Dubai Shop / Clásico Dubai
 
 **Actualizada:** 7 de noviembre de 2026  
-**Base:** Fases 1–16 y POS-1 a POS-13 integrados; POS-14 a POS-16 planificados.
+**Base:** Fases 1–16 y POS-1 a POS-13 integrados; POS-14A integrado y POS-14B en implementación; POS-15 y POS-16 planificados.
 
 La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente y nuevas capacidades que requieren decisiones comerciales. La prioridad inmediata es estabilizar y aceptar el despliegue, no añadir integraciones externas sin proveedor o reglas aprobadas.
 
@@ -172,7 +172,7 @@ Objetivo: implementar promociones reales sin introducir ambigüedades contables.
 
 ## POS y multi almacén — entregas independientes
 
-<badge color="success">POS-1 a POS-12 integrados</badge> <badge color="info">POS-13 a POS-16 planificados</badge>
+<badge color="success">POS-1 a POS-14A integrados</badge> <badge color="info">POS-14B en implementación; POS-15 y POS-16 pendientes</badge>
 
 El POS funcionará siempre conectado al servidor. No se desarrollará modo offline. Decisiones aprobadas: ubicaciones internas flexibles (área/pasillo/estantería/posición), existencias independientes por almacén y aprobación configurable de transferencias.
 
@@ -189,7 +189,7 @@ El POS funcionará siempre conectado al servidor. No se desarrollará modo offli
 11. **POS-11 — Clientes y fidelización:** búsqueda por nombre/teléfono/correo, alta rápida, asociación de ventas, historial, clientes frecuentes y preparación para puntos futuros. Integrado en PR #56.
 12. **POS-12 — Promociones, descuentos y precios:** reglas porcentuales/fijas por producto, categoría, marca o venta; precios especiales por cliente; ámbito por almacén/moneda; autorización, auditoría y protección de costo/precio mínimo. Integrado en PR #58–59.
 13. **POS-13 — Devoluciones y cambios:** integrado en PR #61–63. Incluye autorización por dos usuarios, reembolsos distribuidos entre los medios originales, respeto de descuentos, cuarentena/descarte de artículos y registro vinculado de cambios con diferencia neta.
-14. **POS-14 — Impresión y periféricos:** recibos térmicos configurables de 58/80 mm y copias duplicadas, lectores de códigos, gaveta de efectivo controlada e impresión USB/red mediante solución local.
+14. **POS-14 — Impresión y periféricos:** POS-14A integrado en PR #65 (recibos térmicos 58/80 mm, copias, códigos de barras y lector tipo teclado). POS-14B en implementación en rama propia: QZ Tray para impresión directa y gaveta ESC/POS.
 15. **POS-15 — Dashboard e informes avanzados:** ventas por establecimiento, terminal, cajero, producto, categoría, marca, moneda y método; margen bruto, diferencias de caja, devoluciones/descuentos, comparativas por período y exportación.
 16. **POS-16 — Operación comercial avanzada:** turnos/cajeros, asignación de terminales, arqueos y cierres supervisados, límites de efectivo, alertas de stock bajo, solicitudes de reposición, seguimiento de transferencias e indicadores por establecimiento.
 
@@ -260,3 +260,12 @@ Integrada en PR #51–55. Admite efectivo con cálculo de cambio, Zelle manual e
 - Mantener aprobaciones configurables de transferencias según origen/destino, usuario/rol, cantidad, valor y tipo; conservar recepción parcial, diferencias, daños, rechazo y cancelación.
 
 **Requisitos transversales de POS-11 a POS-16:** permisos globales y por almacén, protección ante ventas simultáneas, integridad de pagos/caja, auditoría, pruebas automatizadas, CI y documentación. No se introducirán objetivos numéricos, reglas comerciales ni proveedores externos sin aprobación.
+
+
+### POS-14A — Recibos térmicos y códigos de barras (integrado)
+
+PR #65 integrado en `main`. Los terminales configuran ancho 58/80 mm y 1–3 copias; productos y variantes admiten códigos de barras; el POS captura lectores físicos tipo teclado. CI validado en PHP 8.4, PHP 8.5 y Frontend assets.
+
+### POS-14B — Impresión local y gaveta (en implementación)
+
+Rama `feature/pos-14b-qz-tray-cash-drawer`. Se adopta QZ Tray, aplicación local gratuita y de código abierto. Se integra selección de impresora por terminal, impresión ESC/POS directa del recibo, prueba de impresora y apertura de gaveta condicionada a una venta con efectivo. La conexión no firmada puede mostrar diálogos de confianza; no se incluye ni se expone ninguna clave privada. La configuración y prueba física de impresoras/gavetas queda como aceptación operativa por computadora.

@@ -705,6 +705,21 @@ class PosSales extends Page
         );
 
         $this->lastOrderNumber = $order->number;
+
+        $cashCollectedAmount = $wasMixedPayment
+            ? (int) ($paymentDetails['cash_amount'] ?? 0)
+            : ($wasZellePayment ? 0 : (int) $order->total_amount);
+
+        if ($cashCollectedAmount > 0
+            && $session->terminal->cash_drawer_enabled
+            && filled($session->terminal->printer_name)) {
+            $this->dispatch(
+                'pos-cash-drawer-open',
+                printer: $session->terminal->printer_name,
+                pin: (int) $session->terminal->cash_drawer_pin,
+            );
+        }
+
         $this->cashReceivedAmount = '';
         $this->mixedPayment = false;
         $this->mixedCashAmount = '';

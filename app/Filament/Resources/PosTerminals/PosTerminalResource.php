@@ -56,6 +56,11 @@ class PosTerminalResource extends Resource
                 TextInput::make('name')->label(__('Nombre'))->required()->maxLength(255),
                 Select::make('receipt_width')->label(__('Ancho del recibo'))->options(['58' => '58 mm', '80' => '80 mm'])->default('80')->required(),
                 TextInput::make('receipt_copies')->label(__('Copias del recibo'))->numeric()->integer()->minValue(1)->maxValue(3)->default(1)->required(),
+                TextInput::make('printer_name')->label(__('Impresora QZ Tray'))->maxLength(255)
+                    ->helperText(__('Nombre exacto de la impresora instalada en la computadora de caja.')),
+                Toggle::make('cash_drawer_enabled')->label(__('Gaveta de efectivo habilitada'))->default(false),
+                Select::make('cash_drawer_pin')->label(__('Pin de apertura ESC/POS'))->options([0 => 'Pin 2', 1 => 'Pin 5'])->default(0)->required()
+                    ->visible(fn ($get): bool => (bool) $get('cash_drawer_enabled')),
                 Textarea::make('notes')->label(__('Notas internas'))->rows(3),
                 Toggle::make('is_active')->label(__('Activo'))->default(true),
             ])->columns(2),

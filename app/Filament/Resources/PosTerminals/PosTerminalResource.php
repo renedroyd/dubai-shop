@@ -62,9 +62,13 @@ class PosTerminalResource extends Resource
                     ->options(fn () => User::query()->where('admin_access_enabled', true)->orderBy('name')->pluck('name', 'id'))
                     ->searchable()->preload()
                     ->helperText(__('Si queda vacío, cualquier usuario con permiso POS en el almacén podrá operar este terminal.')),
-                TextInput::make('cash_limit_amount')->label(__('Límite de efectivo en caja (centavos)'))
+                TextInput::make('cash_limits.CUP')->label(__('Límite de efectivo CUP (centavos)'))
+                    ->numeric()->integer()->minValue(0)->nullable(),
+                TextInput::make('cash_limits.USD')->label(__('Límite de efectivo USD (centavos)'))
+                    ->numeric()->integer()->minValue(0)->nullable(),
+                TextInput::make('cash_limits.EUR')->label(__('Límite de efectivo EUR (centavos)'))
                     ->numeric()->integer()->minValue(0)->nullable()
-                    ->helperText(__('Limita el efectivo físico acumulado en esta caja. Deja vacío para no aplicar límite.')),
+                    ->helperText(__('Cada moneda tiene su propio límite. Deja vacío para no limitar esa moneda.')),
                 Toggle::make('supervised_closing')->label(__('Exigir aprobación de supervisor al cerrar'))->default(false)
                     ->helperText(__('El cajero solicita el cierre y un supervisor distinto debe aprobarlo.')),
                 TextInput::make('printer_name')->label(__('Impresora QZ Tray'))->maxLength(255)
@@ -86,7 +90,10 @@ class PosTerminalResource extends Resource
             TextColumn::make('location.name')->label(__('Establecimiento'))->sortable(),
             TextColumn::make('warehouse.name')->label(__('Almacén asignado'))->sortable(),
             TextColumn::make('assigned_cashier_ids')->label(__('Cajeros asignados'))->state(fn (PosTerminal $record) => empty($record->assigned_cashier_ids) ? __('Todos los autorizados') : User::query()->whereIn('id', $record->assigned_cashier_ids)->orderBy('name')->pluck('name')->join(', ')),
-            TextColumn::make('cash_limit_amount')->label(__('Límite de efectivo'))->formatStateUsing(fn ($state) => $state === null ? '—' : number_format($state / 100, 2)),
+            TextColumn::make('cash_limits')->label(__('Límites de efectivo'))->formatStateUsing(fn ($state) => collect($state ?? [])
+                ->filter(fn ($amount) => $amount !== null && $amount !== '')
+                ->map(fn ($amount, $currency) => $currency.' '.number_format(((int) $amount) / 100, 2))
+                ->join(' · ') ?: '—'),
             IconColumn::make('supervised_closing')->label(__('Cierre supervisado'))->boolean(),
             IconColumn::make('is_active')->label(__('Activo'))->boolean(),
         ])->filters([

@@ -30,11 +30,31 @@ class WarehouseTransferRuleResource extends Resource
     public static function getModelLabel(): string { return __('regla de transferencia'); }
     public static function getPluralModelLabel(): string { return __('reglas de transferencia'); }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        $warehouseIds = auth()->user()?->warehouseIdsWithPermission('warehouse.manage') ?? [];
+        $allWarehouseIds = Warehouse::query()->pluck('id')->map(fn ($id): int => (int) $id)->all();
+        $canManageAll = array_diff($allWarehouseIds, $warehouseIds) === [];
+
+        return parent::getEloquentQuery()->where(function ($query) use ($warehouseIds, $canManageAll): void {
+            $query->where(function ($specific) use ($warehouseIds): void {
+                $specific->whereNotNull('source_warehouse_id')
+                    ->whereNotNull('destination_warehouse_id')
+                    ->whereIn('source_warehouse_id', $warehouseIds)
+                    ->whereIn('destination_warehouse_id', $warehouseIds);
+            });
+
+            if ($canManageAll) {
+                $query->orWhere(fn ($global) => $global->whereNull('source_warehouse_id')->orWhereNull('destination_warehouse_id'));
+            }
+        });
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
             TextInput::make('name')->label(__('Nombre de la regla'))->required()->maxLength(255),
-            Select::make('source_warehouse_id')->label(__('Almacén de origen'))->options(fn () => Warehouse::query()->pluck('name', 'id'))->searchable()->placeholder(__('Cualquier almacén')),
+            Select::make('source_warehouse_id')->label(__('Almacén de origen'))->options(fn () => Warehouse::query()->whereIn('id', auth()->user()?->warehouseIdsWithPermission('warehouse.manage') ?? [])->pluck('name', 'id'))->searchable()->placeholder(__('Cualquier almacén')),
             Select::make('destination_warehouse_id')->label(__('Almacén de destino'))->options(fn () => Warehouse::query()->pluck('name', 'id'))->searchable()->placeholder(__('Cualquier almacén')),
             Select::make('transfer_type')->label(__('Tipo de transferencia'))->options([
                 'standard' => __('Estándar'),

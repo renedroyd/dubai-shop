@@ -10,6 +10,15 @@ class Warehouse extends Model
 {
     protected static function booted(): void
     {
+        static::updating(function (self $warehouse): void {
+            if ($warehouse->isDirty('is_active') && ! $warehouse->is_active
+                && $warehouse->posTerminals()->where('is_active', true)->exists()) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'is_active' => __('No puedes desactivar un almacén asignado a terminales POS activos.'),
+                ]);
+            }
+        });
+
         static::created(function (self $warehouse): void {
             $warehouse->locations()->firstOrCreate(
                 ['code' => 'UNASSIGNED'],
@@ -39,6 +48,7 @@ class Warehouse extends Model
         ];
     }
 
+    public function posTerminals(): HasMany { return $this->hasMany(PosTerminal::class); }
     public function locations(): HasMany { return $this->hasMany(WarehouseLocation::class); }
     public function inventories(): HasMany { return $this->hasMany(Inventory::class); }
     public function outgoingTransfers(): HasMany { return $this->hasMany(WarehouseTransfer::class, 'source_warehouse_id'); }

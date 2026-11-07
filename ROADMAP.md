@@ -15,7 +15,7 @@ La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente
 | Experiencia pública y panel premium | Integrados; QA visual final pendiente | Media |
 | Importación Excel/CSV | Integrada; imágenes/variantes excluidas | Media |
 | Seguridad, RBAC y preflight | Integrados en esta entrega; configuración externa pendiente | Crítica |
-| POS y multi almacén | POS-1 a POS-4 integrados; POS-5 en desarrollo; sin ventas POS habilitadas | Alta |
+| POS y multi almacén | POS-1 a POS-5 integrados; POS-6 en desarrollo; sin ventas POS habilitadas | Alta |
 | Asistente de prompts IA para banners | Integrado, flujo manual gratuito | Media |
 | Lanzamiento de producción | No aceptado aún | Crítica |
 
@@ -142,7 +142,7 @@ Objetivo: implementar promociones reales sin introducir ambigüedades contables.
 
 ## POS y multi almacén — entregas independientes
 
-<badge color="success">POS-1 a POS-4 integrados</badge> <badge color="info">POS-5 en desarrollo</badge>
+<badge color="success">POS-1 a POS-5 integrados</badge> <badge color="info">POS-6 en desarrollo</badge>
 
 El POS funcionará siempre conectado al servidor. No se desarrollará modo offline. Decisiones aprobadas: ubicaciones internas flexibles (área/pasillo/estantería/posición), existencias independientes por almacén y aprobación configurable de transferencias.
 
@@ -150,8 +150,8 @@ El POS funcionará siempre conectado al servidor. No se desarrollará modo offli
 2. **POS-2 — Administración de almacenes:** recursos Filament para gestionar almacenes y ubicaciones, tipos, jerarquía y estados. Integrado en PR #40.
 3. **POS-3 — Existencias por ubicación:** saldos por posición, ajustes, conciliación y auditoría. Integrado en PR #41.
 4. **POS-4 — Transferencias:** reglas por almacén, tipo, cantidad y roles; aprobaciones múltiples, despacho, tránsito, recepción parcial y diferencias. Integrado en PR #42.
-5. **POS-5 — Abastecimiento web:** almacenes permitidos, prioridad, reservas, preferencia por un único almacén y distribución de respaldo. En desarrollo.
-6. **POS-6 — Terminales:** establecimientos, terminales y asignación de almacén.
+5. **POS-5 — Abastecimiento web:** almacenes permitidos, prioridad, reservas, preferencia por un único almacén y distribución de respaldo. Integrado en PR #43.
+6. **POS-6 — Terminales:** establecimientos, terminales y asignación de almacén. En desarrollo.
 7. **POS-7 — Operación POS:** ventas integradas con Orders/Payments, cajas, arqueos, recibos y devoluciones.
 8. **POS-8 — Seguridad y aceptación:** permisos por almacén, informes y pruebas concurrentes web/POS.
 

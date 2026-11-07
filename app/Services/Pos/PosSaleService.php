@@ -114,6 +114,7 @@ class PosSaleService
                 'number' => 'POS-'.now()->format('Ymd').'-'.Str::upper(Str::random(8)),
                 'channel' => 'pos',
                 'pos_terminal_id' => $terminal->id,
+                'pos_warehouse_id' => $warehouse->id,
                 'pos_cash_session_id' => $lockedSession->id,
                 'cashier_id' => $cashierId,
                 'public_token_hash' => hash('sha256', Str::random(64)),

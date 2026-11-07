@@ -214,7 +214,7 @@ class PosReportService
         ];
     }
 
-    public function exportRows(User $user, array $filters): iterable
+    public function exportRows(User $user, array $filters): Builder
     {
         $warehouseIds = $user->warehouseIdsWithPermission('reports.view');
         $from = Carbon::parse($filters['from'])->startOfDay();
@@ -229,7 +229,6 @@ class PosReportService
             ->when($filters['terminal_id'] ?? null, fn (Builder $query, $id) => $query->where('pos_terminal_id', $id))
             ->when($filters['cashier_id'] ?? null, fn (Builder $query, $id) => $query->where('cashier_id', $id))
             ->when($filters['currency'] ?? null, fn (Builder $query, $code) => $query->where('currency', $code))
-            ->with(['posWarehouse:id,name', 'posTerminal:id,name,code', 'cashier:id,name'])
-            ->orderBy('placed_at')->cursor();
+            ->orderBy('placed_at');
     }
 }

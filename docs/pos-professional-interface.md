@@ -113,3 +113,17 @@ La base de costos y límites por almacén quedó integrada en PR #58. El motor d
 - El listado de pedidos permite buscar por número, cliente, correo y teléfono, y filtrar por fecha, terminal, almacén y estado de pago.
 
 PR #61, #62 y #63 integran los bloques de devoluciones/reembolsos, disposición del inventario y cambios vinculados. Los tres bloques superaron CI de PHP 8.4, PHP 8.5 y Frontend assets antes de integrarse.
+
+
+## POS-14A — periféricos base (integrado)
+
+- Productos y variantes admiten códigos de barras únicos; el POS captura lectores tipo teclado (keyboard-wedge) mediante Enter.
+- Cada terminal configura recibos térmicos de 58/80 mm y entre 1 y 3 copias.
+- El recibo conserva descuentos y pagos mixtos y mantiene impresión de navegador como alternativa.
+
+## POS-14B — QZ Tray (en implementación)
+
+- QZ Tray se utiliza como puente local gratuito y de código abierto para comunicar el navegador con impresoras USB o de red instaladas en la computadora de caja.
+- El nombre de impresora y la configuración de gaveta se guardan por terminal; la apertura ESC/POS se limita a terminales habilitados y se dispara después de una venta que haya cobrado un componente en efectivo. Zelle puro no abre la gaveta.
+- Se mantiene una acción de prueba de periféricos protegida por permiso de operaciones de caja.
+- QZ Tray debe estar instalado y ejecutándose en cada puesto. Sin firma de mensajes, QZ Tray puede solicitar confirmación; no se almacenan claves privadas en el navegador ni en el repositorio. La prueba física de impresora, pin y cable de gaveta es necesaria antes de aceptar cada terminal.

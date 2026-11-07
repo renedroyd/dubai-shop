@@ -14,7 +14,7 @@ use Illuminate\Validation\ValidationException;
 
 class PosLoyaltyAdjustments extends Page
 {
-    protected static string | \\BackedEnum | null $navigationIcon = 'heroicon-o-adjustments-horizontal';
+    protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-adjustments-horizontal';
     protected static ?int $navigationSort = 10;
     protected string $view = 'filament.pages.pos-loyalty-adjustments';
 
@@ -30,7 +30,7 @@ class PosLoyaltyAdjustments extends Page
         return auth()->user()?->hasAdminPermission('pos_loyalty.adjust') ?? false;
     }
 
-    public static function getNavigationGroup(): string | \\UnitEnum | null { return __('Punto de venta'); }
+    public static function getNavigationGroup(): string | \UnitEnum | null { return __('Punto de venta'); }
     public static function getNavigationLabel(): string { return __('Ajustes de puntos'); }
     public function getTitle(): string { return __('Ajustes manuales de fidelización'); }
 

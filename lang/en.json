@@ -555,5 +555,6 @@
   "El establecimiento debe existir y estar activo.": "The location must exist and be active.",
   "El almacén asignado debe existir y estar activo.": "The assigned warehouse must exist and be active.",
   "Desactiva primero los terminales activos de este establecimiento.": "Deactivate this location's active terminals first.",
-  "No puedes desactivar un almacén asignado a terminales POS activos.": "You cannot deactivate a warehouse assigned to active POS terminals."
+  "No puedes desactivar un almacén asignado a terminales POS activos.": "You cannot deactivate a warehouse assigned to active POS terminals.",
+  "Ya existe un terminal con ese código en este establecimiento.": "A terminal with this code already exists at this location."
 }

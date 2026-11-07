@@ -4,14 +4,16 @@ namespace App\Services\Cart;
 
 use App\Models\Cart;
 use App\Models\CartItem;
-use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Services\Inventory\OnlineWarehouseFulfillmentService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class CartService
 {
+    public function __construct(private readonly OnlineWarehouseFulfillmentService $fulfillment) {}
+
     public function current(string $sessionId): Cart
     {
         return Cart::query()->firstOrCreate(
@@ -62,11 +64,11 @@ class CartService
                 throw ValidationException::withMessages(['quantity' => 'La cantidad debe estar entre 1 y 99.']);
             }
 
-            $inventory = $this->inventoryFor($product, $variant);
+            $available = $this->fulfillment->availableQuantity($product, $variant);
 
-            if ($inventory && $newQuantity > $inventory->available_quantity) {
+            if ($available !== null && $newQuantity > $available) {
                 throw ValidationException::withMessages([
-                    'quantity' => 'No hay existencias suficientes para esa cantidad.',
+                    'quantity' => 'No hay existencias suficientes en los almacenes habilitados para la tienda online.',
                 ]);
             }
 
@@ -101,11 +103,11 @@ class CartService
             $variant = $lockedItem->product_variant_id
                 ? ProductVariant::query()->where('product_id', $product->id)->where('is_active', true)->lockForUpdate()->findOrFail($lockedItem->product_variant_id)
                 : null;
-            $inventory = $this->inventoryFor($product, $variant);
+            $available = $this->fulfillment->availableQuantity($product, $variant);
 
-            if ($inventory && $quantity > $inventory->available_quantity) {
+            if ($available !== null && $quantity > $available) {
                 throw ValidationException::withMessages([
-                    'quantity' => 'No hay existencias suficientes para esa cantidad.',
+                    'quantity' => 'No hay existencias suficientes en los almacenes habilitados para la tienda online.',
                 ]);
             }
 
@@ -129,28 +131,6 @@ class CartService
 
             return $cart->fresh()->load(['items.product.images', 'items.variant']);
         });
-    }
-
-    private function inventoryFor(Product $product, ?ProductVariant $variant): ?Inventory
-    {
-        if ($variant) {
-            $variantInventory = Inventory::query()
-                ->where('product_variant_id', $variant->id)
-                ->whereHas('warehouse', fn ($query) => $query->where('is_primary', true))
-                ->lockForUpdate()
-                ->first();
-
-            if ($variantInventory) {
-                return $variantInventory;
-            }
-        }
-
-        return Inventory::query()
-            ->where('product_id', $product->id)
-            ->whereNull('product_variant_id')
-            ->whereHas('warehouse', fn ($query) => $query->where('is_primary', true))
-            ->lockForUpdate()
-            ->first();
     }
 
     public function remove(Cart $cart, CartItem $item): Cart

@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\AdminUsers;
 
 use App\Models\User;
+use App\Models\Warehouse;
+use Filament\Forms\Components\CheckboxList;
 use Filament\Actions\CreateAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Repeater;

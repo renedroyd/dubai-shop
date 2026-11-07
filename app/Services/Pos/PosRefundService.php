@@ -250,6 +250,7 @@ class PosRefundService
             }
 
             $totalRefundedForOrder = (int) PosRefund::query()->where('order_id', $lockedOrder->id)->where('status', 'completed')->sum('amount');
+            app(PosLoyaltyService::class)->restoreForRefund($lockedOrder, $refund, $totalRefundedForOrder);
             $lockedOrder->update(['payment_status' => $totalRefundedForOrder >= $originalPaidAmount
                 ? Payment::STATUS_REFUNDED : Payment::STATUS_PARTIALLY_REFUNDED]);
 

@@ -81,3 +81,35 @@ Los importes se guardan en unidades menores (centavos) y usan la moneda del prod
 La edición requiere el permiso administrativo `inventory_costs.update` y permiso `inventory.manage` en el almacén correspondiente. La consulta de costos requiere `inventory_costs.view`. Cada modificación guarda usuario, valores anteriores/nuevos y motivo en `inventory_cost_changes`.
 
 La base de costos y límites por almacén quedó integrada en PR #58. El motor de reglas permite configurar descuentos porcentuales/fijos y precios especiales por producto, categoría, marca o venta completa, con filtros opcionales por cliente, almacén y moneda. La prioridad determina qué regla única se aplica; no se acumulan reglas. Los descuentos que requieren aprobación necesitan el permiso de supervisor. Las ventas por debajo del costo/precio mínimo requieren el permiso explícito de excepción. Cada descuento aplicado conserva un evento de auditoría y snapshots de precio original, precio aplicado y costo. La validación final vuelve a calcular las reglas en el servicio de venta, dentro de la transacción.
+
+## POS-13 — devoluciones, reembolsos y cambios (completado)
+
+### Devoluciones y autorización
+
+- Las devoluciones POS requieren dos personas distintas: quien procesa y quien autoriza. Se registran ambos usuarios y la fecha de autorización.
+- Permisos dedicados: `pos_refunds.process`, `pos_refunds.approve` y `pos_refunds.view`.
+- Se admiten devoluciones parciales y totales sin superar las cantidades vendidas ni el importe original cobrado.
+- El importe devuelto respeta los descuentos por línea y el descuento global de la venta, con distribución determinista de unidades menores.
+
+### Reembolso por los medios originales
+
+- Los importes se distribuyen proporcionalmente entre los pagos originales de efectivo y Zelle, con límites acumulados por cada pago.
+- Solo el componente en efectivo crea un movimiento de devolución en la caja. El componente Zelle se registra fuera del efectivo y conserva referencia al pago original.
+- La venta original y sus pagos se actualizan de forma transaccional; cada componente conserva su estado y evento de auditoría.
+
+### Estado y destino del inventario
+
+- `resellable`: repone las unidades en las ubicaciones físicas de donde salieron en la venta.
+- `quarantine`: registra las unidades en la ubicación `QUARANTINE` del almacén e incrementa `quantity_blocked`, por lo que no están disponibles para nuevas ventas.
+- `discarded`: no reincorpora unidades al stock y crea un movimiento `return_discarded` con cantidad devuelta y observaciones.
+- Cada línea de devolución guarda disposición y notas sobre el estado recibido.
+
+### Cambios e historial
+
+- Un cambio vincula la venta original, una devolución completada y una venta POS de reemplazo ya cobrada.
+- El sistema valida almacén, moneda, permisos y unicidad del vínculo. Una devolución o venta de reemplazo no puede reutilizarse en otro cambio.
+- Se conserva el valor devuelto, el valor de reemplazo y la diferencia neta firmada. La devolución y la venta de reemplazo mantienen sus cobros separados y auditables.
+- La consulta de cambios está disponible en Ventas → Cambios POS. El detalle de cada pedido muestra las relaciones y la diferencia.
+- El listado de pedidos permite buscar por número, cliente, correo y teléfono, y filtrar por fecha, terminal, almacén y estado de pago.
+
+PR #61, #62 y #63 integran los bloques de devoluciones/reembolsos, disposición del inventario y cambios vinculados. Los tres bloques superaron CI de PHP 8.4, PHP 8.5 y Frontend assets antes de integrarse.

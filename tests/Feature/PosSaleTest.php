@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Models\Warehouse;
 use App\Models\WarehouseUserAccess;
 use App\Services\Inventory\InventoryService;
+use App\Services\Inventory\OnlineWarehouseFulfillmentService;
 use App\Services\Pos\PosCashSessionService;
 use App\Services\Pos\PosSaleService;
 use Illuminate\Foundation\Testing\RefreshDatabase;

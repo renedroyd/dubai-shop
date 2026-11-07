@@ -1,7 +1,7 @@
 # Hoja de ruta — Dubai Shop / Clásico Dubai
 
 **Actualizada:** 7 de noviembre de 2026  
-**Base:** Fases 1–16 y POS-1 a POS-16 integrados; POS-16C de seguimiento de transferencias en implementación. Aceptación operativa y de producción real pendiente.
+**Base:** Fases 1–16 y POS-1 a POS-17 integrados en main. La implementación funcional del POS está completada; la aceptación de hardware y las pruebas operativas en establecimientos reales siguen pendientes.
 
 La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente y nuevas capacidades que requieren decisiones comerciales. La prioridad inmediata es estabilizar y aceptar el despliegue, no añadir integraciones externas sin proveedor o reglas aprobadas.
 
@@ -15,7 +15,7 @@ La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente
 | Experiencia pública y panel premium | Integrados; QA visual final pendiente | Media |
 | Importación Excel/CSV | Integrada; imágenes/variantes excluidas | Media |
 | Seguridad, RBAC y preflight | Integrados en esta entrega; configuración externa pendiente | Crítica |
-| POS y multi almacén | POS-1 a POS-16 integrados; panel de seguimiento de transferencias en implementación | Alta |
+| POS y multi almacén | POS-1 a POS-17 integrados; aceptación operativa de hardware pendiente | Alta |
 | Asistente de prompts IA para banners | Integrado, flujo manual gratuito | Media |
 | Lanzamiento de producción | No aceptado aún | Crítica |
 
@@ -172,7 +172,7 @@ Objetivo: implementar promociones reales sin introducir ambigüedades contables.
 
 ## POS y multi almacén — entregas independientes
 
-<badge color="success">POS-1 a POS-16A integrados</badge> <badge color="info">POS-16B en implementación</badge>
+<badge color="success">POS-1 a POS-17 integrados</badge>
 
 El POS funcionará siempre conectado al servidor. No se desarrollará modo offline. Decisiones aprobadas: ubicaciones internas flexibles (área/pasillo/estantería/posición), existencias independientes por almacén y aprobación configurable de transferencias.
 
@@ -192,6 +192,7 @@ El POS funcionará siempre conectado al servidor. No se desarrollará modo offli
 14. **POS-14 — Impresión y periféricos:** integrado en PR #65–66. Recibos térmicos 58/80 mm, 1–3 copias, códigos de barras, lector tipo teclado e impresión USB/red y gaveta ESC/POS mediante QZ Tray.
 15. **POS-15 — Dashboard e informes avanzados:** integrado en PR #67. Filtros por fecha/almacén/terminal/cajero/moneda; ventas por dimensión; pagos netos por método; margen con costo histórico; diferencias de caja; reembolsos; comparativas y exportación CSV.
 16. **POS-16 — Operación comercial avanzada:** POS-16A/B integrados en PR #68–69; POS-16C integrado en PR #71: seguimiento de transferencias e incidencias. POS-16D integrado mediante PR #72: indicadores operativos por establecimiento.
+17. **POS-17 — Fidelización:** POS-17A integrado en PR #75 (ledger y acumulación); POS-17B en PR #76 (canje, mínimo de 100 puntos y límite del 20 %); POS-17C en PR #77 (reversión proporcional por devoluciones); POS-17D en PR #78 (configuración Filament, ajustes auditados, saldos e historial del cliente y avisos de vencimiento).
 
 El POS permanece exclusivamente online, sin modo offline ni sincronización diferida. Las ventas usan el almacén asignado al terminal. El flujo de pagos integrado admite efectivo, Zelle manual en USD y pagos mixtos; cada entrega mantiene la autorización por almacén, integridad transaccional, auditoría y pruebas automatizadas. Cada bloque se desarrolla en una rama propia.
 
@@ -308,3 +309,11 @@ Rama `feature/pos-16d-location-metrics`. Resumen por establecimiento de ventas/p
 ### Corrección POS — límites de efectivo por moneda (integrada en PR #73)
 
 Rama `fix/pos-cash-limits-by-currency`. Cada terminal mantiene límites independientes en CUP, USD y EUR; la apertura de caja, entradas manuales y ventas en efectivo solo comparan el límite de la moneda de la sesión. La migración conserva los límites históricos bajo CUP, moneda inicial predeterminada del POS, para evitar aplicar importes nominales a monedas distintas.
+
+### POS-17 — Fidelización y puntos (integrado en PR #75–78)
+
+- **17A:** ledger por cliente y moneda; acumula solo ventas POS pagadas y clientes con cuenta; Zelle genera puntos tras aprobación; idempotencia y vencimiento a 12 meses.
+- **17B:** canje mínimo de 100 puntos, máximo del 20 % del subtotal elegible y valor por moneda: 1 punto = 1 CUP, 0.01 USD o 0.01 EUR. Las unidades menores se manejan sin conversión entre monedas.
+- **17C:** reversión proporcional de puntos ganados y restitución proporcional de puntos canjeados en devoluciones parciales/totales; los reembolsos monetarios mantienen los medios de pago originales.
+- **17D:** configuración Filament, permisos, ajustes manuales con motivo/actor, historial y saldos en la cuenta del cliente y avisos visibles de vencimiento en 30 días.
+- **CI de PR #75, #76, #77 y #78:** PHP 8.4, PHP 8.5 y Frontend assets aprobados en cada integración.

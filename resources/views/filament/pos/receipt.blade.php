@@ -113,11 +113,11 @@
                 if (!qz.websocket.isActive()) await qz.websocket.connect({ retries: 2, delay: 1 });
                 const printer = await qz.printers.find(button.dataset.printer);
                 const config = qz.configs.create(printer, { encoding: 'CP1252', copies: Number(button.dataset.copies || 1) });
-                const receipt = atob(button.dataset.receipt);
+                const receipt = decodeURIComponent(escape(atob(button.dataset.receipt)));
                 await qz.print(config, [
                     '\x1B\x40',
                     '\x1B\x61\x01',
-                    receipt.replaceAll('·', '-').replaceAll('á', 'a').replaceAll('é', 'e').replaceAll('í', 'i').replaceAll('ó', 'o').replaceAll('ú', 'u'),
+                    receipt,
                     '\n\n\n',
                     '\x1D\x56\x00'
                 ]);

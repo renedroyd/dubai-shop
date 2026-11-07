@@ -135,7 +135,7 @@ class PosCashSessionTest extends TestCase
         $user = User::factory()->create();
         $this->grantWarehouseAccess($user);
         $terminal = $this->terminal();
-        $terminal->update(['cash_limit_amount' => 6000]);
+        $terminal->update(['cash_limits' => ['CUP' => 6000]]);
         $session = app(PosCashSessionService::class)->open($terminal, $user->id, 'CUP', 5000);
 
         $this->expectException(\Illuminate\Validation\ValidationException::class);

@@ -237,7 +237,7 @@ class PosLoyaltyService
                 ]);
             }
 
-            $wallet->update(['points_balance' => max(0, $wallet->availablePoints())]);
+            $wallet->update(['points_balance' => $wallet->availablePoints()]);
         });
     }
 

@@ -2,7 +2,7 @@
 
 **Corte:** 7 de noviembre de 2026  
 **Rama de referencia:** `main`  
-**Última entrega de producto:** POS-12 — costos por almacén, reglas de precios, descuentos y protección de margen (PR #58–59, integrados).
+**Última entrega de producto:** POS-13 — devoluciones, reembolsos autorizados, disposición de inventario y cambios vinculados (PR #61–63, integrados).
 
 > Este documento distingue implementación integrada, validación automatizada y aceptación operativa. Que una funcionalidad esté integrada o que CI pase no significa que esté configurada ni aceptada en el entorno real.
 
@@ -107,8 +107,10 @@ Las Fases 1–16 y las mejoras PR #29–37 están integradas. La entrega PR #38 
 
 - POS-1 a POS-10 integrados en main.
 - POS-11 integrado mediante PR #56: búsqueda por nombre/correo/teléfono guardado, alta rápida, asociación de ventas, historial limitado por almacén y clientes frecuentes.
-- POS-1 a POS-12 integrados en main.
-- POS-13 a POS-16 permanecen planificados según ROADMAP.md.
+- POS-1 a POS-13 integrados en main.
+- POS-14 a POS-16 permanecen planificados según ROADMAP.md.
+- POS-13 (PR #61–63): autorización por separado para procesar/aprobar devoluciones; reembolsos por los medios originales con distribución proporcional efectivo/Zelle; solo efectivo afecta caja; descuentos respetados; stock devuelto vendible, en cuarentena o desechado; cambios vinculados y diferencia neta; búsqueda de ventas por número, cliente, fecha, terminal y almacén.
+- Los PR #61, #62 y #63 superaron PHP 8.4, PHP 8.5 y Frontend assets antes de integrarse.
 - El POS es exclusivamente online. POS-10 admite efectivo, Zelle manual USD y pagos mixtos; los pagos Zelle requieren revisión.
 - CI del PR #56 en el último commit validado: PHP 8.4, PHP 8.5 y Frontend assets — exitosos.
 

@@ -16,11 +16,13 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\DatePicker;
 use Filament\Actions\Action;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
@@ -55,6 +57,7 @@ class OrderResource extends Resource
             TextColumn::make('posWarehouse.name')->label(__('Almacén POS'))->placeholder('—'),
             TextColumn::make('customer_name')->label(__('Cliente'))->searchable(),
             TextColumn::make('customer_email')->label(__('Correo'))->searchable(),
+            TextColumn::make('customer_phone')->label(__('Teléfono'))->searchable(),
             TextColumn::make('subtotal_amount')->label(__('Subtotal'))->formatStateUsing(fn ($state, Order $record) => number_format($state / 100, 2).' '.$record->currency),
             TextColumn::make('discount_amount')->label(__('Descuentos'))->formatStateUsing(fn ($state, Order $record) => number_format($state / 100, 2).' '.$record->currency),
             TextColumn::make('total_amount')->label(__('Total del pedido'))->formatStateUsing(fn ($state, Order $record) => number_format($state / 100, 2).' '.$record->currency),
@@ -71,6 +74,20 @@ class OrderResource extends Resource
                 Order::STATUS_DELIVERED => __('Entregado'),
                 Order::STATUS_CANCELLED => __('Cancelado'),
             ]),
+            SelectFilter::make('payment_status')->label(__('Estado del pago'))->options([
+                'paid' => __('Pagado'),
+                'awaiting_review' => __('Pendiente de revisión'),
+                'partially_refunded' => __('Parcialmente reembolsado'),
+                'refunded' => __('Reembolsado'),
+            ]),
+            SelectFilter::make('pos_terminal_id')->label(__('Terminal'))->relationship('posTerminal', 'code'),
+            SelectFilter::make('pos_warehouse_id')->label(__('Almacén POS'))->relationship('posWarehouse', 'name'),
+            Filter::make('placed_at')->label(__('Rango de fechas'))->form([
+                DatePicker::make('from')->label(__('Desde')),
+                DatePicker::make('until')->label(__('Hasta')),
+            ])->query(fn (Builder $query, array $data): Builder => $query
+                ->when($data['from'] ?? null, fn (Builder $q, $date): Builder => $q->whereDate('placed_at', '>=', $date))
+                ->when($data['until'] ?? null, fn (Builder $q, $date): Builder => $q->whereDate('placed_at', '<=', $date))),
         ])->defaultSort('placed_at', 'desc')->recordActions([
             Action::make('refund')->label(__('Devolver productos'))->icon('heroicon-o-arrow-uturn-left')->color('warning')->requiresConfirmation()
                 ->authorize('update')

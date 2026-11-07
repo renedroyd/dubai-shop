@@ -51,6 +51,16 @@ class PosCashSessionTest extends TestCase
         $this->assertNotNull($closed->closed_at);
     }
 
+    public function test_terminal_cannot_be_deactivated_while_its_cash_session_is_open(): void
+    {
+        $user = User::factory()->create();
+        $terminal = $this->terminal();
+        app(PosCashSessionService::class)->open($terminal, $user->id, 'CUP', 0);
+
+        $this->expectException(ValidationException::class);
+        $terminal->update(['is_active' => false]);
+    }
+
     public function test_terminal_cannot_have_two_open_cash_sessions(): void
     {
         $user = User::factory()->create();

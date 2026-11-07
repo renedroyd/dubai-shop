@@ -50,3 +50,10 @@ Permite dividir una venta USD entre efectivo y Zelle manual. Las dos partes debe
 ### POS-10 — revisión y conciliación
 
 La vista de pagos expone referencia, remitente, fecha de transferencia y usuario validador para facilitar la revisión. El comprobante se descarga mediante una acción protegida, desde almacenamiento privado. La aprobación POS verifica que los pagos ya confirmados más el pago que se aprueba coincidan exactamente con el total; el bloqueo transaccional y la transición de estado impiden confirmar dos veces o consumir dos veces la reserva. La caja solo contabiliza pagos en efectivo y sus devoluciones.
+
+
+## Estado POS-10 — completado
+
+La fase de pagos avanzados está integrada. El POS admite efectivo con cambio, Zelle manual en USD y pagos mixtos efectivo/Zelle. Los comprobantes se conservan en almacenamiento privado. Los pagos pendientes reservan existencias y requieren aprobación; el rechazo libera la reserva y, en pagos mixtos, registra la devolución del efectivo. La caja contabiliza solo entradas y devoluciones reales de efectivo, nunca el importe Zelle.
+
+Los flujos están cubiertos por pruebas automatizadas y CI para PHP 8.4, PHP 8.5 y compilación frontend. Las fases siguientes contemplan clientes/fidelización, promociones, devoluciones, periféricos y reportes POS.

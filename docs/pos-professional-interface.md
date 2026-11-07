@@ -28,3 +28,10 @@ La interfaz de venta POS es una pantalla de operación independiente dentro del 
 ## Alcance
 
 La pantalla ofrece flujo táctil adaptable a escritorio/tablet y conserva el listado administrativo de cajas y arqueos, recibos y devoluciones existentes. El recibo se consulta desde Pedidos después de registrar una venta. No se incorpora procesamiento de tarjeta ni Zelle automático; la primera versión del servicio POS solo admite cobro inmediato en efectivo habilitado.
+
+
+## POS-10 — pagos avanzados (en implementación)
+
+Primera entrega: el cobro en efectivo admite registrar el importe recibido. El cambio se calcula en unidades menores (centavos) y queda como metadato auditable del pago. El movimiento de caja registra únicamente el importe neto de la venta, nunca el efectivo entregado por el cliente; por tanto, el cambio no infla el efectivo esperado. Si el campo se deja vacío, se interpreta pago exacto.
+
+La siguiente entrega incorporará Zelle manual en POS, evidencia privada, estados de revisión y reserva de inventario hasta la aprobación. Los pagos mixtos se habilitarán después de cerrar y probar por separado los flujos de efectivo y Zelle.

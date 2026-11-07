@@ -33,6 +33,7 @@ class PosSales extends Page
     public array $cart = [];
     public array $variantSelections = [];
     public ?int $paymentMethodId = null;
+    public string $cashReceivedAmount = '';
     public string $customerName = '';
     public string $customerPhone = '';
     public string $customerEmail = '';
@@ -428,6 +429,10 @@ class PosSales extends Page
             'customerEmail' => ['nullable', 'email', 'max:255'],
         ]);
 
+        $cashReceived = $this->cashReceivedAmount === ''
+            ? $this->cartSubtotal()
+            : $this->parseAmount($this->cashReceivedAmount, 'cashReceivedAmount');
+
         $order = app(PosSaleService::class)->sell(
             $session,
             auth()->id(),
@@ -442,9 +447,11 @@ class PosSales extends Page
                 'phone' => $this->customerPhone,
                 'email' => $this->customerEmail,
             ],
+            ['cash_received_amount' => $cashReceived],
         );
 
         $this->lastOrderNumber = $order->number;
+        $this->cashReceivedAmount = '';
         $this->clearCart();
 
         Notification::make()

@@ -211,6 +211,10 @@
                                     @endforeach
                                 </select>
                             </label>
+                            <label class="block text-xs font-medium text-gray-500">{{ __('Efectivo recibido (opcional; vacío = importe exacto)') }}
+                                <input type="number" min="0.01" step="0.01" wire:model="cashReceivedAmount" placeholder="{{ number_format($this->cartSubtotal() / 100, 2, '.', '') }}" class="fi-input mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-gray-700 dark:bg-gray-950">
+                                @error('cashReceivedAmount') <p class="mt-1 text-sm text-danger-600">{{ $message }}</p> @enderror
+                            </label>
                             <button type="button" wire:click="completeSale" wire:confirm="{{ __('¿Confirmas el cobro y registro de esta venta?') }}" wire:loading.attr="disabled" @disabled(empty($cartItems) || $methods->isEmpty()) class="fi-btn fi-btn-color-primary w-full justify-center py-3 text-base font-bold disabled:opacity-50">
                                 <x-heroicon-o-banknotes class="h-5 w-5" /> {{ __('Cobrar :total', ['total' => $this->formatMoney($this->cartSubtotal(), $session->currency)]) }}
                             </button>

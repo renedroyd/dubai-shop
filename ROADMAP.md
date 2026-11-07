@@ -1,7 +1,7 @@
 # Hoja de ruta — Dubai Shop / Clásico Dubai
 
 **Actualizada:** 7 de noviembre de 2026  
-**Base:** Fases 1–16 y POS-1 a POS-11 integrados; POS-12 a POS-16 planificados.
+**Base:** Fases 1–16 y POS-1 a POS-11 integrados; POS-12 en implementación; POS-13 a POS-16 planificados.
 
 La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente y nuevas capacidades que requieren decisiones comerciales. La prioridad inmediata es estabilizar y aceptar el despliegue, no añadir integraciones externas sin proveedor o reglas aprobadas.
 
@@ -187,7 +187,7 @@ El POS funcionará siempre conectado al servidor. No se desarrollará modo offli
 9. **POS-9 — Interfaz profesional de ventas:** pantalla táctil independiente, catálogo por almacén/moneda, variantes, carrito, cobro y operaciones de caja reutilizando los servicios POS existentes. Integrado en PR #49; corrección de selección de terminal en PR #50.
 10. **POS-10 — Pagos avanzados:** efectivo con cambio, Zelle manual USD, pagos mixtos, comprobantes privados, revisión, reservas, devoluciones de efectivo y conciliación. Integrado en PR #51–55.
 11. **POS-11 — Clientes y fidelización:** búsqueda por nombre/teléfono/correo, alta rápida, asociación de ventas, historial, clientes frecuentes y preparación para puntos futuros. Integrado en PR #56.
-12. **POS-12 — Promociones, descuentos y precios:** descuentos porcentuales/fijos por producto o venta, precios especiales por cliente, reglas por categoría/marca, autorización, auditoría y control de márgenes/precio mínimo. En implementación: base de costos y precio mínimo por producto/variante y almacén.
+12. **POS-12 — Promociones, descuentos y precios:** reglas porcentuales/fijas por producto, categoría, marca o venta; precios especiales por cliente; ámbito por almacén/moneda; autorización, auditoría y protección de costo/precio mínimo. En implementación: costos por almacén y motor de reglas integrado al checkout POS.
 13. **POS-13 — Devoluciones y cambios:** localización de ventas, devoluciones parciales/totales, cambios, reposición según estado del artículo, reembolsos permitidos y autorización especial con trazabilidad.
 14. **POS-14 — Impresión y periféricos:** recibos térmicos configurables de 58/80 mm y copias duplicadas, lectores de códigos, gaveta de efectivo controlada e impresión USB/red mediante solución local.
 15. **POS-15 — Dashboard e informes avanzados:** ventas por establecimiento, terminal, cajero, producto, categoría, marca, moneda y método; margen bruto, diferencias de caja, devoluciones/descuentos, comparativas por período y exportación.

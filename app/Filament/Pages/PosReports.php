@@ -70,7 +70,7 @@ class PosReports extends Page
             ->where('channel', 'pos')
             ->whereIn('pos_warehouse_id', $warehouseIds)
             ->whereBetween('placed_at', [$fromDate, $toDate])
-            ->selectRaw('pos_warehouse_id, currency, COUNT(*) as orders_count, SUM(total_amount) as total_amount')
+            ->selectRaw('pos_warehouse_id, currency, COUNT(*) as orders_count, SUM(subtotal_amount) as subtotal_amount, SUM(discount_amount) as discounts_amount, SUM(total_amount) as total_amount')
             ->groupBy('pos_warehouse_id', 'currency')
             ->with('posWarehouse:id,name')
             ->orderBy('pos_warehouse_id')

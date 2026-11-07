@@ -177,18 +177,16 @@ class PosPricingRulesTest extends TestCase
         $this->inventory($product, cost: 800);
         $this->productRule($product, 5000, warehouseId: $warehouse->id);
 
-        try {
-            app(PosSaleService::class)->sell(
-                $session,
-                $cashier->id,
-                [['product_id' => $product->id, 'quantity' => 1]],
-                $this->cashMethod()->id,
-            );
-            $this->fail('Expected the minimum price guard to reject the sale.');
-        } catch (ValidationException) {
-            $this->assertSame(0, Order::query()->count());
-            $this->assertSame(0, PosDiscountEvent::query()->count());
-        }
+        $order = app(PosSaleService::class)->sell(
+            $session,
+            $cashier->id,
+            [['product_id' => $product->id, 'quantity' => 1]],
+            $this->cashMethod()->id,
+        );
+
+        $this->assertSame(0, $order->discount_amount);
+        $this->assertSame(1250, $order->total_amount);
+        $this->assertSame(0, PosDiscountEvent::query()->count());
     }
 
     public function test_discount_below_floor_requires_and_records_explicit_override_permission(): void
@@ -219,6 +217,35 @@ class PosPricingRulesTest extends TestCase
         ]);
     }
 
+    public function test_supervisor_permission_approves_a_rule_that_requires_authorization(): void
+    {
+        [$cashier, $session, $warehouse] = $this->cashier();
+        $role = AdminRole::query()->create([
+            'name' => 'Aprobador de promociones',
+            'slug' => 'promotion-approver-test',
+            'permissions' => ['pos_discounts.approve'],
+        ]);
+        $cashier->roles()->attach($role);
+        $product = $this->product();
+        $this->inventory($product);
+        $rule = $this->productRule($product, 500, warehouseId: $warehouse->id);
+        $rule->update(['requires_approval' => true]);
+
+        $order = app(PosSaleService::class)->sell(
+            $session,
+            $cashier->id,
+            [['product_id' => $product->id, 'quantity' => 1]],
+            $this->cashMethod()->id,
+        );
+
+        $this->assertSame(1187, $order->total_amount);
+        $this->assertDatabaseHas('pos_discount_events', [
+            'order_id' => $order->id,
+            'applied_by' => $cashier->id,
+            'approved_by' => $cashier->id,
+        ]);
+    }
+
     public function test_rule_requires_supervisor_permission_when_configured(): void
     {
         [$cashier, $session, $warehouse] = $this->cashier();
@@ -227,16 +254,15 @@ class PosPricingRulesTest extends TestCase
         $rule = $this->productRule($product, 500, warehouseId: $warehouse->id);
         $rule->update(['requires_approval' => true]);
 
-        try {
-            app(PosSaleService::class)->sell(
-                $session,
-                $cashier->id,
-                [['product_id' => $product->id, 'quantity' => 1]],
-                $this->cashMethod()->id,
-            );
-            $this->fail('Expected the supervisor approval permission to be required.');
-        } catch (ValidationException) {
-            $this->assertSame(0, Order::query()->count());
-        }
+        $order = app(PosSaleService::class)->sell(
+            $session,
+            $cashier->id,
+            [['product_id' => $product->id, 'quantity' => 1]],
+            $this->cashMethod()->id,
+        );
+
+        $this->assertSame(0, $order->discount_amount);
+        $this->assertSame(1250, $order->total_amount);
+        $this->assertSame(0, PosDiscountEvent::query()->count());
     }
 }

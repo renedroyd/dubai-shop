@@ -152,7 +152,7 @@ El POS funcionará siempre conectado al servidor. No se desarrollará modo offli
 4. **POS-4 — Transferencias:** reglas por almacén, tipo, cantidad y roles; aprobaciones múltiples, despacho, tránsito, recepción parcial y diferencias. Integrado en PR #42.
 5. **POS-5 — Abastecimiento web:** almacenes permitidos, prioridad, reservas, preferencia por un único almacén y distribución de respaldo. Integrado en PR #43.
 6. **POS-6 — Terminales:** establecimientos, terminales y asignación de almacén. Integrado en PR #44.
-7. **POS-7 — Operación POS:** ventas integradas con Orders/Payments, sesiones de caja, arqueos, recibos y devoluciones. En implementación: ventas de efectivo, movimientos y cierre/conciliación de caja; devoluciones pendientes.
+7. **POS-7 — Operación POS:** ventas integradas con Orders/Payments, sesiones de caja, arqueos, recibos y devoluciones. En implementación: ventas, caja, arqueos, recibos y devoluciones parciales/totales con reposición de inventario.
 8. **POS-8 — Seguridad y aceptación:** permisos por almacén, informes y pruebas concurrentes web/POS.
 
 El POS permanece conectado al servidor. Las ventas de la primera entrega usan el almacén asignado al terminal y un método de cobro en efectivo habilitado; la operación completa (devoluciones, permisos por almacén y aceptación integral) sigue pendiente. Cada entrega se desarrolla en rama propia y se integra solo con aprobación explícita.

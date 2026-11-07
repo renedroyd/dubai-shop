@@ -492,6 +492,25 @@ class PosSaleTest extends TestCase
         }
     }
 
+    public function test_cash_limit_for_one_currency_does_not_block_sales_in_another_currency(): void
+    {
+        $user = User::factory()->create();
+        $session = $this->openSession($user, 'USD');
+        $session->terminal->update(['cash_limits' => ['CUP' => 1]]);
+        $product = $this->product('USD');
+        app(InventoryService::class)->setOnHand($product, 3, reason: 'Carga inicial');
+
+        $order = app(PosSaleService::class)->sell(
+            $session,
+            $user->id,
+            [['product_id' => $product->id, 'quantity' => 1]],
+            $this->cashMethod()->id,
+        );
+
+        $this->assertSame(1250, $order->total_amount);
+        $this->assertSame('USD', $order->currency);
+    }
+
     public function test_zelle_only_sale_is_not_limited_by_terminal_cash_balance_limit(): void
     {
         Storage::fake('local');

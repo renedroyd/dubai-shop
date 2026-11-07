@@ -211,8 +211,8 @@
                         @endif
                         <div class="space-y-3 border-t border-gray-200 p-4 dark:border-gray-800">
                             <div class="flex items-center justify-between text-sm text-gray-500"><span>{{ __('Subtotal') }}</span><span class="font-semibold text-gray-950 dark:text-white">{{ $this->formatMoney($this->cartSubtotal(), $session->currency) }}</span></div>
-                            @if ($this->cartDiscountTotal() > 0)
-                                <div class="flex items-center justify-between text-sm text-emerald-700 dark:text-emerald-300"><span>{{ __('Descuentos y puntos') }}</span><span class="font-semibold">−{{ $this->formatMoney($this->cartDiscountTotal(), $session->currency) }}</span></div>
+                            @if (($this->cartOrderDiscount() + (int) $this->loyaltyRedemptionPreview()['discount_amount']) > 0)
+                                <div class="flex items-center justify-between text-sm text-emerald-700 dark:text-emerald-300"><span>{{ __('Descuento de pedido y puntos') }}</span><span class="font-semibold">−{{ $this->formatMoney($this->cartOrderDiscount() + (int) $this->loyaltyRedemptionPreview()['discount_amount'], $session->currency) }}</span></div>
                             @endif
                             <div class="flex items-center justify-between border-t border-dashed border-gray-200 pt-3 text-base font-bold dark:border-gray-700"><span>{{ __('Total a cobrar') }}</span><span class="text-xl text-amber-600 dark:text-amber-400">{{ $this->formatMoney($this->cartTotal(), $session->currency) }}</span></div>
                             <div class="space-y-2 rounded-xl border border-gray-200 p-3 dark:border-gray-700">

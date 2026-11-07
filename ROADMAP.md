@@ -1,7 +1,7 @@
 # Hoja de ruta — Dubai Shop / Clásico Dubai
 
 **Actualizada:** 7 de noviembre de 2026  
-**Base:** Fases 1–16 y POS-1 a POS-16A integrados; POS-16B en implementación.
+**Base:** Fases 1–16 y POS-1 a POS-16B integrados; POS-16C en implementación.
 
 La hoja de ruta diferencia trabajo ya integrado, aceptación operativa pendiente y nuevas capacidades que requieren decisiones comerciales. La prioridad inmediata es estabilizar y aceptar el despliegue, no añadir integraciones externas sin proveedor o reglas aprobadas.
 
@@ -172,7 +172,7 @@ Objetivo: implementar promociones reales sin introducir ambigüedades contables.
 
 ## POS y multi almacén — entregas independientes
 
-<badge color="success">POS-1 a POS-16A integrados</badge> <badge color="info">POS-16B en implementación</badge>
+<badge color="success">POS-1 a POS-16B integrados</badge> <badge color="info">POS-16C en implementación</badge>
 
 El POS funcionará siempre conectado al servidor. No se desarrollará modo offline. Decisiones aprobadas: ubicaciones internas flexibles (área/pasillo/estantería/posición), existencias independientes por almacén y aprobación configurable de transferencias.
 
@@ -276,7 +276,7 @@ Rama `feature/pos-14b-qz-tray-cash-drawer`. Se adopta QZ Tray, aplicación local
 Rama `feature/pos-15-advanced-reports-dashboard`. Se amplía el informe existente con filtros autorizados por almacén, terminal, cajero, moneda y rango de fechas; ventas por almacén, terminal, cajero, producto/variante, categoría y marca; importes cobrados por método con reembolsos del período descontados; devoluciones, descuentos, arqueos/diferencias de caja y comparación con el período inmediatamente anterior. El margen bruto se calcula con el costo histórico de cada línea y el descuento global del pedido; si faltan costos históricos, el total de margen se marca como no disponible. Se incorpora exportación CSV con alcance limitado a los almacenes autorizados. Los importes se mantienen separados por moneda y no se convierten.
 
 
-### POS-16A — Turnos y control de caja (en implementación)
+### POS-16A — Turnos y control de caja (integrado en main)
 
 Rama `feature/pos-16a-shifts-and-cash-control`. Asignación opcional de cajeros por terminal; etiqueta de turno en cada sesión; límite de efectivo físico por terminal aplicado al fondo inicial, entradas manuales y ventas en efectivo (sin bloquear Zelle puro); cierre supervisado con solicitud del cajero, bloqueo inmediato de movimientos/ventas y aprobación obligatoria de un supervisor distinto con permiso específico. Se conserva el cajero solicitante y el supervisor aprobador en auditoría.
 
@@ -285,6 +285,13 @@ Rama `feature/pos-16a-shifts-and-cash-control`. Asignación opcional de cajeros 
 Se implementarán umbrales mínimos de inventario configurables por producto/variante y almacén, alertas de existencias bajas y solicitudes de reposición entre almacenes integradas con el flujo de transferencias existente.
 
 
-### POS-16B — Alertas y reposición (en implementación)
+### POS-16B — Alertas y reposición (integrado en main)
 
 Rama `feature/pos-16b-stock-alerts-replenishment`. Cada existencia por almacén puede guardar un umbral mínimo propio; si no se configura, se mantiene el valor predeterminado de 5 unidades. Las alertas consideran existencia disponible después de reservas y bloqueos. Desde una existencia con stock bajo se puede solicitar reposición desde otro almacén, creando una transferencia de tipo `replenishment` que utiliza las reglas y aprobaciones existentes; solicitar no mueve ni reserva stock, que solo se mueve durante el despacho aprobado.
+
+
+### POS-16C — Seguimiento de transferencias e incidencias (en implementación)
+
+Rama `feature/pos-16c-transfer-monitoring`. Añade una vista de seguimiento para transferencias entre almacenes autorizados, con resumen por estado, actividad reciente, ruta origen/destino, solicitante, último evento, incidencias por rechazo/daños y conteos de entradas/salidas por almacén. Reutiliza el historial de eventos existente y limita consultas a transferencias cuyos dos almacenes están dentro del alcance `reports.view`. No modifica reglas de aprobación ni movimientos de inventario.
+
+**CI:** la consulta de checks y ejecuciones para los commits de POS-16A/B no devolvió estados verificables en GitHub Actions. Revalidar la matriz PHP 8.4, PHP 8.5 y Frontend en el PR de POS-16C antes de integrar.

@@ -26,8 +26,6 @@ class PosReportService
         $terminalId = $filters['terminal_id'] ?? null;
         $cashierId = $filters['cashier_id'] ?? null;
         $currency = $filters['currency'] ?? null;
-        $categoryId = $filters['category_id'] ?? null;
-        $brandId = $filters['brand_id'] ?? null;
         $warehouseId = $filters['warehouse_id'] ?? null;
 
         $orders = fn (Carbon $start, Carbon $end): Builder => Order::query()
@@ -39,8 +37,7 @@ class PosReportService
             ->when($terminalId, fn (Builder $query) => $query->where('pos_terminal_id', $terminalId))
             ->when($cashierId, fn (Builder $query) => $query->where('cashier_id', $cashierId))
             ->when($currency, fn (Builder $query) => $query->where('currency', $currency))
-            ->when($categoryId, fn (Builder $query) => $query->whereHas('items.product', fn (Builder $product) => $product->where('category_id', $categoryId)))
-            ->when($brandId, fn (Builder $query) => $query->whereHas('items.product', fn (Builder $product) => $product->where('brand_id', $brandId)));
+;
 
         $sales = $orders($from, $to)
             ->selectRaw('currency, COUNT(*) as orders_count, SUM(subtotal_amount) as subtotal_amount, SUM(discount_amount) as discounts_amount, SUM(total_amount) as total_amount')
@@ -73,8 +70,7 @@ class PosReportService
             ->when($terminalId, fn ($query) => $query->where('orders.pos_terminal_id', $terminalId))
             ->when($cashierId, fn ($query) => $query->where('orders.cashier_id', $cashierId))
             ->when($currency, fn ($query) => $query->where('orders.currency', $currency))
-            ->when($categoryId, fn ($query) => $query->where('products.category_id', $categoryId))
-            ->when($brandId, fn ($query) => $query->where('products.brand_id', $brandId));
+;
 
         $salesByProduct = (clone $itemBase)
             ->selectRaw('order_items.product_name, order_items.variant_name, order_items.sku, order_items.currency, SUM(order_items.quantity) as quantity_sold, SUM(order_items.line_total_amount) as sales_amount')
@@ -89,18 +85,25 @@ class PosReportService
             ->selectRaw("COALESCE(brands.name, 'Sin marca') as brand_name, order_items.currency, SUM(order_items.quantity) as quantity_sold, SUM(order_items.line_total_amount) as sales_amount")
             ->groupBy('brands.name', 'order_items.currency')->orderByDesc('sales_amount')->get();
 
+        $refundedByPayment = DB::table('pos_refund_payments')
+            ->join('pos_refunds', 'pos_refunds.id', '=', 'pos_refund_payments.pos_refund_id')
+            ->where('pos_refunds.status', 'completed')
+            ->selectRaw('pos_refund_payments.payment_id, SUM(pos_refund_payments.amount) as refunded_amount')
+            ->groupBy('pos_refund_payments.payment_id');
+
         $payments = Payment::query()
             ->join('orders', 'orders.id', '=', 'payments.order_id')
             ->leftJoin('payment_methods', 'payment_methods.id', '=', 'payments.payment_method_id')
+            ->leftJoinSub($refundedByPayment, 'payment_refunds', 'payment_refunds.payment_id', '=', 'payments.id')
             ->where('orders.channel', 'pos')
             ->whereIn('orders.pos_warehouse_id', $warehouseIds)
             ->whereBetween('orders.placed_at', [$from, $to])
-            ->where('payments.status', Payment::STATUS_PAID)
+            ->whereIn('payments.status', [Payment::STATUS_PAID, Payment::STATUS_PARTIALLY_REFUNDED, Payment::STATUS_REFUNDED])
             ->when($warehouseId, fn (Builder $query) => $query->where('orders.pos_warehouse_id', $warehouseId))
             ->when($terminalId, fn (Builder $query) => $query->where('orders.pos_terminal_id', $terminalId))
             ->when($cashierId, fn (Builder $query) => $query->where('orders.cashier_id', $cashierId))
             ->when($currency, fn (Builder $query) => $query->where('payments.currency', $currency))
-            ->selectRaw("COALESCE(payment_methods.name, payments.driver) as method_name, payments.driver, payments.currency, COUNT(payments.id) as payments_count, SUM(payments.amount) as amount")
+            ->selectRaw("COALESCE(payment_methods.name, payments.driver) as method_name, payments.driver, payments.currency, COUNT(payments.id) as payments_count, SUM(payments.amount - COALESCE(payment_refunds.refunded_amount, 0)) as amount")
             ->groupBy('payment_methods.name', 'payments.driver', 'payments.currency')
             ->orderBy('payments.currency')->orderByDesc('amount')->get();
 
@@ -117,18 +120,19 @@ class PosReportService
             ->selectRaw('pos_refunds.currency, COUNT(pos_refunds.id) as refunds_count, SUM(pos_refunds.amount) as amount')
             ->groupBy('pos_refunds.currency')->orderBy('pos_refunds.currency')->get();
 
-        $refundsByWarehouse = PosRefund::query()
+        $refundsByWarehouse = DB::table('pos_refunds')
             ->join('orders', 'orders.id', '=', 'pos_refunds.order_id')
+            ->join('warehouses', 'warehouses.id', '=', 'orders.pos_warehouse_id')
             ->where('pos_refunds.status', 'completed')
             ->where('orders.channel', 'pos')
             ->whereIn('orders.pos_warehouse_id', $warehouseIds)
             ->whereBetween('pos_refunds.refunded_at', [$from, $to])
-            ->when($warehouseId, fn (Builder $query) => $query->where('orders.pos_warehouse_id', $warehouseId))
-            ->when($terminalId, fn (Builder $query) => $query->where('orders.pos_terminal_id', $terminalId))
-            ->when($cashierId, fn (Builder $query) => $query->where('orders.cashier_id', $cashierId))
-            ->when($currency, fn (Builder $query) => $query->where('pos_refunds.currency', $currency))
-            ->selectRaw('orders.pos_warehouse_id, pos_refunds.currency, COUNT(pos_refunds.id) as refunds_count, SUM(pos_refunds.amount) as amount')
-            ->groupBy('orders.pos_warehouse_id', 'pos_refunds.currency')->with('order.posWarehouse:id,name')->get();
+            ->when($warehouseId, fn ($query) => $query->where('orders.pos_warehouse_id', $warehouseId))
+            ->when($terminalId, fn ($query) => $query->where('orders.pos_terminal_id', $terminalId))
+            ->when($cashierId, fn ($query) => $query->where('orders.cashier_id', $cashierId))
+            ->when($currency, fn ($query) => $query->where('pos_refunds.currency', $currency))
+            ->selectRaw('warehouses.name as warehouse_name, pos_refunds.currency, COUNT(pos_refunds.id) as refunds_count, SUM(pos_refunds.amount) as amount')
+            ->groupBy('warehouses.name', 'pos_refunds.currency')->orderBy('warehouses.name')->get();
 
         $sessions = PosCashSession::query()
             ->whereHas('terminal', fn (Builder $query) => $query->whereIn('warehouse_id', $warehouseIds))
@@ -162,14 +166,6 @@ class PosReportService
             ->when($terminalId, fn ($query) => $query->where('orders.pos_terminal_id', $terminalId))
             ->when($cashierId, fn ($query) => $query->where('orders.cashier_id', $cashierId))
             ->when($currency, fn ($query) => $query->where('orders.currency', $currency))
-            ->when($categoryId, fn ($query) => $query->whereExists(function ($sub) use ($categoryId) {
-                $sub->selectRaw('1')->from('order_items')->join('products', 'products.id', '=', 'order_items.product_id')
-                    ->whereColumn('order_items.order_id', 'orders.id')->where('products.category_id', $categoryId);
-            }))
-            ->when($brandId, fn ($query) => $query->whereExists(function ($sub) use ($brandId) {
-                $sub->selectRaw('1')->from('order_items')->join('products', 'products.id', '=', 'order_items.product_id')
-                    ->whereColumn('order_items.order_id', 'orders.id')->where('products.brand_id', $brandId);
-            }))
             ->selectRaw('orders.currency, SUM(CASE WHEN orders.discount_amount > COALESCE(item_discounts.item_discounts, 0) THEN orders.discount_amount - COALESCE(item_discounts.item_discounts, 0) ELSE 0 END) as amount')
             ->groupBy('orders.currency')->get()->keyBy('currency');
 

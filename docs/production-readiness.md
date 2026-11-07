@@ -1,6 +1,6 @@
-# Preparación para producción — Fase 16
+# Preparación para producción — Fase 17
 
-Esta guía complementa las pruebas automatizadas. Un CI verde no significa que la tienda esté lista para recibir pedidos reales: HTTPS, secretos, SMTP, workers, copias de seguridad, restauración y monitoreo deben configurarse y probarse en el entorno de despliegue.
+Esta guía complementa las pruebas automatizadas y las capacidades POS-1 a POS-8 ya integradas. La aceptación real del entorno sigue pendiente de evidencias operativas. Un CI verde no significa que la tienda esté lista para recibir pedidos reales: HTTPS, secretos, SMTP, workers, copias de seguridad, restauración y monitoreo deben configurarse y probarse en el entorno de despliegue.
 
 ## Estado de seguridad cubierto por el código
 
@@ -10,7 +10,7 @@ Esta guía complementa las pruebas automatizadas. Un CI verde no significa que l
 - El enlace público de pedido requiere un token aleatorio cuya huella SHA-256 se almacena en la base de datos. La respuesta se marca `private, no-store` y `no-referrer`.
 - Las rutas de registro, login, recuperación, restablecimiento y checkout tienen límites de solicitudes. Las operaciones de carrito y el cambio de idioma también están limitados.
 - Se aplican cabeceras contra MIME sniffing, framing, filtración de referencias y permisos del navegador. HSTS se emite únicamente en solicitudes HTTPS.
-- Los proxies inversos no se consideran confiables por defecto. `TRUSTED_PROXIES` acepta una lista explícita separada por comas. La excepción `TRUSTED_PROXIES=*` solo se admite, por sí sola, cuando `APP_ENV=local`; en cualquier otro entorno se rechaza.
+- Los proxies inversos no se consideran confiables por defecto. `TRUSTED_PROXIES` acepta una lista explícita separada por comas. Los comodines `*` y `**` se rechazan en producción; `*` solo se admite por sí solo en `APP_ENV=local`.
 - CI ejecuta `composer audit` y `npm audit --audit-level=high` además de las pruebas y el build; la revisión de esta fase no reporta avisos Composer y la auditoría npm pasó.
 
 La política CSP no se activa en esta entrega: antes debe definirse y probarse una estrategia compatible con los scripts de Filament/Livewire y los recursos reales del storefront; una política improvisada podría romper el panel o debilitarse mediante excepciones amplias.
@@ -50,7 +50,7 @@ Notas:
 - Si el servidor recibe tráfico directamente, deja `TRUSTED_PROXIES` vacío. Si hay proxy, CDN o túnel, configura solo las IP/CIDR de los saltos que realmente controlas. No uses `*` salvo que la aplicación sea inaccesible desde cualquier origen que pueda falsificar cabeceras.
 - Activa `SESSION_SECURE_COOKIE=true` solo cuando todo el tráfico público use HTTPS y el proxy esté configurado correctamente.
 - Conserva el mismo `APP_KEY` entre despliegues. Cambiarla invalida sesiones y datos cifrados existentes.
-- No uses `QUEUE_CONNECTION=sync` en producción. Debe existir un worker supervisado y reiniciable.
+- No uses `QUEUE_CONNECTION=sync`, `deferred`, `background` ni `null` en producción. Usa `database`, `redis`, `sqs` o `beanstalkd`, con un worker supervisado y reiniciable. Si usas SMTP, define explícitamente `MAIL_HOST` y `MAIL_PORT`.
 - Configura Zelle, remitente de correo, base de datos y credenciales de almacenamiento con valores reales; no reutilices datos de pruebas.
 
 ## Verificación previa automatizada
@@ -61,7 +61,7 @@ Antes de poner la aplicación en producción, ejecuta:
 php artisan app:production-readiness
 ```
 
-El comando comprueba `APP_ENV`, modo debug, URL HTTPS, clave de aplicación, atributos de cookies/sesión, drivers persistentes de sesión/cache/cola, transporte y remitente de correo, configuración explícita de proxies, conexión a base de datos y permisos de los directorios de almacenamiento privado y público. Devuelve un código de salida distinto de cero si detecta una configuración insegura o incompleta; corrige los puntos indicados y vuelve a ejecutarlo.
+El comando comprueba `APP_ENV`, modo debug, URL HTTPS, validez de `APP_KEY` para el cifrado configurado, atributos de cookies/sesión, drivers persistentes de sesión/cache y drivers durables de cola (`database`, `redis`, `sqs` o `beanstalkd`), transporte/remitente de correo y host/puerto SMTP cuando corresponde, configuración explícita de proxies, conexión a base de datos y permisos de los directorios de almacenamiento privado y público. Devuelve un código de salida distinto de cero si detecta una configuración insegura o incompleta; corrige los puntos indicados y vuelve a ejecutarlo.
 
 La configuración `TRUSTED_PROXIES` ahora se carga desde `config/app.php`, de modo que queda incluida en `php artisan config:cache`; no se lee directamente desde `env()` durante el registro del middleware. Si no existe un proxy inverso, deja la variable vacía. El comodín `*` se permite únicamente en `APP_ENV=local` y no puede combinarse con IP/CIDR explícitas; `**` se rechaza siempre.
 
@@ -83,6 +83,8 @@ Desde el directorio de la versión que se va a publicar:
 No ejecutar `db:seed` en cada despliegue como rutina. Los seeders operativos deben ejecutarse deliberadamente y revisarse antes de tocar datos reales.
 
 ## Procesos persistentes
+
+Hay plantillas adaptables en `deploy/supervisor/dubai-shop-worker.conf`, `deploy/cron/dubai-shop-scheduler` y una guía en `deploy/README.md`. Sustituye las rutas, el usuario del sistema, el binario PHP y la conexión de cola antes de instalarlas. No se presupone Nginx ni se debe exponer `php artisan serve` como servidor público de producción.
 
 - Mantener al menos un worker de cola activo con Supervisor, systemd o el mecanismo equivalente del proveedor. Supervisar reinicios, memoria, jobs fallidos y antigüedad de la cola.
 - Mantener el scheduler de Laravel activo mediante cron o el programador del proveedor si se incorporan tareas programadas.
@@ -110,6 +112,10 @@ Configurar alertas externas para:
 - Actividad administrativa anómala y múltiples intentos de autenticación.
 
 Documentar quién recibe las alertas, cómo deshabilitar temporalmente el checkout, cómo rotar credenciales y cómo preservar logs/evidencias. Establecer una política de retención y eliminación de comprobantes conforme a las necesidades operativas y legales.
+
+## POS y permisos por almacén
+
+Después de aplicar las migraciones de POS-8, asigna a cada usuario administrativo los almacenes y permisos mínimos que necesita desde **Seguridad → Acceso de usuarios**. El Superadministrador mantiene acceso global; los roles Administrador, Gestor de almacenes y Cajero POS siguen requiriendo asignaciones por almacén para operar. Verifica una venta, una devolución y una transferencia con usuarios de almacenes distintos antes de habilitar el POS en producción.
 
 ## Comprobaciones de humo tras desplegar
 

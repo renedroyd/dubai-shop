@@ -300,7 +300,7 @@ Los bloques funcionales POS-1 a POS-16 están integrados en `main` mediante rama
 PR #71 / rama `feature/pos-16c-transfer-monitoring`. Dashboard Filament con conteos por estado, transferencias activas/en tránsito, últimas 30 transferencias, actor/fecha del último evento, incidencias de rechazos/daños y conteos entrantes/salientes por almacén. El acceso exige `pos_reports.view` y limita las consultas a transferencias donde el usuario tiene `reports.view` en ambos almacenes. Reutiliza estados/eventos existentes sin cambiar reglas de aprobación ni movimientos de inventario.
 
 
-### POS-16D — Indicadores operativos por establecimiento (en implementación)
+### POS-16D — Indicadores operativos por establecimiento (integrado en PR #72)
 
 Rama `feature/pos-16d-location-metrics`. Resumen por establecimiento de ventas/pedidos y reembolsos separados por moneda, terminales activos, cajas abiertas, cierres pendientes de aprobación y sesiones del período. Solo incluye establecimientos con terminales asociados a almacenes para los que el usuario posee `reports.view`; requiere `pos_reports.view`. No realiza conversiones monetarias ni altera ventas o caja.
 

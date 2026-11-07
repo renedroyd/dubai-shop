@@ -26,6 +26,7 @@ class PosLoyaltyWallet extends Model
     public function expiringPointsWithin(int $days = 30): int
     {
         $credits = $this->entries()
+            ->whereIn('type', ['earn', 'manual_adjustment'])
             ->where('points_delta', '>', 0)
             ->whereNotNull('expires_at')
             ->whereBetween('expires_at', [now(), now()->addDays($days)])

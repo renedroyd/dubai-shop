@@ -196,6 +196,22 @@ class PosSalesInterfaceTest extends TestCase
         ]);
     }
 
+    public function test_cashier_can_scan_a_product_barcode_into_the_cart(): void
+    {
+        $user = $this->cashier();
+        $terminal = $this->terminal();
+        app(PosCashSessionService::class)->open($terminal, $user->id, 'CUP', 5000);
+        $product = $this->product();
+        $product->update(['barcode' => '7501234567890']);
+        app(InventoryService::class)->setOnHand($product, 5, reason: 'Carga inicial');
+
+        Livewire::actingAs($user)
+            ->test(PosSales::class)
+            ->set('search', '7501234567890')
+            ->call('scanBarcode')
+            ->assertSet('cart.'.$product->id.':0.quantity', 1)
+            ->assertSet('search', '');
+    }
     public function test_cashier_can_register_a_sale_through_the_professional_interface_using_existing_services(): void
     {
         $user = $this->cashier();

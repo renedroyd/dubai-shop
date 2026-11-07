@@ -162,4 +162,15 @@ class PosLoyaltyAdminTest extends TestCase
         $this->assertSame(80, $wallet->fresh()->expiringPointsWithin(30));
     }
 
+
+    public function test_default_admin_role_receives_loyalty_configuration_and_adjustment_permissions(): void
+    {
+        $admin = User::factory()->create(['is_admin' => true, 'admin_access_enabled' => true]);
+        $admin->roles()->attach(AdminRole::query()->where('slug', 'admin')->firstOrFail());
+
+        $this->assertTrue($admin->hasAdminPermission('pos_loyalty_settings.view'));
+        $this->assertTrue($admin->hasAdminPermission('pos_loyalty_settings.update'));
+        $this->assertTrue($admin->hasAdminPermission('pos_loyalty.adjust'));
+    }
+
 }

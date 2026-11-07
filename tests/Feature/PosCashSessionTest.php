@@ -7,6 +7,7 @@ use App\Models\PosLocation;
 use App\Models\PosTerminal;
 use App\Models\User;
 use App\Models\Warehouse;
+use App\Models\WarehouseUserAccess;
 use App\Services\Pos\PosCashSessionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;

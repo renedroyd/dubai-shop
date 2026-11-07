@@ -53,6 +53,9 @@
                             <div class="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
                                 <p class="text-xs text-gray-500">{{ $wallet->currency }}</p>
                                 <p class="text-2xl font-bold tabular-nums">{{ number_format(max(0, $wallet->available_points)) }}</p>
+                                @if ($wallet->available_points < 0)
+                                    <p class="mt-1 text-xs text-amber-700 dark:text-amber-300">{{ __('Saldo por compensar: :points puntos', ['points' => number_format(abs($wallet->available_points))]) }}</p>
+                                @endif
                                 @if ($wallet->expiring_points > 0)
                                     <p class="mt-1 text-xs text-amber-700 dark:text-amber-300">{{ number_format($wallet->expiring_points) }} {{ __('vencen en 30 días') }}</p>
                                 @endif

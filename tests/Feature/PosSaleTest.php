@@ -29,7 +29,7 @@ class PosSaleTest extends TestCase
             ['warehouse_id' => Warehouse::primary()->id],
             ['permissions' => WarehouseUserAccess::PERMISSIONS],
         );
-    {
+
         $location = PosLocation::query()->create(['code' => 'POS-LOC', 'name' => 'Tienda POS', 'is_active' => true]);
         $terminal = PosTerminal::query()->create([
             'pos_location_id' => $location->id,

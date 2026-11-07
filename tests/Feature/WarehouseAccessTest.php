@@ -74,6 +74,12 @@ class WarehouseAccessTest extends TestCase
         ]);
     }
 
+    public function test_system_roles_include_warehouse_manager_and_pos_cashier(): void
+    {
+        $this->assertDatabaseHas('admin_roles', ['slug' => 'warehouse-manager', 'is_system' => true]);
+        $this->assertDatabaseHas('admin_roles', ['slug' => 'pos-cashier', 'is_system' => true]);
+    }
+
     public function test_user_receives_only_explicit_permissions_for_each_warehouse(): void
     {
         $primary = Warehouse::primary();

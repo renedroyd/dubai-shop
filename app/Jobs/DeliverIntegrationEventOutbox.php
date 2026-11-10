@@ -30,6 +30,18 @@ class DeliverIntegrationEventOutbox implements ShouldQueue
             return;
         }
 
+        if (! config('services.social_publicator.enabled')
+            || ! filled(config('services.social_publicator.webhook_url'))
+            || ! filled(config('services.social_publicator.webhook_key_id'))
+            || ! filled(config('services.social_publicator.webhook_secret'))) {
+            $event->update([
+                'available_at' => now()->addMinutes(5),
+                'locked_at' => null,
+            ]);
+
+            return;
+        }
+
         $attempts = $event->attempts + 1;
         $event->update(['attempts' => $attempts]);
 

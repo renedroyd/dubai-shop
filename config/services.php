@@ -29,6 +29,7 @@ return [
     ],
 
     'social_publicator' => [
+        'enabled' => (bool) env('SOCIAL_PUBLICATOR_WEBHOOK_ENABLED', false),
         'webhook_url' => env('SOCIAL_PUBLICATOR_WEBHOOK_URL'),
         'webhook_key_id' => env('SOCIAL_PUBLICATOR_WEBHOOK_KEY_ID', 'key-2026-01'),
         'webhook_secret' => env('SOCIAL_PUBLICATOR_WEBHOOK_SECRET'),

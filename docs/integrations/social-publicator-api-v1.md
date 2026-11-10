@@ -71,3 +71,20 @@ php artisan social-publicator:dispatch-outbox
 ```
 
 The webhook receiver is idempotent by `event_id`. A successful HTTP acknowledgement means the event was accepted into SocialPublicator's inbox, not that a social post has already been sent.
+
+## Gradual activation and production readiness (phase 8)
+
+Outbound event delivery is disabled by default. Keep **SOCIAL_PUBLICATOR_WEBHOOK_ENABLED=false** until SocialPublicator has the matching webhook key configured, its receiver is reachable over HTTPS, and the queue worker and scheduler are healthy.
+
+1. Configure SocialPublicator's API base URL and issue a dedicated token with only catalog:read access.
+2. Configure the matching webhook key ID and long random secret in both applications using deployment secrets.
+3. In SocialPublicator, run the catalog reconciliation command and verify the external products, variants, prices, and eligible warehouses.
+4. Configure one inactive test campaign with one eligible warehouse, a small product selection, and one controlled social destination.
+5. Verify persistent queue workers and Laravel scheduler operation in both applications. Review failed jobs, integration_event_outbox, integration_event_inbox, and campaign trigger/selection states.
+6. Set SOCIAL_PUBLICATOR_WEBHOOK_ENABLED=true in Dubai Shop. Confirm signed events are acknowledged and processed idempotently by SocialPublicator.
+7. Only after event delivery is stable should SocialPublicator's DUBAI_SHOP_CAMPAIGN_DISPATCH_ENABLED be enabled for one test campaign. Observe the resulting Publication and the existing bot's per-target execution before expanding.
+8. Increase campaign coverage gradually and monitor event delivery attempts, terminal failures, pending triggers, planned selections, and bot execution results.
+
+To stop new outbound events immediately, set **SOCIAL_PUBLICATOR_WEBHOOK_ENABLED=false**. To stop campaign publication, set **DUBAI_SHOP_CAMPAIGN_DISPATCH_ENABLED=false** in SocialPublicator. These flags do not delete pending records or cancel a social send that is already in progress.
+
+A successful webhook response only confirms that SocialPublicator accepted the event into its inbox. It does not prove that Facebook or WhatsApp received a publication. Never commit API tokens, webhook secrets, or bot credentials.

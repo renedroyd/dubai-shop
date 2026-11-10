@@ -30,6 +30,15 @@ class DeliverIntegrationEventOutbox implements ShouldQueue
             return;
         }
 
+        if (! config('services.social_publicator.enabled')) {
+            $event->update([
+                'available_at' => now()->addMinutes(5),
+                'locked_at' => null,
+            ]);
+
+            return;
+        }
+
         $attempts = $event->attempts + 1;
         $event->update(['attempts' => $attempts]);
 

@@ -44,7 +44,7 @@ return new class extends Migration
 
         foreach (['warehouses', 'product_variants', 'products'] as $tableName) {
             Schema::table($tableName, function (Blueprint $table): void {
-                $table->dropUnique([$tableName === 'products' ? 'external_id' : 'external_id']);
+                $table->dropUnique($tableName.'_external_id_unique');
                 $table->dropColumn('external_id');
             });
         }

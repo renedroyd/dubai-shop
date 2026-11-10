@@ -193,4 +193,23 @@ class SocialPublicatorCatalogApiTest extends TestCase
         $this->withToken($expired)->getJson('/api/integrations/social-publicator/v1/items')->assertUnauthorized();
         $this->withToken($revoked)->getJson('/api/integrations/social-publicator/v1/items')->assertUnauthorized();
     }
+    public function test_product_revision_changes_when_inventory_or_warehouse_availability_changes(): void
+    {
+        $warehouse = Warehouse::primary();
+        $warehouse->update(['online_fulfillment_enabled' => true]);
+        $product = $this->product();
+        $initialRevision = $product->external_revision;
+
+        $inventory = app(InventoryService::class)->setOnHand($product, 4, reason: 'API revision test', warehouse: $warehouse);
+        $this->assertGreaterThan($initialRevision, $product->fresh()->external_revision);
+
+        $revisionAfterStock = $product->fresh()->external_revision;
+        $inventory->update(['quantity_blocked' => 1]);
+        $this->assertGreaterThan($revisionAfterStock, $product->fresh()->external_revision);
+
+        $revisionAfterInventory = $product->fresh()->external_revision;
+        $warehouse->update(['online_fulfillment_enabled' => false]);
+        $this->assertGreaterThan($revisionAfterInventory, $product->fresh()->external_revision);
+    }
+
 }

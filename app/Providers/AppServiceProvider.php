@@ -32,6 +32,7 @@ use App\Observers\InventoryObserver;
 use App\Observers\OrderObserver;
 use App\Observers\ProductObserver;
 use App\Observers\ProductVariantObserver;
+use App\Observers\WarehouseObserver;
 use App\Payments\PaymentDriverManager;
 use App\Policies\AdminRolePolicy;
 use App\Policies\BrandPolicy;
@@ -81,6 +82,7 @@ class AppServiceProvider extends ServiceProvider
         Product::observe(ProductObserver::class);
         ProductVariant::observe(ProductVariantObserver::class);
         Inventory::observe(InventoryObserver::class);
+        Warehouse::observe(WarehouseObserver::class);
 
         Gate::policy(AdminRole::class, AdminRolePolicy::class);
         Gate::policy(Category::class, CategoryPolicy::class);

@@ -105,4 +105,22 @@ class SocialPublicatorOutboxTest extends TestCase
             'aggregate_external_id' => $product->external_id,
         ]);
     }
+
+    public function test_warehouse_creation_is_written_to_outbox_for_eligibility_reconciliation(): void
+    {
+        $warehouse = Warehouse::query()->create([
+            'code' => 'OUTBOX-'.Str::upper(Str::random(6)),
+            'name' => 'Almacén de integración',
+            'type' => 'general',
+            'is_primary' => false,
+            'is_active' => true,
+            'online_fulfillment_enabled' => true,
+        ]);
+
+        $this->assertDatabaseHas('integration_event_outbox', [
+            'event_type' => 'warehouse.updated',
+            'aggregate_external_id' => $warehouse->external_id,
+        ]);
+    }
+
 }

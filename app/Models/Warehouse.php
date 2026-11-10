@@ -4,12 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 class Warehouse extends Model
 {
     protected static function booted(): void
     {
+        static::creating(function (self $warehouse): void {
+            $warehouse->external_id ??= (string) Str::uuid();
+        });
+
         static::updating(function (self $warehouse): void {
             if ($warehouse->isDirty('is_active') && ! $warehouse->is_active
                 && $warehouse->posTerminals()->where('is_active', true)->exists()) {
@@ -30,6 +36,31 @@ class Warehouse extends Model
                     'is_active' => true,
                 ],
             );
+        });
+
+        static::updated(function (self $warehouse): void {
+            if (! $warehouse->wasChanged([
+                'name',
+                'code',
+                'is_active',
+                'online_fulfillment_enabled',
+                'online_fulfillment_priority',
+            ])) {
+                return;
+            }
+
+            $productIds = Inventory::query()
+                ->where('warehouse_id', $warehouse->id)
+                ->whereNotNull('product_id')
+                ->distinct()
+                ->pluck('product_id');
+
+            if ($productIds->isNotEmpty()) {
+                Product::query()->whereIn('id', $productIds)->update([
+                    'external_revision' => DB::raw('external_revision + 1'),
+                    'updated_at' => now(),
+                ]);
+            }
         });
     }
 

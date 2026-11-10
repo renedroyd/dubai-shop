@@ -15,6 +15,15 @@ class DispatchIntegrationEventOutbox extends Command
 
     public function handle(): int
     {
+        if (! config('services.social_publicator.enabled')
+            || ! filled(config('services.social_publicator.webhook_url'))
+            || ! filled(config('services.social_publicator.webhook_key_id'))
+            || ! filled(config('services.social_publicator.webhook_secret'))) {
+            $this->info('La entrega a SocialPublicator está deshabilitada o incompleta; no se despacharon eventos.');
+
+            return self::SUCCESS;
+        }
+
         $limit = max(1, min(500, (int) $this->option('limit')));
 
         $ids = DB::transaction(function () use ($limit): array {

@@ -28,6 +28,13 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'social_publicator' => [
+        'webhook_url' => env('SOCIAL_PUBLICATOR_WEBHOOK_URL'),
+        'webhook_key_id' => env('SOCIAL_PUBLICATOR_WEBHOOK_KEY_ID', 'key-2026-01'),
+        'webhook_secret' => env('SOCIAL_PUBLICATOR_WEBHOOK_SECRET'),
+        'timeout' => env('SOCIAL_PUBLICATOR_WEBHOOK_TIMEOUT', 15),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

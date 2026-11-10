@@ -13,6 +13,17 @@ class InventoryObserver
 
     public function saved(Inventory $inventory): void
     {
+        if (! $inventory->wasRecentlyCreated && ! $inventory->wasChanged([
+            'warehouse_id',
+            'product_id',
+            'product_variant_id',
+            'quantity_on_hand',
+            'quantity_reserved',
+            'quantity_blocked',
+        ])) {
+            return;
+        }
+
         $this->publishForInventory($inventory);
     }
 

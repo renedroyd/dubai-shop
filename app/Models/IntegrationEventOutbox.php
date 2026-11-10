@@ -19,6 +19,7 @@ class IntegrationEventOutbox extends Model
         'attempts',
         'available_at',
         'delivered_at',
+        'failed_at',
         'locked_at',
         'last_error',
     ];
@@ -32,6 +33,7 @@ class IntegrationEventOutbox extends Model
             'attempts' => 'integer',
             'available_at' => 'datetime',
             'delivered_at' => 'datetime',
+            'failed_at' => 'datetime',
             'locked_at' => 'datetime',
         ];
     }

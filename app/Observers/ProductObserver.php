@@ -12,7 +12,7 @@ class ProductObserver
 
     public function saved(Product $product): void
     {
-        if (! $product->wasChanged(['price_amount', 'currency'])) {
+        if ($product->wasRecentlyCreated || ! $product->wasChanged(['price_amount', 'currency'])) {
             return;
         }
 

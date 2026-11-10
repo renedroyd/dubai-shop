@@ -11,9 +11,14 @@ class InventoryObserver
 {
     public function __construct(private readonly IntegrationEventPublisher $publisher) {}
 
-    public function saved(Inventory $inventory): void
+    public function created(Inventory $inventory): void
     {
-        if (! $inventory->wasRecentlyCreated && ! $inventory->wasChanged([
+        $this->publishForInventory($inventory);
+    }
+
+    public function updated(Inventory $inventory): void
+    {
+        if (! $inventory->wasChanged([
             'warehouse_id',
             'product_id',
             'product_variant_id',

@@ -42,6 +42,7 @@ class IntegrationEventOutboxDeliveryTest extends TestCase
         parent::setUp();
 
         config([
+            'services.social_publicator.enabled' => true,
             'services.social_publicator.webhook_url' => 'https://social.example.test/api/integrations/dubai-shop/v1/events',
             'services.social_publicator.webhook_key_id' => 'test-key',
             'services.social_publicator.webhook_secret' => 'test-secret-value',
@@ -161,6 +162,38 @@ class IntegrationEventOutboxDeliveryTest extends TestCase
 
         $this->assertSame(0, $event->fresh()->attempts);
         $this->assertNull($event->fresh()->failed_at);
+    }
+
+
+    public function test_disabled_delivery_does_not_send_or_consume_attempts(): void
+    {
+        config(['services.social_publicator.enabled' => false]);
+        Http::fake();
+
+        $event = $this->event();
+
+        (new DeliverIntegrationEventOutbox($event->id))->handle();
+
+        $event->refresh();
+
+        $this->assertSame(0, $event->attempts);
+        $this->assertNull($event->delivered_at);
+        $this->assertNull($event->locked_at);
+        $this->assertTrue($event->available_at->isFuture());
+        Http::assertNothingSent();
+    }
+
+    public function test_disabled_dispatch_command_leaves_due_events_unclaimed(): void
+    {
+        config(['services.social_publicator.enabled' => false]);
+        Bus::fake();
+
+        $event = $this->event();
+
+        $this->artisan('social-publicator:dispatch-outbox')->assertSuccessful();
+
+        Bus::assertNothingDispatched();
+        $this->assertNull($event->fresh()->locked_at);
     }
 
 }

@@ -151,4 +151,16 @@ class IntegrationEventOutboxDeliveryTest extends TestCase
         $this->assertNotNull($event->available_at);
     }
 
+
+    public function test_pending_event_cannot_be_manually_requeued(): void
+    {
+        $event = $this->event();
+
+        $this->artisan('social-publicator:requeue-outbox '.$event->event_id)
+            ->assertFailed();
+
+        $this->assertSame(0, $event->fresh()->attempts);
+        $this->assertNull($event->fresh()->failed_at);
+    }
+
 }

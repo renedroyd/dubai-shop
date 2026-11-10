@@ -9,9 +9,9 @@ class ProductVariantObserver
 {
     public function __construct(private readonly IntegrationEventPublisher $publisher) {}
 
-    public function saved(ProductVariant $variant): void
+    public function updated(ProductVariant $variant): void
     {
-        if ($variant->wasRecentlyCreated || ! $variant->wasChanged('price_amount')) {
+        if (! $variant->wasChanged('price_amount')) {
             return;
         }
 

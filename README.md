@@ -18,6 +18,7 @@ Consulta primero:
 - [Notificaciones transaccionales](docs/transactional-notifications.md)
 - [Asistente de IA para banners](docs/ai-banner-workflow.md)
 - [Control de acceso administrativo](docs/admin-access-control.md)
+- [Puesta en marcha de la integración con SocialPublicator](docs/integrations/connection-setup.md)
 
 ## Stack
 

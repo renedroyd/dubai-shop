@@ -16,7 +16,7 @@ All routes require HTTPS and a dedicated Bearer token with the `catalog:read` ab
 
 `GET /items?limit=50&cursor={next_cursor}`
 
-The cursor is opaque and ordered by product update time and ID. Product revisions increase when product data, variants, product images, inventory, or online-fulfillment warehouse settings change. This makes the cursor suitable for incremental catalog polling. Event delivery and reconciliation are added in later integration phases.
+The cursor is opaque and ordered by product update time and ID. Product revisions increase when product data, variants, product images, inventory, or online-fulfillment warehouse settings change. This makes the cursor suitable for incremental catalog polling. Inventory and sale-price changes also create versioned integration events in the transactional outbox.
 
 ### Catalog representation
 
@@ -43,4 +43,9 @@ Tokens can be revoked by setting `revoked_at` in the `integration_api_tokens` ta
 
 ## Current scope
 
-This phase implements read-only catalog and warehouse access plus stable external IDs. Signed outbound events, the transactional outbox, and the SocialPublicator receiver are implemented in later phases. The API does not expose customer, order, payment, acquisition-cost, or internal minimum-sale-price data.
+This phase implements read-only catalog and warehouse access plus stable external IDs. Signed event delivery from the outbox is a subsequent phase. Outbox rows are created in the same transaction as catalog, variant, and inventory model writes; no outbound network request runs inside the business transaction. The API does not expose customer, order, payment, acquisition-cost, or internal minimum-sale-price data.
+
+
+## Lifecycle event outbox
+
+Dubai Shop writes `inventory.changed` and `price.changed` v1 envelopes to `integration_event_outbox`. Inventory events are emitted for the external product or active variant whose effective stock changed. Price events contain only public sale-price amounts and currency; acquisition costs and internal minimum sale prices are never included. Outbox records remain pending until the signed delivery worker is introduced in the publication phase.

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Str;
 
 class Product extends Model
 {
@@ -23,11 +24,23 @@ class Product extends Model
         'status', 'is_featured', 'is_visible', 'meta_title', 'meta_description',
     ];
 
+    protected static function booted(): void
+    {
+        static::creating(function (self $product): void {
+            $product->external_id ??= (string) Str::uuid();
+        });
+
+        static::updating(function (self $product): void {
+            $product->external_revision = ((int) $product->external_revision) + 1;
+        });
+    }
+
     protected function casts(): array
     {
         return [
             'price_amount' => 'integer',
             'compare_at_price_amount' => 'integer',
+            'external_revision' => 'integer',
             'is_featured' => 'boolean',
             'is_visible' => 'boolean',
         ];

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class Inventory extends Model
 {
@@ -13,6 +14,35 @@ class Inventory extends Model
         'warehouse_id', 'product_id', 'product_variant_id', 'stock_key',
         'quantity_on_hand', 'quantity_reserved', 'quantity_blocked', 'minimum_stock_quantity', 'acquisition_cost_amount', 'minimum_sale_price_amount',
     ];
+
+    protected static function booted(): void
+    {
+        static::saved(function (self $inventory): void {
+            $productId = $inventory->product_id
+                ?? ProductVariant::query()->whereKey($inventory->product_variant_id)->value('product_id');
+
+            self::bumpProductRevision($productId);
+        });
+
+        static::deleted(function (self $inventory): void {
+            $productId = $inventory->product_id
+                ?? ProductVariant::query()->whereKey($inventory->product_variant_id)->value('product_id');
+
+            self::bumpProductRevision($productId);
+        });
+    }
+
+    protected static function bumpProductRevision(?int $productId): void
+    {
+        if (! $productId) {
+            return;
+        }
+
+        DB::table('products')->where('id', $productId)->update([
+            'external_revision' => DB::raw('external_revision + 1'),
+            'updated_at' => now(),
+        ]);
+    }
 
     protected function casts(): array
     {

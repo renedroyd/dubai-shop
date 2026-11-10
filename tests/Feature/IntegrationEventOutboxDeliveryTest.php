@@ -196,4 +196,25 @@ class IntegrationEventOutboxDeliveryTest extends TestCase
         $this->assertNull($event->fresh()->locked_at);
     }
 
+
+    public function test_incomplete_webhook_configuration_does_not_consume_delivery_attempts(): void
+    {
+        config([
+            'services.social_publicator.enabled' => true,
+            'services.social_publicator.webhook_secret' => null,
+        ]);
+        Http::fake();
+
+        $event = $this->event();
+
+        (new DeliverIntegrationEventOutbox($event->id))->handle();
+
+        $event->refresh();
+
+        $this->assertSame(0, $event->attempts);
+        $this->assertNull($event->locked_at);
+        $this->assertTrue($event->available_at->isFuture());
+        Http::assertNothingSent();
+    }
+
 }

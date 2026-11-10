@@ -129,4 +129,26 @@ class IntegrationEventOutboxDeliveryTest extends TestCase
         Bus::assertDispatched(DeliverIntegrationEventOutbox::class, fn ($job): bool => $job->outboxId === $due->id);
         $this->assertNotNull($due->fresh()->locked_at);
     }
+
+    public function test_terminal_event_can_be_manually_requeued(): void
+    {
+        $event = $this->event([
+            'attempts' => 8,
+            'available_at' => null,
+            'failed_at' => now(),
+            'last_error' => 'Repeated delivery failure',
+        ]);
+
+        $this->artisan('social-publicator:requeue-outbox '.$event->event_id)
+            ->assertSuccessful();
+
+        $event->refresh();
+
+        $this->assertSame(0, $event->attempts);
+        $this->assertNull($event->failed_at);
+        $this->assertNull($event->locked_at);
+        $this->assertNull($event->last_error);
+        $this->assertTrue($event->available_at->isFuture() || $event->available_at->equalTo(now()));
+    }
+
 }

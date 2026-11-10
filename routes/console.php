@@ -11,4 +11,8 @@ Artisan::command('inspire', function () {
 
 Schedule::command('social-publicator:dispatch-outbox')
     ->everyMinute()
-    ->withoutOverlapping();
+    ->withoutOverlapping()
+    ->when(fn (): bool => (bool) config('services.social_publicator.enabled')
+        && filled(config('services.social_publicator.webhook_url'))
+        && filled(config('services.social_publicator.webhook_key_id'))
+        && filled(config('services.social_publicator.webhook_secret')));

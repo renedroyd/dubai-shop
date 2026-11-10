@@ -12,6 +12,7 @@ use RuntimeException;
 class Warehouse extends Model
 {
     use TransactionalModelWrites;
+
     protected static function booted(): void
     {
         static::creating(function (self $warehouse): void {

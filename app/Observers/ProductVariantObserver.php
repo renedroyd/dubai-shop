@@ -11,7 +11,7 @@ class ProductVariantObserver
 
     public function saved(ProductVariant $variant): void
     {
-        if (! $variant->wasChanged('price_amount')) {
+        if ($variant->wasRecentlyCreated || ! $variant->wasChanged('price_amount')) {
             return;
         }
 

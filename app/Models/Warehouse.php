@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\TransactionalModelWrites;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
@@ -10,6 +11,7 @@ use RuntimeException;
 
 class Warehouse extends Model
 {
+    use TransactionalModelWrites;
     protected static function booted(): void
     {
         static::creating(function (self $warehouse): void {

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\TransactionalModelWrites;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,6 +12,8 @@ use Illuminate\Support\Str;
 
 class ProductVariant extends Model
 {
+    use TransactionalModelWrites;
+
     protected $fillable = ['product_id', 'name', 'sku', 'barcode', 'options', 'price_amount', 'is_active', 'sort_order'];
 
     protected static function booted(): void

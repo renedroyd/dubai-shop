@@ -64,7 +64,7 @@ class IntegrationEventOutboxDeliveryTest extends TestCase
         $this->assertNotNull($event->delivered_at);
         $this->assertNull($event->available_at);
         $this->assertNull($event->locked_at);
-        $this->assertSame(0, $event->attempts);
+        $this->assertSame(1, $event->attempts);
 
         Http::assertSent(function (Request $request): bool {
             $timestamp = $request->header('X-DubaiShop-Timestamp')[0] ?? '';

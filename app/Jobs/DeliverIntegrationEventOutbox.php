@@ -30,6 +30,9 @@ class DeliverIntegrationEventOutbox implements ShouldQueue
             return;
         }
 
+        $attempts = $event->attempts + 1;
+        $event->update(['attempts' => $attempts]);
+
         try {
             $url = (string) config('services.social_publicator.webhook_url');
             $keyId = (string) config('services.social_publicator.webhook_key_id');
@@ -71,7 +74,6 @@ class DeliverIntegrationEventOutbox implements ShouldQueue
                 'last_error' => null,
             ]);
         } catch (Throwable $exception) {
-            $attempts = $event->attempts + 1;
             $delays = [30, 120, 300, 600, 1800, 3600, 7200];
             $isTerminal = $attempts >= 8;
 

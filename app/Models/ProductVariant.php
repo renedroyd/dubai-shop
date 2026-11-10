@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
 class ProductVariant extends Model
 {
     use TransactionalModelWrites;
+
     protected $fillable = ['product_id', 'name', 'sku', 'barcode', 'options', 'price_amount', 'is_active', 'sort_order'];
 
     protected static function booted(): void

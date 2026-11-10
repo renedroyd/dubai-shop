@@ -10,9 +10,9 @@ class ProductObserver
 {
     public function __construct(private readonly IntegrationEventPublisher $publisher) {}
 
-    public function saved(Product $product): void
+    public function updated(Product $product): void
     {
-        if ($product->wasRecentlyCreated || ! $product->wasChanged(['price_amount', 'currency'])) {
+        if (! $product->wasChanged(['price_amount', 'currency'])) {
             return;
         }
 

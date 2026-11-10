@@ -49,3 +49,25 @@ This phase implements read-only catalog and warehouse access plus stable externa
 ## Lifecycle event outbox
 
 Dubai Shop writes `inventory.changed` and `price.changed` v1 envelopes to `integration_event_outbox`. Inventory events are emitted for the external product or active variant whose effective stock changed. Price events contain only public sale-price amounts and currency; acquisition costs and internal minimum sale prices are never included. Outbox records remain pending until the signed delivery worker is introduced in the publication phase.
+
+## Signed event delivery (phase 7)
+
+Configure the following values on Dubai Shop. The key ID and secret must match one entry in SocialPublicator's `DUBAI_SHOP_WEBHOOK_KEYS` map. Keep the secret out of Git and use a long random value.
+
+```dotenv
+SOCIAL_PUBLICATOR_WEBHOOK_URL=https://your-social-publicator-host/api/integrations/dubai-shop/v1/events
+SOCIAL_PUBLICATOR_WEBHOOK_KEY_ID=key-2026-01
+SOCIAL_PUBLICATOR_WEBHOOK_SECRET=
+SOCIAL_PUBLICATOR_WEBHOOK_TIMEOUT=15
+```
+
+The `social-publicator:dispatch-outbox` command runs every minute and queues due outbox records. A persistent Laravel queue worker must be running. Delivery signs the exact JSON request body with HMAC-SHA256 over `{timestamp}.{raw-body}` and sends the key ID, Unix timestamp, and signature headers expected by SocialPublicator.
+
+Successful HTTP 2xx responses mark the event delivered. Failed responses use bounded retry delays and are moved to a terminal failed state after eight attempts. Inspect `integration_event_outbox` for `last_error`, `attempts`, and `failed_at`. To manually retry a terminal failure:
+
+```bash
+php artisan social-publicator:requeue-outbox <event-uuid>
+php artisan social-publicator:dispatch-outbox
+```
+
+The webhook receiver is idempotent by `event_id`. A successful HTTP acknowledgement means the event was accepted into SocialPublicator's inbox, not that a social post has already been sent.

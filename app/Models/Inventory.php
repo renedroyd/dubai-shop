@@ -14,6 +14,8 @@ class Inventory extends Model
         'quantity_on_hand', 'quantity_reserved', 'quantity_blocked', 'minimum_stock_quantity', 'acquisition_cost_amount', 'minimum_sale_price_amount',
     ];
 
+    protected $touches = ['product'];
+
     protected function casts(): array
     {
         return [

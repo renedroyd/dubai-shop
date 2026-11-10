@@ -29,6 +29,12 @@ class RequeueIntegrationEventOutbox extends Command
             return self::FAILURE;
         }
 
+        if (! $event->failed_at) {
+            $this->error('Solo se pueden reencolar eventos que alcanzaron el estado de fallo terminal.');
+
+            return self::FAILURE;
+        }
+
         $event->update([
             'attempts' => 0,
             'available_at' => now(),

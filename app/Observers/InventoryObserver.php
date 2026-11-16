@@ -13,7 +13,12 @@ class InventoryObserver
 {
     public function __construct(private readonly IntegrationEventPublisher $publisher) {}
 
-    public function saved(Inventory $inventory): void
+    public function created(Inventory $inventory): void
+    {
+        $this->publishForInventory($inventory, true);
+    }
+
+    public function updated(Inventory $inventory): void
     {
         if (! $inventory->wasChanged([
             'warehouse_id',
@@ -26,7 +31,7 @@ class InventoryObserver
             return;
         }
 
-        $this->publishForInventory($inventory);
+        $this->publishForInventory($inventory, true);
     }
 
     public function deleted(Inventory $inventory): void
@@ -34,7 +39,7 @@ class InventoryObserver
         $this->publishForInventory($inventory);
     }
 
-    private function publishForInventory(Inventory $inventory): void
+    private function publishForInventory(Inventory $inventory, bool $revisionWillBeBumped = false): void
     {
         $productId = $inventory->product_id
             ?? ProductVariant::query()->whereKey($inventory->product_variant_id)->value('product_id');
@@ -84,6 +89,8 @@ class InventoryObserver
             ->orderBy('id')
             ->get(['id', 'external_id']);
 
+        $revision = (int) $product->external_revision + ($revisionWillBeBumped ? 1 : 0);
+
         foreach ($items as $item) {
             $availability = $this->availabilitySnapshot($product, $item['variant'], $warehouses);
 
@@ -91,7 +98,7 @@ class InventoryObserver
                 'inventory.changed',
                 'catalog_item',
                 $item['external_id'],
-                max(1, (int) $product->external_revision),
+                max(1, $revision),
                 [
                     'change_source' => 'inventory',
                     'availability' => ['warehouses' => $availability],

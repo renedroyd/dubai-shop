@@ -48,7 +48,7 @@ This phase implements read-only catalog and warehouse access plus stable externa
 
 ## Lifecycle event outbox
 
-Dubai Shop writes `inventory.changed` and `price.changed` v1 envelopes to `integration_event_outbox`. Inventory events are emitted for the external product or active variant whose effective stock changed. Price events contain only public sale-price amounts and currency; acquisition costs and internal minimum sale prices are never included. Outbox records remain pending until the signed delivery worker is introduced in the publication phase.
+Dubai Shop writes `catalog.item_published`, `catalog.item_unpublished`, `catalog.item_updated`, `inventory.changed`, `price.changed` and `warehouse.updated` v1 envelopes to `integration_event_outbox`. Product lifecycle events cover publication, unpublication, restoration and public catalog-content changes. When a product has variants, parent-product lifecycle changes are emitted for active variant external IDs; simple products use the product external ID. Inventory events are emitted for the external product or active variant whose effective stock changed. Price events contain only public sale-price amounts and currency; acquisition costs and internal minimum sale prices are never included. All events are stored in the same database transaction as the source change.
 
 ## Signed event delivery (phase 7)
 

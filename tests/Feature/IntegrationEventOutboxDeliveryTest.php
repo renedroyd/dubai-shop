@@ -221,4 +221,45 @@ class IntegrationEventOutboxDeliveryTest extends TestCase
         Http::assertNothingSent();
     }
 
+
+    public function test_delivery_holds_the_identity_transaction_until_the_signed_request_finishes(): void
+    {
+        $transactionLevelBeforeDelivery = DB::transactionLevel();
+        $requestRanInsideTransaction = false;
+
+        Http::fake(function (Request $request) use ($transactionLevelBeforeDelivery, &$requestRanInsideTransaction) {
+            $requestRanInsideTransaction = DB::transactionLevel() > $transactionLevelBeforeDelivery;
+
+            return Http::response(['accepted' => true], 202);
+        });
+
+        $event = $this->event();
+
+        (new DeliverIntegrationEventOutbox($event->id))->handle();
+
+        $this->assertTrue($requestRanInsideTransaction);
+        $this->assertNotNull($event->fresh()->delivered_at);
+    }
+
+    public function test_delivery_waits_while_installation_pairing_is_pending_without_consuming_attempts(): void
+    {
+        DB::table('integration_installation_identity')
+            ->where('id', 1)
+            ->update(['pairing_status' => 'pending']);
+
+        Http::fake();
+
+        $event = $this->event();
+
+        (new DeliverIntegrationEventOutbox($event->id))->handle();
+
+        $event->refresh();
+
+        $this->assertSame(0, $event->attempts);
+        $this->assertNull($event->delivered_at);
+        $this->assertNull($event->locked_at);
+        $this->assertTrue($event->available_at->isFuture());
+        Http::assertNothingSent();
+    }
+
 }

@@ -15,10 +15,24 @@ class DispatchIntegrationEventOutbox extends Command
 
     public function handle(): int
     {
+        $identity = DB::table('integration_installation_identity')
+            ->where('id', 1)
+            ->first(['pairing_status', 'webhook_key_id', 'webhook_secret']);
+
+        if (! $identity || ($identity->pairing_status ?? 'paired') !== 'paired') {
+            $this->info('La instalación no está emparejada; los eventos permanecen retenidos.');
+
+            return self::SUCCESS;
+        }
+
+        $hasWebhookCredentials = filled($identity->webhook_secret)
+            ? filled($identity->webhook_key_id)
+            : filled(config('services.social_publicator.webhook_key_id'))
+                && filled(config('services.social_publicator.webhook_secret'));
+
         if (! config('services.social_publicator.enabled')
             || ! filled(config('services.social_publicator.webhook_url'))
-            || ! filled(config('services.social_publicator.webhook_key_id'))
-            || ! filled(config('services.social_publicator.webhook_secret'))) {
+            || ! $hasWebhookCredentials) {
             $this->info('La entrega a SocialPublicator está deshabilitada o incompleta; no se despacharon eventos.');
 
             return self::SUCCESS;

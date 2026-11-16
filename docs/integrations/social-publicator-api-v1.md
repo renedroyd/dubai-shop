@@ -125,3 +125,15 @@ Durante la transición, SocialPublicator puede aceptar HMAC v1 únicamente para
 integraciones legacy aún no emparejadas. Una integración que ya tenga `installation_id`
 debe rechazar v1. Las instalaciones nuevas deben completar el emparejamiento v2
 antes de habilitar campañas.
+
+
+## Monitoring the event outbox
+
+The Filament admin dashboard includes an **Integración con SocialPublicator** widget with:
+
+- pending events and the age of the oldest pending event;
+- events currently reserved by a worker;
+- successful deliveries during the last 24 hours;
+- terminal failures requiring review or manual requeue.
+
+An event is considered delivered only after SocialPublicator returns a successful HTTP response. A healthy outbox does not guarantee that a campaign was published to a social network; check the SocialPublicator inbox, campaign state, and per-destination publication executions as well.

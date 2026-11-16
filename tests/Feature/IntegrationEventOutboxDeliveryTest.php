@@ -69,7 +69,7 @@ class IntegrationEventOutboxDeliveryTest extends TestCase
 
         Http::assertSent(function (Request $request): bool {
             $timestamp = $request->header('X-DubaiShop-Timestamp')[0] ?? '';
-            $signature = hash_hmac('sha256', $timestamp.'.'.$request->body(), 'test-secret-value');
+            $installationId = (string) DB::table('integration_installation_identity')->where('id', 1)->value('installation_id');\n            $signature = hash_hmac('sha256', $timestamp.'.'.$installationId.'.'.$request->body(), 'test-secret-value');
 
             return $request->url() === 'https://social.example.test/api/integrations/dubai-shop/v1/events'
                 && ($request->header('X-DubaiShop-Key-Id')[0] ?? null) === 'test-key'

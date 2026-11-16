@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Integrations\SocialPublicatorCatalogController;
+use App\Http\Controllers\Api\Integrations\SocialPublicatorInstallationIdentityController;
 use App\Http\Middleware\AuthenticateIntegrationApiToken;
 use Illuminate\Support\Facades\Route;
 
@@ -10,6 +11,7 @@ Route::prefix('integrations/social-publicator/v1')
         AuthenticateIntegrationApiToken::class.':catalog:read',
     ])
     ->group(function (): void {
+        Route::get('/identity', SocialPublicatorInstallationIdentityController::class);
         Route::get('/items', [SocialPublicatorCatalogController::class, 'items']);
         Route::get('/items/{externalId}', [SocialPublicatorCatalogController::class, 'show'])
             ->whereUuid('externalId');

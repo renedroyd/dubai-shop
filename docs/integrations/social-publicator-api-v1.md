@@ -88,3 +88,40 @@ Outbound event delivery is disabled by default. Keep **SOCIAL_PUBLICATOR_WEBHOOK
 To stop new outbound events immediately, set **SOCIAL_PUBLICATOR_WEBHOOK_ENABLED=false**. To stop campaign publication, set **DUBAI_SHOP_CAMPAIGN_DISPATCH_ENABLED=false** in SocialPublicator. These flags do not delete pending records or cancel a social send that is already in progress.
 
 A successful webhook response only confirms that SocialPublicator accepted the event into its inbox. It does not prove that Facebook or WhatsApp received a publication. Never commit API tokens, webhook secrets, or bot credentials.
+
+
+## Identidad de instalación y firma HMAC v2
+
+Cada instalación de Dubai-Shop genera una identidad UUID persistente durante la migración
+`integration_installation_identity`. La identidad se crea una sola vez por base de datos
+y no cambia al regenerar tokens ni al modificar la URL pública.
+
+El endpoint autenticado:
+
+`GET /api/integrations/social-publicator/v1/identity`
+
+devuelve `contract_version` e `installation_id`. Requiere un token con el permiso
+`catalog:read`. SocialPublicator debe consultar este endpoint durante **Probar conexión**
+y guardar la identidad en la integración del workspace.
+
+Los nuevos webhooks usan firma HMAC v2. Cabeceras:
+
+- `X-DubaiShop-Key-Id`
+- `X-DubaiShop-Timestamp`
+- `X-DubaiShop-Signature-Version: v2`
+- `X-DubaiShop-Installation-Id`
+- `X-DubaiShop-Signature`
+
+El contenido firmado es:
+
+`timestamp + "." + installation_id + "." + raw_request_body`
+
+El secreto HMAC sigue siendo el secreto compartido de la integración. SocialPublicator
+debe comprobar que el UUID recibido coincide con la identidad emparejada al workspace
+y verificar la firma sobre el contenido canónico anterior. La identidad no se acepta
+como dato de confianza si no está incluida en el cálculo HMAC.
+
+Durante la transición, SocialPublicator puede aceptar HMAC v1 únicamente para
+integraciones legacy aún no emparejadas. Una integración que ya tenga `installation_id`
+debe rechazar v1. Las instalaciones nuevas deben completar el emparejamiento v2
+antes de habilitar campañas.

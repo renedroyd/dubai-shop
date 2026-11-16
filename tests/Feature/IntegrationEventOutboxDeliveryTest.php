@@ -7,6 +7,7 @@ use App\Models\IntegrationEventOutbox;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -69,10 +70,13 @@ class IntegrationEventOutboxDeliveryTest extends TestCase
 
         Http::assertSent(function (Request $request): bool {
             $timestamp = $request->header('X-DubaiShop-Timestamp')[0] ?? '';
-            $signature = hash_hmac('sha256', $timestamp.'.'.$request->body(), 'test-secret-value');
+            $installationId = (string) DB::table('integration_installation_identity')->where('id', 1)->value('installation_id');
+            $signature = hash_hmac('sha256', $timestamp.'.'.$installationId.'.'.$request->body(), 'test-secret-value');
 
             return $request->url() === 'https://social.example.test/api/integrations/dubai-shop/v1/events'
                 && ($request->header('X-DubaiShop-Key-Id')[0] ?? null) === 'test-key'
+                && ($request->header('X-DubaiShop-Signature-Version')[0] ?? null) === 'v2'
+                && ($request->header('X-DubaiShop-Installation-Id')[0] ?? null) === $installationId
                 && ($request->header('X-DubaiShop-Signature')[0] ?? null) === 'sha256='.$signature;
         });
     }

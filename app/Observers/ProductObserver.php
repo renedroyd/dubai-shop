@@ -1,9 +1,9 @@
 <?php
 
-namespace App\\Observers;
+namespace App\Observers;
 
-use App\\Models\\Product;
-use App\\Services\\IntegrationEventPublisher;
+use App\Models\Product;
+use App\Services\IntegrationEventPublisher;
 
 class ProductObserver
 {

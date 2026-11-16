@@ -74,6 +74,8 @@ class IntegrationEventOutboxDeliveryTest extends TestCase
 
             return $request->url() === 'https://social.example.test/api/integrations/dubai-shop/v1/events'
                 && ($request->header('X-DubaiShop-Key-Id')[0] ?? null) === 'test-key'
+                && ($request->header('X-DubaiShop-Signature-Version')[0] ?? null) === 'v2'
+                && ($request->header('X-DubaiShop-Installation-Id')[0] ?? null) === $installationId
                 && ($request->header('X-DubaiShop-Signature')[0] ?? null) === 'sha256='.$signature;
         });
     }

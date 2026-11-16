@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\IntegrationEventOutbox;
+use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Warehouse;
@@ -187,6 +188,46 @@ class SocialPublicatorOutboxTest extends TestCase
             'event_type' => 'catalog.item_updated',
             'aggregate_external_id' => $inactiveVariant->external_id,
         ]);
+    }
+
+
+    public function test_inventory_event_contains_effective_availability_for_every_eligible_warehouse_and_current_revision(): void
+    {
+        $primary = Warehouse::primary();
+        $primary->update(['online_fulfillment_enabled' => true]);
+        $secondary = Warehouse::query()->create([
+            'code' => 'SNAPSHOT-'.Str::upper(Str::random(6)),
+            'name' => 'Almacén secundario',
+            'type' => 'general',
+            'is_primary' => false,
+            'is_active' => true,
+            'online_fulfillment_enabled' => true,
+        ]);
+        $product = $this->product();
+
+        Inventory::query()->create([
+            'warehouse_id' => $primary->id,
+            'product_id' => $product->id,
+            'stock_key' => 'snapshot-product-'.$product->id,
+            'quantity_on_hand' => 12,
+            'quantity_reserved' => 2,
+            'quantity_blocked' => 3,
+        ]);
+
+        $product->refresh();
+        $event = IntegrationEventOutbox::query()
+            ->where('event_type', 'inventory.changed')
+            ->where('aggregate_external_id', $product->external_id)
+            ->latest('id')
+            ->firstOrFail();
+
+        $this->assertSame((int) $product->external_revision, $event->revision);
+        $snapshot = collect($event->payload['data']['availability']['warehouses'])
+            ->keyBy('warehouse_external_id');
+
+        $this->assertSame(7, $snapshot->get($primary->external_id)['available_quantity']);
+        $this->assertSame(0, $snapshot->get($secondary->external_id)['available_quantity']);
+        $this->assertCount(2, $snapshot);
     }
 
 }

@@ -123,4 +123,70 @@ class SocialPublicatorOutboxTest extends TestCase
         ]);
     }
 
+
+    public function test_published_simple_product_creates_catalog_lifecycle_event(): void
+    {
+        $product = $this->product();
+
+        $event = IntegrationEventOutbox::query()
+            ->where('event_type', 'catalog.item_published')
+            ->where('aggregate_external_id', $product->external_id)
+            ->firstOrFail();
+
+        $this->assertSame($product->external_id, $event->payload['data']['item_external_id']);
+        $this->assertSame($product->external_id, $event->payload['data']['product_external_id']);
+    }
+
+    public function test_unpublishing_product_creates_catalog_unpublished_event(): void
+    {
+        $product = $this->product();
+        $product->update(['is_visible' => false]);
+
+        $this->assertDatabaseHas('integration_event_outbox', [
+            'event_type' => 'catalog.item_unpublished',
+            'aggregate_external_id' => $product->external_id,
+        ]);
+    }
+
+    public function test_published_product_content_changes_create_catalog_updated_event(): void
+    {
+        $product = $this->product();
+        $product->update(['name' => 'Producto actualizado']);
+
+        $this->assertDatabaseHas('integration_event_outbox', [
+            'event_type' => 'catalog.item_updated',
+            'aggregate_external_id' => $product->external_id,
+        ]);
+    }
+
+    public function test_parent_product_updates_emit_lifecycle_events_for_active_variants_only(): void
+    {
+        $product = $this->product();
+        $activeVariant = ProductVariant::query()->create([
+            'product_id' => $product->id,
+            'name' => 'Variante activa',
+            'sku' => 'ACTIVE-'.Str::upper(Str::random(8)),
+            'is_active' => true,
+            'sort_order' => 1,
+        ]);
+        $inactiveVariant = ProductVariant::query()->create([
+            'product_id' => $product->id,
+            'name' => 'Variante inactiva',
+            'sku' => 'INACTIVE-'.Str::upper(Str::random(8)),
+            'is_active' => false,
+            'sort_order' => 2,
+        ]);
+
+        $product->update(['name' => 'Producto con variantes actualizado']);
+
+        $this->assertDatabaseHas('integration_event_outbox', [
+            'event_type' => 'catalog.item_updated',
+            'aggregate_external_id' => $activeVariant->external_id,
+        ]);
+        $this->assertDatabaseMissing('integration_event_outbox', [
+            'event_type' => 'catalog.item_updated',
+            'aggregate_external_id' => $inactiveVariant->external_id,
+        ]);
+    }
+
 }

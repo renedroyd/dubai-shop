@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\IntegrationEventOutbox;
+use App\Models\Inventory;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\Warehouse;

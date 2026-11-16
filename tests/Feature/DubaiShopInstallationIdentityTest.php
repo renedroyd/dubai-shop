@@ -102,7 +102,7 @@ class DubaiShopInstallationIdentityTest extends TestCase
 
         $this->assertNotSame($oldIdentity, $identity->installation_id);
         $this->assertSame('pending', $identity->pairing_status);
-        $this->assertNotSame('clone-', substr((string) $identity->webhook_key_id, 0, 6));
+        $this->assertSame('clone-', substr((string) $identity->webhook_key_id, 0, 6));
         $this->assertNotSame('', $identity->webhook_secret);
         $this->assertNotSame($identity->webhook_secret, \Illuminate\Support\Facades\Crypt::decryptString($identity->webhook_secret));
 

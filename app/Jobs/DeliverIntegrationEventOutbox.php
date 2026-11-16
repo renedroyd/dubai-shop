@@ -144,4 +144,5 @@ class DeliverIntegrationEventOutbox implements ShouldQueue
                 ]);
             }
         });
-    }}
+    }
+}

@@ -8,6 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -31,10 +32,21 @@ class DeliverIntegrationEventOutbox implements ShouldQueue
             return;
         }
 
+        $identity = DB::table('integration_installation_identity')
+            ->where('id', 1)
+            ->first(['installation_id', 'pairing_status', 'webhook_key_id', 'webhook_secret']);
+
+        if (! $identity || ($identity->pairing_status ?? 'paired') !== 'paired') {
+            $event->update([
+                'available_at' => now()->addMinutes(5),
+                'locked_at' => null,
+            ]);
+
+            return;
+        }
+
         if (! config('services.social_publicator.enabled')
-            || ! filled(config('services.social_publicator.webhook_url'))
-            || ! filled(config('services.social_publicator.webhook_key_id'))
-            || ! filled(config('services.social_publicator.webhook_secret'))) {
+            || ! filled(config('services.social_publicator.webhook_url'))) {
             $event->update([
                 'available_at' => now()->addMinutes(5),
                 'locked_at' => null,
@@ -48,8 +60,12 @@ class DeliverIntegrationEventOutbox implements ShouldQueue
 
         try {
             $url = (string) config('services.social_publicator.webhook_url');
-            $keyId = (string) config('services.social_publicator.webhook_key_id');
-            $secret = (string) config('services.social_publicator.webhook_secret');
+            $keyId = filled($identity->webhook_key_id)
+                ? (string) $identity->webhook_key_id
+                : (string) config('services.social_publicator.webhook_key_id');
+            $secret = filled($identity->webhook_secret)
+                ? Crypt::decryptString((string) $identity->webhook_secret)
+                : (string) config('services.social_publicator.webhook_secret');
 
             if ($url === '' || $keyId === '' || $secret === '') {
                 throw new RuntimeException('SocialPublicator webhook URL, key ID and secret must be configured.');
@@ -63,7 +79,7 @@ class DeliverIntegrationEventOutbox implements ShouldQueue
                 $event->payload,
                 JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR,
             );
-            $installationId = (string) DB::table('integration_installation_identity')->where('id', 1)->value('installation_id');
+            $installationId = (string) $identity->installation_id;
 
             if (! Str::isUuid($installationId)) {
                 throw new RuntimeException('Dubai Shop installation identity is unavailable.');

@@ -45,8 +45,14 @@ class DeliverIntegrationEventOutbox implements ShouldQueue
             return;
         }
 
+        $hasWebhookCredentials = filled($identity->webhook_secret)
+            ? filled($identity->webhook_key_id)
+            : filled(config('services.social_publicator.webhook_key_id'))
+                && filled(config('services.social_publicator.webhook_secret'));
+
         if (! config('services.social_publicator.enabled')
-            || ! filled(config('services.social_publicator.webhook_url'))) {
+            || ! filled(config('services.social_publicator.webhook_url'))
+            || ! $hasWebhookCredentials) {
             $event->update([
                 'available_at' => now()->addMinutes(5),
                 'locked_at' => null,

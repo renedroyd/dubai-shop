@@ -12,7 +12,7 @@ class SocialPublicatorInstallationIdentityController extends Controller
     {
         $identity = DB::table('integration_installation_identity')
             ->where('id', 1)
-            ->first(['installation_id']);
+            ->first(['installation_id', 'pairing_status']);
 
         if (! $identity) {
             return response()->json(['message' => 'Installation identity is not configured.'], 503);
@@ -21,6 +21,7 @@ class SocialPublicatorInstallationIdentityController extends Controller
         return response()->json([
             'contract_version' => 'v1',
             'installation_id' => $identity->installation_id,
+            'pairing_status' => $identity->pairing_status ?? 'paired',
         ]);
     }
 }

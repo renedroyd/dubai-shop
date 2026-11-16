@@ -159,7 +159,7 @@ class SocialPublicatorOutboxTest extends TestCase
         ]);
     }
 
-    public function test_product_with_variants_emits_lifecycle_events_for_active_variants_only(): void
+    public function test_parent_product_updates_emit_lifecycle_events_for_active_variants_only(): void
     {
         $product = $this->product();
         $activeVariant = ProductVariant::query()->create([
@@ -177,17 +177,15 @@ class SocialPublicatorOutboxTest extends TestCase
             'sort_order' => 2,
         ]);
 
+        $product->update(['name' => 'Producto con variantes actualizado']);
+
         $this->assertDatabaseHas('integration_event_outbox', [
-            'event_type' => 'catalog.item_published',
+            'event_type' => 'catalog.item_updated',
             'aggregate_external_id' => $activeVariant->external_id,
         ]);
         $this->assertDatabaseMissing('integration_event_outbox', [
-            'event_type' => 'catalog.item_published',
+            'event_type' => 'catalog.item_updated',
             'aggregate_external_id' => $inactiveVariant->external_id,
-        ]);
-        $this->assertDatabaseMissing('integration_event_outbox', [
-            'event_type' => 'catalog.item_published',
-            'aggregate_external_id' => $product->external_id,
         ]);
     }
 

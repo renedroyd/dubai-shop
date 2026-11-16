@@ -62,13 +62,21 @@ class DeliverIntegrationEventOutbox implements ShouldQueue
                 $event->payload,
                 JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR,
             );
+            $installationId = (string) DB::table('integration_installation_identity')->where('id', 1)->value('installation_id');
+
+            if (! Str::isUuid($installationId)) {
+                throw new RuntimeException('Dubai Shop installation identity is unavailable.');
+            }
+
             $timestamp = (string) now()->timestamp;
-            $signature = hash_hmac('sha256', $timestamp.'.'.$body, $secret);
+            $signature = hash_hmac('sha256', $timestamp.'.'.$installationId.'.'.$body, $secret);
 
             $response = Http::timeout((int) config('services.social_publicator.timeout', 15))
                 ->withHeaders([
                     'Content-Type' => 'application/json',
                     'X-DubaiShop-Key-Id' => $keyId,
+                    'X-DubaiShop-Signature-Version' => 'v2',
+                    'X-DubaiShop-Installation-Id' => $installationId,
                     'X-DubaiShop-Timestamp' => $timestamp,
                     'X-DubaiShop-Signature' => 'sha256='.$signature,
                 ])

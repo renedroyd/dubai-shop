@@ -1,6 +1,6 @@
 # Contrato de integración: Dubai Shop → SocialPublicator
 
-**Estado:** contrato técnico aprobado para implementación por fases  
+**Estado:** contrato v1 implementado y validado mediante CI coordinado; pendiente piloto productivo y procedimiento de recuperación de identidad de instalaciones clonadas  
 **Versión del contrato:** v1  
 **Fuente de verdad:** Dubai Shop  
 **Consumidor y motor de publicación:** SocialPublicator
@@ -9,7 +9,7 @@
 
 Dubai Shop (Clásico Dubai) es la autoridad exclusiva sobre productos, variantes, precios, almacenes y existencias. SocialPublicator consulta el catálogo y recibe eventos para preparar campañas y publicaciones. No se conectarán directamente las bases de datos.
 
-Este documento define el contrato previsto; no implica que los endpoints o las tablas de integración ya estén implementados.
+Los endpoints, Transactional Outbox, identidad estable de instalación, firma HMAC v2 y consumidor SocialPublicator ya están implementados. Los ejemplos y reglas de este documento describen el contrato operativo; las pruebas de contrato compartidas entre repositorios validan la forma del evento v1.
 
 La integración no debe modificar los flujos existentes de POS, checkout, inventario ni publicación social. Los cambios se añadirán de forma compatible y gradual.
 
@@ -45,7 +45,7 @@ Dubai Shop enviará disponibilidad desglosada por almacén. SocialPublicator cal
 - El costo de adquisición y el precio mínimo interno de venta son datos privados y no forman parte del contrato.
 - Un cambio de precio generará un evento para que SocialPublicator programe una publicación de actualización inmediata, fuera del ciclo ordinario de publicaciones.
 
-## 5. API de lectura propuesta
+## 5. API de lectura implementada
 
 Base path versionado:
 
@@ -90,7 +90,7 @@ La primera sincronización realizará una lectura completa paginada. Las siguien
 }
 ```
 
-El ejemplo es ilustrativo. Los campos opcionales, paginación y serialización final se cubrirán con pruebas de contrato en la fase de API.
+El ejemplo es ilustrativo. La serialización, paginación y disponibilidad por almacén se validan mediante pruebas de integración del API.
 
 ## 6. Eventos salientes
 
@@ -180,7 +180,7 @@ Los eventos se identificarán por `event_id`; `revision` permitirá descartar ev
 - Revalidar precios y disponibilidad antes de publicar.
 - Utilizar el sistema existente de destinos, bots y ejecuciones idempotentes.
 
-## 11. Secuencia de implementación
+## 11. Secuencia de implementación y estado
 
 1. Contrato y documentación (esta fase).
 2. API de lectura, credenciales e identificadores externos en Dubai Shop.
@@ -192,3 +192,10 @@ Los eventos se identificarán por `event_id`; `revision` permitirá descartar ev
 8. Pruebas integrales y activación gradual.
 
 Cada fase deberá incluir pruebas automatizadas y validación de CI antes de considerar su integración.
+
+
+## 12. Validación de contrato entre repositorios
+
+La suite de pruebas usa un fixture determinista de evento v1 de inventario en Dubai Shop y SocialPublicator. Dubai Shop comprueba que el Transactional Outbox emite el mismo sobre; SocialPublicator comprueba la autenticación HMAC v2, la persistencia del inbox y la aplicación de la instantánea de existencias por almacén. WBot dispone de un fixture de publicación v1 que también es verificado por el endpoint Bot API de SocialPublicator.
+
+Cada repositorio ejecuta sus pruebas en su propio CI. La validación no requiere credenciales reales de redes sociales ni envía publicaciones a grupos o páginas reales.

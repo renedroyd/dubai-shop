@@ -199,3 +199,49 @@ Cada fase deberá incluir pruebas automatizadas y validación de CI antes de con
 La suite de pruebas usa un fixture determinista de evento v1 de inventario en Dubai Shop y SocialPublicator. Dubai Shop comprueba que el Transactional Outbox emite el mismo sobre; SocialPublicator comprueba la autenticación HMAC v2, la persistencia del inbox y la aplicación de la instantánea de existencias por almacén. WBot dispone de un fixture de publicación v1 que también es verificado por el endpoint Bot API de SocialPublicator.
 
 Cada repositorio ejecuta sus pruebas en su propio CI. La validación no requiere credenciales reales de redes sociales ni envía publicaciones a grupos o páginas reales.
+
+## 13. Cloning and disaster-recovery policy
+
+The installation UUID is intentionally persistent. Normal application startup, deployments, migrations, and ordinary database restores must never rotate it automatically.
+
+### A. Clone that will become a separate installation
+
+Run this only on the clone, after ensuring it is isolated from the source installation:
+
+```bash
+php artisan social-publicator:rotate-installation-identity --as-new-installation --confirm
+```
+
+The command performs one transaction that:
+
+1. Generates a new installation UUID.
+2. Sets pairing status to `pending`, which blocks all outbound event dispatch and delivery.
+3. Revokes every existing Dubai Shop integration API token and creates a new read-only token with a 365-day expiry.
+4. Generates a new webhook key ID and HMAC secret; the secret is encrypted at rest in the installation identity row.
+5. Marks every not-yet-delivered outbox event as suppressed/terminal so historical events from the clone are not replayed into a new workspace.
+6. Prints the new UUID, API token, webhook key ID, and webhook secret once. Store these securely; the plaintext credentials are not persisted or logged.
+
+Create a **new SocialPublicator workspace** and configure its Dubai Shop connection using the new API token and the new webhook key ID/secret. Verify that the authenticated identity endpoint returns the new UUID and that the new workspace is paired to it. Do not reuse the original workspace or old credentials.
+
+Only after those checks succeed, enable event delivery on the clone:
+
+```bash
+php artisan social-publicator:complete-installation-pairing <NEW_INSTALLATION_UUID> --confirm
+```
+
+The command requires the exact current UUID and explicit confirmation. Until then, the dispatcher leaves events unclaimed and queued delivery jobs do not send or consume retry attempts. New business events can accumulate in the outbox while pairing is pending.
+
+The clone command is intentionally not automatic and cannot be run a second time while pairing is already pending. It must not be run on the original installation.
+
+### B. Disaster-recovery restore
+
+A disaster-recovery restore that is replacing the original installation must preserve the original UUID and integration credentials. Before bringing the restored system online, ensure the original installation is offline and cannot send events. Do not run the clone-rotation command. This preserves the existing SocialPublicator workspace relationship and avoids creating a second installation identity.
+
+Never run the original and restored database copies concurrently with the same identity and credentials.
+
+### C. Normal boot and deployment
+
+Normal boot, cache clearing, migrations, worker restarts, and deployments never rotate the installation UUID or integration credentials. There is no automatic clone detection; the operator must explicitly choose between a new installation and a disaster-recovery replacement.
+
+The pairing status is stored in the installation identity table. Existing installations migrate as `paired` to preserve their current integration behavior; a clone becomes `pending` only after the explicit rotation command. The webhook secret generated during rotation is encrypted using the Laravel application key, so protect and back up that key securely.
+
